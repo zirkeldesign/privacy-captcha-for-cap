@@ -1,0 +1,15 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "@zirkeldesign/cap-captcha-for-gravity-forms",
+      "devDependencies": {
+        "cap-widget": "^0.1.56",
+      },
+    },
+  },
+  "packages": {
+    "cap-widget": ["cap-widget@0.1.56", "", {}, "sha512-mAoFWzouxCjvi0B0Y0s7cRGGaLvJxifMVeNIHiFCkZme/9BOASWliN0aqz9wTUdlrt3Awm0UEA8h8DV1IDUuug=="],
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "@zirkeldesign/cap-captcha-for-gravity-forms",
+  "version": "1.0.0",
+  "description": "Build tooling to bundle the cap-widget asset for the WordPress plugin.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-assets.mjs",
+    "build:check": "node scripts/build-assets.mjs --check"
+  },
+  "devDependencies": {
+    "cap-widget": "^0.1.56"
+  }
+}

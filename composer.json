@@ -1,0 +1,65 @@
+{
+  "name": "zirkeldesign/cap-captcha-for-gravity-forms",
+  "description": "Adds a Cap (trycap.dev) CAPTCHA field with server-side verification to Gravity Forms.",
+  "license": "GPL-2.0-or-later",
+  "type": "wordpress-plugin",
+  "keywords": [
+    "wordpress",
+    "gravity-forms",
+    "captcha",
+    "cap",
+    "trycap"
+  ],
+  "authors": [
+    {
+      "name": "zirkel.design",
+      "email": "hello@zirkel.design",
+      "homepage": "https://zirkel.design"
+    },
+    {
+      "name": "Daniel Sturm",
+      "email": "d.sturm@zirkeldesign.de",
+      "homepage": "https://zirkel.design"
+    }
+  ],
+  "homepage": "https://github.com/zirkeldesign/cap-captcha-for-gravity-forms",
+  "support": {
+    "issues": "https://github.com/zirkeldesign/cap-captcha-for-gravity-forms/issues",
+    "source": "https://github.com/zirkeldesign/cap-captcha-for-gravity-forms"
+  },
+  "require": {
+    "php": "^8.3"
+  },
+  "require-dev": {
+    "laravel/pint": "^1.27",
+    "pestphp/pest": "^3.0",
+    "php-stubs/gravity-forms-stubs": "^2.8",
+    "php-stubs/wordpress-stubs": "^6.7",
+    "phpstan/phpstan": "^2.0",
+    "szepeviktor/phpstan-wordpress": "^2.0"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true,
+  "autoload": {
+    "psr-4": {
+      "ZirkelDesign\\GFCapCaptcha\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "ZirkelDesign\\GFCapCaptcha\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    },
+    "sort-packages": true
+  },
+  "scripts": {
+    "format": "pint",
+    "format:test": "pint --test",
+    "phpstan": "phpstan analyse --memory-limit=1G",
+    "test": "pest"
+  }
+}
