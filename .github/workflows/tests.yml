@@ -100,6 +100,9 @@ jobs:
       - name: Install runtime composer dependencies
         run: composer install --no-dev --optimize-autoloader --no-interaction
 
+      - name: Install wp-cli dist-archive package
+        run: wp package install wp-cli/dist-archive-command:@stable --allow-root
+
       - name: Build distribution archive
         run: |
           mkdir -p dist
