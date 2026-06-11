@@ -8,7 +8,6 @@
  * The dist composer script writes this to a temp `.version` file so the zip
  * name can include it without invoking PHP twice.
  */
-
 $content = file_get_contents(__DIR__.'/cap-captcha.php');
 
 if ($content === false) {
