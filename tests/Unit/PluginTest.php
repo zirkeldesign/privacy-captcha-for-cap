@@ -2,7 +2,8 @@
 
 declare(strict_types=1);
 
-use ZirkelDesign\GFCapCaptcha\Plugin;
+use ZirkelDesign\CapCaptcha\Asset\Enqueuer;
+use ZirkelDesign\CapCaptcha\Integration\GravityForms;
 
 it('detects forms that contain a cap_captcha field', function (): void {
     $form = [
@@ -12,7 +13,7 @@ it('detects forms that contain a cap_captcha field', function (): void {
         ],
     ];
 
-    expect(Plugin::formHasCapField($form))->toBeTrue();
+    expect(GravityForms::formHasCapField($form))->toBeTrue();
 });
 
 it('returns false when no Cap field is present', function (): void {
@@ -23,14 +24,16 @@ it('returns false when no Cap field is present', function (): void {
         ],
     ];
 
-    expect(Plugin::formHasCapField($form))->toBeFalse();
+    expect(GravityForms::formHasCapField($form))->toBeFalse();
 });
 
 it('handles empty or missing fields gracefully', function (): void {
-    expect(Plugin::formHasCapField([]))->toBeFalse();
-    expect(Plugin::formHasCapField(['fields' => []]))->toBeFalse();
+    expect(GravityForms::formHasCapField([]))->toBeFalse();
+    expect(GravityForms::formHasCapField(['fields' => []]))->toBeFalse();
 });
 
 it('exposes a stable module id for the widget', function (): void {
-    expect(Plugin::WIDGET_MODULE_ID)->toBe('cap-captcha-for-gravity-forms/widget');
+    expect(Enqueuer::WIDGET_MODULE_ID)->toBe('cap-captcha/widget');
+    expect(Enqueuer::FLOATING_MODULE_ID)->toBe('cap-captcha/floating');
+    expect(Enqueuer::PROGRAMMATIC_MODULE_ID)->toBe('cap-captcha/programmatic');
 });

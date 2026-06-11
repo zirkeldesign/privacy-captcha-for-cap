@@ -1,14 +1,19 @@
 {
-  "name": "@zirkeldesign/cap-captcha-for-gravity-forms",
+  "name": "@zirkeldesign/cap-captcha",
   "version": "1.0.0",
-  "description": "Build tooling to bundle the cap-widget asset for the WordPress plugin.",
+  "description": "Build tooling to bundle the cap-widget and WASM assets for the WordPress plugin.",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "node scripts/build-assets.mjs",
-    "build:check": "node scripts/build-assets.mjs --check"
+    "build:check": "node scripts/build-assets.mjs --check",
+    "translate": "bun run translate:pot && bun run translate:update && bun run translate:mo",
+    "translate:pot": "php -d error_reporting=22527 $(which wp) i18n make-pot . ./languages/cap-captcha.pot --slug=cap-captcha --domain=cap-captcha --include='cap-captcha.php,src' --exclude='node_modules,vendor,assets,tests,scripts,dist'",
+    "translate:update": "for file in ./languages/*.po; do wp i18n update-po ./languages/cap-captcha.pot \"$file\"; done",
+    "translate:mo": "wp i18n make-mo ./languages ./languages"
   },
   "devDependencies": {
+    "@cap.js/wasm": "^0.0.7",
     "cap-widget": "^0.1.56"
   }
 }

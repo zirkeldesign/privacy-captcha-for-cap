@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use ZirkelDesign\GFCapCaptcha\Verification\CapVerifier;
+use ZirkelDesign\CapCaptcha\Verification\CapVerifier;
 
 beforeEach(function (): void {
     cap_reset_remote_stub();

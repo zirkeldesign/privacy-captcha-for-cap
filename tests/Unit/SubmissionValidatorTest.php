@@ -2,18 +2,42 @@
 
 declare(strict_types=1);
 
-use ZirkelDesign\GFCapCaptcha\Settings;
-use ZirkelDesign\GFCapCaptcha\Validation\SubmissionValidator;
+use ZirkelDesign\CapCaptcha\Integration\GravityForms\Validator;
+use ZirkelDesign\CapCaptcha\Settings;
+use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
 
 beforeEach(function (): void {
     $_POST = [];
+    cap_reset_options();
+    cap_reset_remote_stub();
 });
 
-function capFakeSettings(): Settings
+function capFakeSettings(bool $failOpen = false): Settings
 {
+    update_option(Settings::OPTION_KEY, [
+        'endpoint_base' => 'https://cap.example.com/',
+        'site_key' => 'sitekey',
+        'secret_key' => 'secret',
+        'display_mode' => Settings::MODE_INLINE,
+        'wasm_source' => Settings::WASM_BUNDLED,
+        'fail_open' => $failOpen,
+        'integrations' => [
+            'gravity_forms' => true,
+            'comments' => false,
+            'login' => false,
+            'registration' => false,
+            'woocommerce' => false,
+        ],
+    ]);
+
     return new class extends Settings
     {
         public function __construct() {}
+
+        public function isConfigured(): bool
+        {
+            return true;
+        }
 
         public function getEndpointBase(): string
         {
@@ -28,6 +52,11 @@ function capFakeSettings(): Settings
         public function getSecretKey(): string
         {
             return 'secret';
+        }
+
+        public function isFailOpen(): bool
+        {
+            return false;
         }
     };
 }
@@ -56,14 +85,16 @@ function capForm(object ...$fields): array
 it('passes through forms without a Cap field', function (): void {
     $result = capForm((object) ['id' => 1, 'type' => 'text']);
 
-    $validator = new SubmissionValidator(static fn () => capFakeSettings());
+    $settings = capFakeSettings();
+    $validator = new Validator(new TokenVerifier($settings));
 
     expect($validator->validate($result))->toBe($result);
 });
 
 it('fails when the cap-token is missing', function (): void {
     $field = capCaptchaField();
-    $validator = new SubmissionValidator(static fn () => capFakeSettings());
+    $settings = capFakeSettings();
+    $validator = new Validator(new TokenVerifier($settings));
 
     $result = $validator->validate(capForm($field));
 
@@ -74,12 +105,11 @@ it('fails when the cap-token is missing', function (): void {
 
 it('fails when the verifier rejects the token', function (): void {
     $_POST['cap-token'] = 'bad-token';
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
 
     $field = capCaptchaField();
-    $validator = new SubmissionValidator(
-        static fn () => capFakeSettings(),
-        static fn (string $token, Settings $settings): bool => false,
-    );
+    $settings = capFakeSettings();
+    $validator = new Validator(new TokenVerifier($settings));
 
     $result = $validator->validate(capForm($field));
 
@@ -89,12 +119,11 @@ it('fails when the verifier rejects the token', function (): void {
 
 it('passes when the verifier accepts the token', function (): void {
     $_POST['cap-token'] = 'good-token';
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
 
     $field = capCaptchaField();
-    $validator = new SubmissionValidator(
-        static fn () => capFakeSettings(),
-        static fn (string $token, Settings $settings): bool => true,
-    );
+    $settings = capFakeSettings();
+    $validator = new Validator(new TokenVerifier($settings));
 
     $result = $validator->validate(capForm($field));
 

@@ -1,14 +1,19 @@
 {
-  "name": "zirkeldesign/cap-captcha-for-gravity-forms",
-  "description": "Adds a Cap (trycap.dev) CAPTCHA field with server-side verification to Gravity Forms.",
+  "name": "zirkeldesign/cap-captcha",
+  "description": "Protect WordPress comments, login, registration, WooCommerce, and Gravity Forms with a self-hosted Cap (trycap.dev) proof-of-work CAPTCHA.",
   "license": "GPL-2.0-or-later",
   "type": "wordpress-plugin",
   "keywords": [
     "wordpress",
-    "gravity-forms",
     "captcha",
     "cap",
-    "trycap"
+    "trycap",
+    "spam",
+    "proof-of-work",
+    "comments",
+    "login",
+    "woocommerce",
+    "gravity-forms"
   ],
   "authors": [
     {
@@ -22,10 +27,10 @@
       "homepage": "https://zirkel.design"
     }
   ],
-  "homepage": "https://github.com/zirkeldesign/cap-captcha-for-gravity-forms",
+  "homepage": "https://github.com/zirkeldesign/cap-captcha",
   "support": {
-    "issues": "https://github.com/zirkeldesign/cap-captcha-for-gravity-forms/issues",
-    "source": "https://github.com/zirkeldesign/cap-captcha-for-gravity-forms"
+    "issues": "https://github.com/zirkeldesign/cap-captcha/issues",
+    "source": "https://github.com/zirkeldesign/cap-captcha"
   },
   "require": {
     "php": "^8.3"
@@ -42,12 +47,12 @@
   "prefer-stable": true,
   "autoload": {
     "psr-4": {
-      "ZirkelDesign\\GFCapCaptcha\\": "src/"
+      "ZirkelDesign\\CapCaptcha\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "ZirkelDesign\\GFCapCaptcha\\Tests\\": "tests/"
+      "ZirkelDesign\\CapCaptcha\\Tests\\": "tests/"
     }
   },
   "config": {
@@ -60,6 +65,20 @@
     "format": "pint",
     "format:test": "pint --test",
     "phpstan": "phpstan analyse --memory-limit=1G",
-    "test": "pest"
+    "test": "pest",
+    "plugin-check": [
+      "@php -r \"echo '🔍 Running Plugin Check...\\n';\"",
+      "wp plugin check cap-captcha 2>/dev/null | grep -c '\\\"type\\\":\\\"ERROR\\\"' | xargs -I {} sh -c 'if [ {} -eq 0 ]; then echo \"✅ No ERRORs found\"; else echo \"❌ {} ERROR(s) found — run wp plugin check cap-captcha for details\" && exit 1; fi'"
+    ],
+    "dist": [
+      "@php -r \"echo '🔨 Building distribution archive...\\n';\"",
+      "@putenv COMPOSER_DISCARD_CHANGES=true",
+      "composer install --no-dev --optimize-autoloader --quiet",
+      "mkdir -p dist",
+      "@php get-version.php > .version",
+      "wp dist-archive . dist/cap-captcha-$(cat .version).zip",
+      "composer install --quiet",
+      "@php -r \"echo '✅ Distribution archive created: dist/cap-captcha-' . trim(file_get_contents('.version')) . '.zip\\n'; unlink('.version');\""
+    ]
   }
 }

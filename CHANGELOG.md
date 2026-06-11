@@ -5,8 +5,16 @@ All notable changes to this project will be documented in this file.
 ## [1.0.0] - Unreleased
 
 ### Added
-- Initial release.
-- Custom Gravity Forms field "Cap CAPTCHA" registered under *Advanced Fields*.
-- Global settings page (Forms → Settings → Cap CAPTCHA) for endpoint URL, site key, secret.
-- Server-side token verification against `<endpoint>/<site_key>/siteverify`.
-- Filter `cap_captcha_for_gravity_forms_widget_src` to override the widget script URL.
+- Initial release as **Cap CAPTCHA** (renamed from "Cap CAPTCHA for Gravity Forms").
+- Top-level **Settings → Cap CAPTCHA** page with per-integration toggles.
+- **Comments** integration (`comment_form_after_fields` + `preprocess_comment`).
+- **Login** integration (`login_form` + `wp_authenticate_user`).
+- **Registration** integration (`register_form` + `registration_errors`).
+- **WooCommerce checkout** integration (auto-detected, only loads when WC is active).
+- **Programmatic display mode** — auto-solves the challenge in the background, no user interaction.
+- **WASM source** setting (bundled / Cap server / jsdelivr) with bundled as the default.
+- **Fail-open** behavior toggle for resilience during Cap-server outages.
+- **`CAP_CAPTCHA_SECRET_KEY`** constant override so the secret can live in `wp-config.php`.
+- Bundled `@cap.js/wasm@0.0.7` so the WebAssembly module is served from the plugin, not jsdelivr.
+- German (`de_DE`) translations for the new settings strings.
+- Architecture refactor: shared `Asset\Renderer`, `Asset\Enqueuer`, `Verification\TokenVerifier`, and an `Integration\Integration` contract.

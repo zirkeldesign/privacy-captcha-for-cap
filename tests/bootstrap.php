@@ -4,46 +4,55 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__).'/vendor/autoload.php';
 
-if (! defined('GF_CAP_CAPTCHA_VERSION')) {
-    define('GF_CAP_CAPTCHA_VERSION', '1.0.0-test');
+if (! defined('CAP_CAPTCHA_VERSION')) {
+    define('CAP_CAPTCHA_VERSION', '1.0.0-test');
 }
-if (! defined('GF_CAP_CAPTCHA_FILE')) {
-    define('GF_CAP_CAPTCHA_FILE', __FILE__);
+if (! defined('CAP_CAPTCHA_FILE')) {
+    define('CAP_CAPTCHA_FILE', __FILE__);
 }
-if (! defined('GF_CAP_CAPTCHA_DIR')) {
-    define('GF_CAP_CAPTCHA_DIR', dirname(__DIR__).'/');
+if (! defined('CAP_CAPTCHA_DIR')) {
+    define('CAP_CAPTCHA_DIR', dirname(__DIR__).'/');
 }
-if (! defined('GF_CAP_CAPTCHA_URL')) {
-    define('GF_CAP_CAPTCHA_URL', 'http://localhost/wp-content/plugins/cap-captcha-for-gravity-forms/');
+if (! defined('CAP_CAPTCHA_URL')) {
+    define('CAP_CAPTCHA_URL', 'http://localhost/wp-content/plugins/cap-captcha/');
 }
 
-if (! class_exists('GFAddOn')) {
-    class GFAddOn
+if (! function_exists('wp_unslash')) {
+    function wp_unslash(mixed $value): mixed
     {
-        protected $_version;
-
-        protected $_min_gravityforms_version;
-
-        protected $_slug;
-
-        protected $_path;
-
-        protected $_full_path;
-
-        protected $_title;
-
-        protected $_short_title;
-
-        /** @var array<string, mixed> */
-        protected array $_plugin_settings = [];
-
-        public function get_plugin_setting(string $name): mixed
-        {
-            return $this->_plugin_settings[$name] ?? '';
-        }
-
-        public static function register(string $class): void {}
+        return is_string($value) ? stripslashes($value) : $value;
     }
+}
+
+if (! function_exists('sanitize_text_field')) {
+    function sanitize_text_field(string $value): string
+    {
+        return trim(preg_replace('/[\r\n\t]+|\s+/u', ' ', $value) ?? $value);
+    }
+}
+
+if (! function_exists('get_option')) {
+    function get_option(string $name, mixed $default = false): mixed
+    {
+        return $GLOBALS['__cap_options'][$name] ?? $default;
+    }
+}
+
+if (! function_exists('update_option')) {
+    function update_option(string $name, mixed $value): bool
+    {
+        $GLOBALS['__cap_options'][$name] = $value;
+
+        return true;
+    }
+}
+
+/**
+ * Reset the in-memory wp_options store between tests.
+ */
+function cap_reset_options(): void
+{
+    $GLOBALS['__cap_options'] = [];
 }
 
 if (! function_exists('__')) {

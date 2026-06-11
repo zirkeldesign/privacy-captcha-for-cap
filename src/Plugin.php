@@ -2,97 +2,62 @@
 
 declare(strict_types=1);
 
-namespace ZirkelDesign\GFCapCaptcha;
+namespace ZirkelDesign\CapCaptcha;
 
-use GF_Fields;
-use GFAddOn;
-use ZirkelDesign\GFCapCaptcha\Field\CapCaptchaField;
-use ZirkelDesign\GFCapCaptcha\Validation\SubmissionValidator;
+use ZirkelDesign\CapCaptcha\Asset\Enqueuer;
+use ZirkelDesign\CapCaptcha\Asset\Renderer;
+use ZirkelDesign\CapCaptcha\Integration\Comments;
+use ZirkelDesign\CapCaptcha\Integration\GravityForms;
+use ZirkelDesign\CapCaptcha\Integration\Integration;
+use ZirkelDesign\CapCaptcha\Integration\Login;
+use ZirkelDesign\CapCaptcha\Integration\Registration;
+use ZirkelDesign\CapCaptcha\Integration\WooCommerce;
+use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
 
+/**
+ * Boot the plugin. Wires the central Settings page and conditionally registers
+ * each integration that the admin has opted into.
+ */
 final class Plugin
 {
     public static function boot(): void
     {
-        if (class_exists(GFAddOn::class)) {
-            GFAddOn::register(Settings::class);
-        }
+        // load_plugin_textdomain() is intentionally NOT called — WordPress 4.6+
+        // auto-loads any `{textdomain}-{locale}.mo` files found in the plugin's
+        // `/languages/` directory, which matches our naming convention.
 
-        add_action('gform_loaded', [self::class, 'registerField'], 5);
+        $settings = Settings::get_instance();
+        $settings->registerHooks();
 
-        $validator = new SubmissionValidator(static fn (): Settings => Settings::get_instance());
-        add_filter('gform_validation', [$validator, 'validate']);
+        $renderer = new Renderer($settings);
+        $enqueuer = new Enqueuer($settings);
+        $verifier = new TokenVerifier($settings);
 
-        add_action('gform_enqueue_scripts', [self::class, 'enqueueWidget'], 10, 2);
-        add_action('wp_head', [self::class, 'printWidgetGlobals'], 1);
-    }
-
-    public const WIDGET_MODULE_ID = 'cap-captcha-for-gravity-forms/widget';
-
-    public static function registerField(): void
-    {
-        if (! class_exists(GF_Fields::class)) {
-            return;
-        }
-
-        GF_Fields::register(new CapCaptchaField);
-    }
-
-    /**
-     * @param  array<string, mixed>  $form
-     */
-    public static function enqueueWidget(array $form, bool $isAjax): void
-    {
-        if (! self::formHasCapField($form)) {
-            return;
-        }
-
-        $src = (string) apply_filters(
-            'cap_captcha_for_gravity_forms_widget_src',
-            GF_CAP_CAPTCHA_URL.'assets/js/vendor/cap-widget.js'
-        );
-
-        wp_enqueue_script_module(
-            self::WIDGET_MODULE_ID,
-            $src,
-            [],
-            GF_CAP_CAPTCHA_VERSION
-        );
-    }
-
-    /**
-     * Emit the optional CAP_CUSTOM_WASM_URL global so air-gapped deployments can
-     * point the widget at a self-hosted WASM build instead of jsdelivr. Runs at
-     * wp_head priority 1 so the assignment lands before the module script tag.
-     */
-    public static function printWidgetGlobals(): void
-    {
-        $wasmUrl = (string) apply_filters('cap_captcha_for_gravity_forms_wasm_url', '');
-
-        if ($wasmUrl === '') {
-            return;
-        }
-
-        printf(
-            "<script>window.CAP_CUSTOM_WASM_URL=%s;</script>\n",
-            wp_json_encode($wasmUrl)
-        );
-    }
-
-    /**
-     * @param  array<string, mixed>  $form
-     */
-    public static function formHasCapField(array $form): bool
-    {
-        if (empty($form['fields']) || ! is_array($form['fields'])) {
-            return false;
-        }
-
-        foreach ($form['fields'] as $field) {
-            if (is_object($field) && isset($field->type) && $field->type === 'cap_captcha') {
-                return true;
+        foreach (self::integrations($settings, $renderer, $enqueuer, $verifier) as $integration) {
+            if (! $integration->isAvailable()) {
+                continue;
             }
-        }
+            if (! $settings->isIntegrationEnabled($integration->id())) {
+                continue;
+            }
 
-        return false;
+            $integration->register();
+        }
+    }
+
+    /**
+     * @return iterable<Integration>
+     */
+    private static function integrations(
+        Settings $settings,
+        Renderer $renderer,
+        Enqueuer $enqueuer,
+        TokenVerifier $verifier,
+    ): iterable {
+        yield new GravityForms($settings, $renderer, $enqueuer, $verifier);
+        yield new Comments($settings, $renderer, $enqueuer, $verifier);
+        yield new Login($settings, $renderer, $enqueuer, $verifier);
+        yield new Registration($settings, $renderer, $enqueuer, $verifier);
+        yield new WooCommerce($settings, $renderer, $enqueuer, $verifier);
     }
 }

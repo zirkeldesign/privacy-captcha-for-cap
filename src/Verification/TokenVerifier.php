@@ -1,0 +1,62 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ZirkelDesign\CapCaptcha\Verification;
+
+use ZirkelDesign\CapCaptcha\Settings;
+
+/**
+ * Higher-level verifier used by the WordPress integrations. Pulls the Cap
+ * token from `$_POST['cap-token']`, hands it to CapVerifier for the HTTP call,
+ * and honours the global "fail-open" setting when configured.
+ */
+final class TokenVerifier
+{
+    public function __construct(private readonly Settings $settings) {}
+
+    public function verifyCurrentRequest(): bool
+    {
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Caller (login/register/comment/checkout/GF flow) enforces its own nonce on the surrounding form before this is invoked.
+        $token = isset($_POST['cap-token']) && is_string($_POST['cap-token'])
+            ? sanitize_text_field(wp_unslash($_POST['cap-token']))
+            : '';
+
+        return $this->verifyToken($token);
+    }
+
+    public function verifyToken(string $token): bool
+    {
+        if ($token === '') {
+            return $this->failedResult();
+        }
+
+        if (! $this->settings->isConfigured()) {
+            return $this->failedResult();
+        }
+
+        $verifier = new CapVerifier(
+            $this->settings->getEndpointBase(),
+            $this->settings->getSiteKey(),
+            $this->settings->getSecretKey(),
+        );
+
+        $verified = $verifier->verify($token);
+
+        // CapVerifier already returns false on transport errors. When fail-open
+        // is enabled, we still need to distinguish "Cap rejected the token"
+        // from "couldn't reach Cap at all" — but CapVerifier collapses both to
+        // bool. Until we surface the distinction, fail-open lets *any* false
+        // through, which matches Oliweb's behavior.
+        if (! $verified && $this->settings->isFailOpen()) {
+            return true;
+        }
+
+        return $verified;
+    }
+
+    private function failedResult(): bool
+    {
+        return $this->settings->isFailOpen();
+    }
+}

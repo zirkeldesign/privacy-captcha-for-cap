@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ZirkelDesign\GFCapCaptcha\Verification;
+namespace ZirkelDesign\CapCaptcha\Verification;
 
 final class CapVerifier
 {

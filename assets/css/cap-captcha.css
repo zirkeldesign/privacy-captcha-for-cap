@@ -1,0 +1,125 @@
+/*
+ * Defaults for the floating-mode trigger button.
+ *
+ * Lives in `@layer components` so it shares a layer with theme-level plugin
+ * styles. Inside one layer the cascade is decided by specificity, so any
+ * normal class selector in your theme (e.g. `.gform_wrapper.gravity-theme
+ * .gform_button`) overrides us trivially — our `:where()` is 0,0,0.
+ *
+ * Picking this layer (instead of an isolated one) buys us protection against
+ * `@layer base` browser resets in Tailwind v4 / Roots stacks: in the order
+ * `theme, base, components, utilities`, components outranks base, so resets
+ * can no longer strip our padding/border/color before the form renders.
+ *
+ * Each property is wired through a three-step var fallback chain:
+ *
+ *   1. `--cap-captcha-<prop>` — our public API; override to skin the button
+ *   2. `--gf-ctrl-btn-<prop>` — Gravity Forms 2.5 Orbital theme tokens
+ *   3. a hard-coded sensible default
+ *
+ * The trigger renders as a neutral / secondary button on purpose: it pairs
+ * with the form's own primary submit so the visual hierarchy stays correct
+ * (one primary CTA, not two). Override via `--cap-captcha-bg/-color` if your
+ * project needs the trigger to look like the primary action.
+ *
+ * CSS Nesting is a Baseline 2023 feature — supported in every evergreen
+ * browser by the time WP 6.5 (our minimum) shipped, so we use it freely.
+ */
+
+/*
+ * Pre-declare the canonical Tailwind v4 / Roots layer order. If the host site
+ * already declared an order, its first declaration wins and this is a no-op.
+ */
+@layer theme, base, components, utilities;
+
+@layer components {
+    :where(.cap-captcha-floating-trigger) {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5em;
+
+        padding:
+            var(--cap-captcha-padding-y, var(--gf-ctrl-btn-padding-y, 0.6em))
+            var(--cap-captcha-padding-x, var(--gf-ctrl-btn-padding-x, 1.2em));
+
+        border: var(--cap-captcha-border, 1px solid var(--gf-ctrl-border-color, currentColor));
+        border-radius: var(--cap-captcha-radius, var(--gf-ctrl-btn-radius, var(--gf-radius, 0.25em)));
+
+        background-color: var(--cap-captcha-bg, transparent);
+        color: var(--cap-captcha-color, inherit);
+
+        font-family: var(--cap-captcha-font-family, var(--gf-ctrl-btn-font-family, inherit));
+        font-size: var(--cap-captcha-font-size, var(--gf-ctrl-btn-font-size, inherit));
+        line-height: var(--cap-captcha-line-height, var(--gf-ctrl-btn-line-height, 1.2));
+
+        box-shadow: var(--cap-captcha-shadow, none);
+
+        cursor: pointer;
+        text-decoration: none;
+        transition: var(
+            --cap-captcha-transition,
+            var(--gf-transition-ctrl, background-color 120ms ease, color 120ms ease, border-color 120ms ease)
+        );
+
+        &:hover,
+        &:focus-visible {
+            background-color: var(--cap-captcha-bg-hover, color-mix(in srgb, currentColor 8%, transparent));
+            color: var(--cap-captcha-color-hover, inherit);
+            border-color: var(--cap-captcha-border-color-hover, var(--gf-ctrl-border-color-hover, currentColor));
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--cap-captcha-focus-ring, var(--gf-color-primary, currentColor));
+            outline-offset: 2px;
+        }
+
+        &[disabled] {
+            opacity: 0.6;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        /*
+         * After solve, cap-widget.floating sets data-cap-progress="done" on
+         * the trigger and our floating-autosubmit helper submits the form
+         * ~80ms later. Hide the trigger immediately so the user doesn't see
+         * a "completed" button flicker before the page navigates.
+         */
+        &[data-cap-progress="done"] {
+            display: none;
+        }
+    }
+
+}
+
+/*
+ * wp-login.php context.
+ *
+ * Deliberately UNLAYERED so we can beat WP's own unlayered `.wp-core-ui
+ * .button` rules — anything inside `@layer components` loses to them
+ * regardless of specificity. We also use `body.login` (instead of plain
+ * `.login`) to lift our selector to specificity 0,2,1, edging out
+ * `.wp-core-ui .button` at 0,2,0.
+ */
+body.login .cap-captcha--floating {
+    clear: both;
+    margin: 1em 0;
+    text-align: center;
+}
+
+body.login .cap-captcha-floating-trigger {
+  float: none;
+  width: 100%;
+}
+
+/*
+ * Done state. cap-widget.floating sets data-cap-progress="done" on the
+ * trigger after solve; we hide it immediately so the user doesn't see a
+ * "completed but unclickable" button while the autosubmit (~80ms) fires.
+ * Must be unlayered + specific enough to outrank `.wp-core-ui .button`
+ * (0,2,0); the attribute selector lifts us to 0,2,2.
+ */
+body.login .cap-captcha-floating-trigger[data-cap-progress="done"] {
+    display: none;
+}

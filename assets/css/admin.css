@@ -1,0 +1,165 @@
+/*
+ * Cap CAPTCHA — admin styles for Settings → Cap CAPTCHA.
+ *
+ * Extracted from inline `<style>` blocks in Settings::renderPage() so the
+ * file is auditable and themeable. Loaded only on our settings page.
+ */
+
+/* ---------- Status panel (top of page) ---------- */
+
+.cap-captcha-status { margin: 1em 0 2em; max-width: 920px; }
+
+.cap-captcha-status__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1em;
+}
+
+.cap-captcha-status__card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 1em 1.25em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+}
+
+.cap-captcha-status__label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #50575e;
+}
+
+.cap-captcha-status__value {
+    font-size: 22px;
+    line-height: 1.2;
+    color: #1d2327;
+    font-weight: 600;
+}
+
+.cap-captcha-status__sub { font-size: 12px; color: #646970; }
+
+.cap-captcha-status__trend {
+    font-size: 12px;
+    color: #646970;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25em;
+}
+
+.cap-captcha-status__trend--up { color: #008a20; }
+.cap-captcha-status__trend--down { color: #d63638; }
+
+.cap-captcha-status__sparkline {
+    margin-top: 1em;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 0.5em 1em 0.25em;
+}
+
+.cap-captcha-status__bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 60px;
+    border-bottom: 1px solid #f0f0f1;
+    padding-bottom: 2px;
+}
+
+.cap-captcha-status__bar {
+    flex: 1;
+    min-height: 4px;
+    background: var(--gf-color-primary, #2271b1);
+    border-radius: 2px 2px 0 0;
+    opacity: 0.9;
+}
+
+.cap-captcha-status__bar[data-count="0"] {
+    min-height: 4px;
+    background: #c3c4c7;
+    opacity: 0.6;
+}
+
+.cap-captcha-status__axis {
+    display: flex;
+    gap: 2px;
+    margin-top: 4px;
+    font-size: 11px;
+    color: #50575e;
+}
+
+.cap-captcha-status__tick { flex: 1; text-align: center; min-width: 0; }
+
+.cap-captcha-status__refresh {
+    margin-top: 1em;
+    display: flex;
+    align-items: center;
+    gap: 0.75em;
+}
+
+/* ---------- Integration card grid ---------- */
+
+.cap-captcha-integrations__heading { margin: 1.5em 0 0.25em; }
+.cap-captcha-integrations__description { margin: 0 0 0.75em; }
+
+.cap-captcha-integrations__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.75em;
+    max-width: 920px;
+    margin-bottom: 1.5em;
+}
+
+.cap-captcha-integration {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75em;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 0.85em 1em;
+    cursor: pointer;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.cap-captcha-integration:hover {
+    border-color: var(--wp-admin-theme-color, #2271b1);
+}
+
+.cap-captcha-integration:has(.cap-captcha-integration__toggle:checked) {
+    border-color: var(--wp-admin-theme-color, #2271b1);
+    box-shadow: inset 0 0 0 1px var(--wp-admin-theme-color, #2271b1);
+}
+
+.cap-captcha-integration--disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* Beat wp-admin/load-styles.php's `input[type="checkbox"] { margin: -.25rem .25rem 0 0 }` */
+.cap-captcha-integration input[type="checkbox"].cap-captcha-integration__toggle {
+    margin: 0.15em 0 0 0;
+}
+
+.cap-captcha-integration__body { display: flex; flex-direction: column; gap: 0.15em; }
+.cap-captcha-integration__name { font-weight: 600; color: #1d2327; }
+.cap-captcha-integration__hint { font-size: 12px; color: #50575e; }
+
+.cap-captcha-integration__status {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #b32d2e;
+    margin-top: 0.25em;
+}
+
+/* ---------- Test connection button ---------- */
+
+.cap-captcha-test-connection { margin-top: 0.5em; display: flex; align-items: center; gap: 0.5em; flex-wrap: wrap; }
+.cap-captcha-test-connection__result {
+    font-size: 13px;
+    padding: 0.25em 0.6em;
+    border-radius: 3px;
+}
+.cap-captcha-test-connection__result--ok { background: #edfaef; color: #00450c; border: 1px solid #b8e6bf; }
+.cap-captcha-test-connection__result--err { background: #fcf0f1; color: #8a1f11; border: 1px solid #f3c5cf; }

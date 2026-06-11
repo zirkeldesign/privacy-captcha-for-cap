@@ -2,22 +2,13 @@
 
 declare(strict_types=1);
 
-namespace ZirkelDesign\GFCapCaptcha\Validation;
+namespace ZirkelDesign\CapCaptcha\Integration\GravityForms;
 
-use Closure;
-use ZirkelDesign\GFCapCaptcha\Settings;
-use ZirkelDesign\GFCapCaptcha\Verification\CapVerifier;
+use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
 
-final class SubmissionValidator
+final class Validator
 {
-    /**
-     * @param  Closure(): Settings  $settingsResolver
-     * @param  (Closure(string, Settings): bool)|null  $verifyOverride  Test seam.
-     */
-    public function __construct(
-        private readonly Closure $settingsResolver,
-        private readonly ?Closure $verifyOverride = null,
-    ) {}
+    public function __construct(private readonly TokenVerifier $verifier) {}
 
     /**
      * @param  array{is_valid: bool, form: array<string, mixed>}  $result
@@ -37,21 +28,17 @@ final class SubmissionValidator
             return $result;
         }
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- GF verifies its own nonce before this hook runs; the token is opaque text passed straight to Cap's /siteverify, sanitize_text_field would corrupt it.
         $token = isset($_POST['cap-token']) && is_string($_POST['cap-token'])
-            ? trim($_POST['cap-token'])
+            ? trim(wp_unslash($_POST['cap-token']))
             : '';
 
         if ($token === '') {
-            return $this->failResult($result, $field, esc_html__('Please complete the CAPTCHA before submitting.', 'cap-captcha-for-gravity-forms'));
+            return $this->failResult($result, $field, esc_html__('Please complete the CAPTCHA before submitting.', 'cap-captcha'));
         }
 
-        $settings = ($this->settingsResolver)();
-        $verified = $this->verifyOverride !== null
-            ? ($this->verifyOverride)($token, $settings)
-            : (new CapVerifier($settings->getEndpointBase(), $settings->getSiteKey(), $settings->getSecretKey()))->verify($token);
-
-        if (! $verified) {
-            return $this->failResult($result, $field, esc_html__('CAPTCHA verification failed. Please try again.', 'cap-captcha-for-gravity-forms'));
+        if (! $this->verifier->verifyToken($token)) {
+            return $this->failResult($result, $field, esc_html__('CAPTCHA verification failed. Please try again.', 'cap-captcha'));
         }
 
         return $result;

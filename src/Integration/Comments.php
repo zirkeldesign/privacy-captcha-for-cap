@@ -1,0 +1,83 @@
+<?php
+
+declare(strict_types=1);
+
+namespace ZirkelDesign\CapCaptcha\Integration;
+
+use ZirkelDesign\CapCaptcha\Asset\Enqueuer;
+use ZirkelDesign\CapCaptcha\Asset\Renderer;
+use ZirkelDesign\CapCaptcha\Settings;
+use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
+
+final class Comments implements Integration
+{
+    public function __construct(
+        private readonly Settings $settings,
+        private readonly Renderer $renderer,
+        private readonly Enqueuer $enqueuer,
+        private readonly TokenVerifier $verifier,
+    ) {}
+
+    public function id(): string
+    {
+        return 'comments';
+    }
+
+    public function isAvailable(): bool
+    {
+        return true;
+    }
+
+    public const WIDGET_ID = 'cap-captcha-comment';
+
+    public function register(): void
+    {
+        add_action('comment_form_after_fields', [$this, 'renderWidget']);
+        add_action('comment_form_logged_in_after', [$this, 'renderWidget']);
+        add_filter('comment_form_submit_button', [$this, 'attachFloatingAttrsToSubmit']);
+        add_filter('preprocess_comment', [$this, 'verifyComment']);
+    }
+
+    public function renderWidget(): void
+    {
+        if (! $this->settings->isConfigured()) {
+            echo $this->renderer->renderAdminNotice(__('Comments', 'cap-captcha')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+
+            return;
+        }
+
+        $mode = $this->settings->getDisplayMode();
+        $this->enqueuer->enqueueForMode($mode);
+        $this->enqueuer->printGlobals();
+
+        // In floating mode we hook comment_form_submit_button (below) so the
+        // existing submit button doubles as the trigger — no standalone UI.
+        echo $this->renderer->renderForMode(self::WIDGET_ID, $mode, false); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    }
+
+    public function attachFloatingAttrsToSubmit(string $button): string
+    {
+        if (! $this->settings->isConfigured() || ! $this->settings->isFloating()) {
+            return $button;
+        }
+
+        return Renderer::addFloatingAttrsToSubmit($button, self::WIDGET_ID);
+    }
+
+    /**
+     * @param  array<string, mixed>  $commentData
+     * @return array<string, mixed>
+     */
+    public function verifyComment(array $commentData): array
+    {
+        if (! $this->verifier->verifyCurrentRequest()) {
+            wp_die(
+                esc_html__('CAPTCHA verification failed. Please go back and complete the challenge.', 'cap-captcha'),
+                esc_html__('CAPTCHA verification failed', 'cap-captcha'),
+                ['response' => 403, 'back_link' => true]
+            );
+        }
+
+        return $commentData;
+    }
+}

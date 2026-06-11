@@ -1,57 +1,77 @@
-=== Cap CAPTCHA for Gravity Forms ===
+=== Cap CAPTCHA ===
 Contributors: zirkeldesign, dsturm
-Tags: gravity forms, captcha, cap, spam, privacy
+Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
-Tested up to: 6.7
+Tested up to: 7.0
 Requires PHP: 8.3
 Stable tag: 1.0.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Adds a Cap (trycap.dev) CAPTCHA field with server-side verification to Gravity Forms.
+Protect WordPress comments, login, registration, WooCommerce checkout, and Gravity Forms with a self-hosted Cap (trycap.dev) proof-of-work CAPTCHA.
 
 == Description ==
 
-**Cap CAPTCHA for Gravity Forms** lets you protect any Gravity Form with a [Cap](https://trycap.dev/) challenge from your own self-hosted Cap server. A new field type appears in the form editor under *Advanced Fields*; drag it onto your form and submissions without a valid token are rejected server-side.
+**Cap CAPTCHA** integrates [Cap](https://trycap.dev/) — a self-hosted, privacy-friendly, proof-of-work CAPTCHA — into the parts of WordPress that attract the most spam: comments, login, user registration, WooCommerce checkout, and Gravity Forms.
+
+Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof-of-work entirely in the visitor's browser and verifies the token against your own Cap server. No data leaves your infrastructure.
 
 = Features =
 
-* Drop-in **Cap CAPTCHA** field for the Gravity Forms editor
-* **Server-side verification** against your Cap server's `/siteverify` endpoint
-* **Self-hosted friendly** — point at any Cap instance (Docker, Kubernetes, bare-metal)
-* **No third-party tracking** — no Google, no Cloudflare, no external CDNs by default
-* **Translatable** error messages
-
-== Installation ==
-
-= From WordPress Admin =
-
-1. Upload the `cap-captcha-for-gravity-forms` folder to `/wp-content/plugins/`.
-2. Activate the plugin through the *Plugins* menu in WordPress.
-3. Go to **Forms → Settings → Cap CAPTCHA** and enter your Cap endpoint URL, site key, and secret key.
-4. Edit a form and drag the **Cap CAPTCHA** field from *Advanced Fields* onto your form.
+* **First-class Gravity Forms field** — drag a "Cap CAPTCHA" into any form from the Advanced Fields group. Per-field display-mode override.
+* **WordPress comments, wp-login, registration** integrations — togglable from one settings page.
+* **WooCommerce checkout** integration — only loads when WooCommerce is active.
+* **Three display modes**: inline widget, floating popover, or fully programmatic (auto-solves silently).
+* **Bundled WASM** — the proof-of-work WebAssembly module ships inside the plugin (`assets/wasm/cap_wasm_bg.wasm`), so no jsdelivr or other CDN is contacted at runtime. DSGVO/GDPR-clean by default.
+* **WP 6.5+ native script-module API** for proper ES-module loading.
+* **i18n-ready** with German translations bundled.
+* **Theme-friendly CSS** built on Gravity Forms Orbital tokens with `--cap-captcha-*` overrides.
+* **Filter hooks** for asset URLs, button classes, i18n strings, and the display mode.
 
 = Requirements =
 
-* WordPress 6.5 or later (uses the native script-module API)
+* WordPress 6.5 or later
 * PHP 8.3 or later
-* Gravity Forms 2.10 or later
 * A reachable Cap server (see https://trycap.dev/)
+* Gravity Forms 2.5+ (only if you enable the Gravity Forms integration)
+* WooCommerce (only if you enable the WooCommerce integration)
+
+== Installation ==
+
+1. Upload the `cap-captcha` folder to `/wp-content/plugins/`.
+2. Activate the plugin via the *Plugins* menu in WordPress.
+3. Go to **Settings → Cap CAPTCHA** and enter your Cap endpoint URL, site key, and secret key.
+4. Tick the integrations you want to enable.
 
 == Frequently Asked Questions ==
 
 = Where do I get a Cap endpoint, site key and secret? =
 
-You configure those in your self-hosted Cap server. See the Cap documentation at https://trycap.dev/.
+You provision those in your self-hosted Cap server. See the Cap documentation at https://trycap.dev/.
 
-= Can I use the Cap CDN widget instead of the bundled one? =
+= Where is the WASM loaded from? =
 
-Yes — use the `cap_captcha_for_gravity_forms_widget_src` filter to return your preferred script URL.
+By default: from the copy bundled inside this plugin at `wp-content/plugins/cap-captcha/assets/wasm/cap_wasm_bg.wasm`. You can switch to your Cap server's own `/assets/cap_wasm_bg.wasm` endpoint or to the upstream jsdelivr CDN under **Settings → Cap CAPTCHA → Privacy**.
+
+= Can I store the secret outside the database? =
+
+Yes. Define `CAP_CAPTCHA_SECRET_KEY` in `wp-config.php` and the plugin will use it instead of the value saved in `wp_options`.
+
+= What is "fail-open" mode? =
+
+When enabled, the plugin lets submissions through if the Cap server is unreachable. Off by default — only turn it on if temporary outages must not block legitimate users (logins, checkouts).
+
+= Does the bundled `cap-widget` script make any external requests? =
+
+It loads `pako` from jsdelivr in the current upstream build. There's no override hook for that yet ([cap#56](https://github.com/tiagozip/cap/issues/56)). For full air-gap, ship your own custom widget build via the `cap_captcha_widget_src` filter.
 
 == Changelog ==
 
 = 1.0.0 =
-* Added: Initial release
-* Added: Cap CAPTCHA field for the Gravity Forms editor
-* Added: Server-side verification of the Cap token on submission
-* Added: Global settings page under Forms → Settings → Cap CAPTCHA
+* Initial release.
+* Gravity Forms field (inline / floating / programmatic display).
+* Comments, login, registration, WooCommerce integrations.
+* Bundled WASM and cap-widget assets — DSGVO-clean by default.
+* WP 6.5 native script-module loading.
+* Top-level Settings → Cap CAPTCHA page with integration toggles, WASM source choice, fail-open switch.
+* German translations.
