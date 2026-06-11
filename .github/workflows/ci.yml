@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  php:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.4']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer:v2
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: composer-${{ runner.os }}-${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            composer-${{ runner.os }}-${{ matrix.php }}-
+
+      - name: Install composer dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run Pest tests
+        run: composer test
+
+      - name: Run PHPStan
+        run: composer phpstan
+
+      - name: Check Pint formatting
+        run: composer format:test
+
+  js:
+    name: JS assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install JS dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify vendored cap-widget + WASM are up to date
+        run: bun run build:check
+
+  dist:
+    name: Build release zip
+    needs: [php, js]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+          tools: composer:v2, wp-cli
+
+      - name: Install runtime composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Build distribution archive
+        run: |
+          mkdir -p dist
+          VERSION=$(php get-version.php)
+          wp dist-archive . dist/cap-captcha-"${VERSION}".zip --allow-root
+          ls -lh dist/
+
+      - name: Audit zip for hidden / dev files
+        run: |
+          set -e
+          ZIP=$(ls dist/cap-captcha-*.zip | head -1)
+          if unzip -l "$ZIP" | awk '{print $4}' | grep -E "/\.[^/]+$|^cap-captcha/\.[^/]+|tests/|node_modules/|composer\.lock" > /tmp/leak.txt; then
+            echo "❌ Leaked files in zip:"
+            cat /tmp/leak.txt
+            exit 1
+          fi
+          echo "✅ Zip is clean"
+
+      - name: Upload zip as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cap-captcha-zip
+          path: dist/*.zip
+          retention-days: 30
