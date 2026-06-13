@@ -15,12 +15,12 @@ final class Field extends GF_Field
 
     public function get_form_editor_field_title(): string
     {
-        return esc_attr__('Cap CAPTCHA', 'cap-captcha');
+        return esc_attr__('Privacy CAPTCHA for Cap', 'privacy-captcha-for-cap');
     }
 
     public function get_form_editor_field_description(): string
     {
-        return esc_attr__('Adds a Cap challenge that must be solved before the form can be submitted.', 'cap-captcha');
+        return esc_attr__('Adds a Cap challenge that must be solved before the form can be submitted.', 'privacy-captcha-for-cap');
     }
 
     public function get_form_editor_field_icon(): string
@@ -83,13 +83,13 @@ final class Field extends GF_Field
         ?>
         <li class="cap_display_mode_setting field_setting">
             <label for="cap_display_mode" class="section_label">
-                <?php echo esc_html__('Display mode', 'cap-captcha'); ?>
+                <?php echo esc_html__('Display mode', 'privacy-captcha-for-cap'); ?>
             </label>
             <select id="cap_display_mode" onchange="SetFieldProperty('capDisplayMode', jQuery(this).val());">
-                <option value=""><?php echo esc_html__('Use global setting', 'cap-captcha'); ?></option>
-                <option value="<?php echo esc_attr(Settings::MODE_INLINE); ?>"><?php echo esc_html__('Inline (always visible)', 'cap-captcha'); ?></option>
-                <option value="<?php echo esc_attr(Settings::MODE_FLOATING); ?>"><?php echo esc_html__('Floating (opens on click)', 'cap-captcha'); ?></option>
-                <option value="<?php echo esc_attr(Settings::MODE_PROGRAMMATIC); ?>"><?php echo esc_html__('Programmatic (auto-solves silently)', 'cap-captcha'); ?></option>
+                <option value=""><?php echo esc_html__('Use global setting', 'privacy-captcha-for-cap'); ?></option>
+                <option value="<?php echo esc_attr(Settings::MODE_INLINE); ?>"><?php echo esc_html__('Inline (always visible)', 'privacy-captcha-for-cap'); ?></option>
+                <option value="<?php echo esc_attr(Settings::MODE_FLOATING); ?>"><?php echo esc_html__('Floating (opens on click)', 'privacy-captcha-for-cap'); ?></option>
+                <option value="<?php echo esc_attr(Settings::MODE_PROGRAMMATIC); ?>"><?php echo esc_html__('Programmatic (auto-solves silently)', 'privacy-captcha-for-cap'); ?></option>
             </select>
         </li>
         <?php
@@ -100,9 +100,9 @@ final class Field extends GF_Field
      */
     public static function renderEditorJs(): void
     {
-        $defaultLabel = __('Cap CAPTCHA', 'cap-captcha');
-        ?>
-        <script>
+        $defaultLabel = __('Privacy CAPTCHA for Cap', 'privacy-captcha-for-cap');
+
+        $js = <<<'JS'
             (function ($) {
                 if (typeof fieldSettings === 'object' && fieldSettings.cap_captcha) {
                     fieldSettings.cap_captcha += ', .cap_display_mode_setting';
@@ -117,13 +117,16 @@ final class Field extends GF_Field
 
                 if (typeof window.SetDefaultValues_cap_captcha !== 'function') {
                     window.SetDefaultValues_cap_captcha = function (field) {
-                        field.label = '<?php echo esc_js($defaultLabel); ?>';
+                        field.label = '__CAP_DEFAULT_LABEL__';
                         return field;
                     };
                 }
             })(jQuery);
-        </script>
-        <?php
+            JS;
+
+        $js = str_replace('__CAP_DEFAULT_LABEL__', esc_js($defaultLabel), $js);
+
+        wp_print_inline_script_tag($js);
     }
 
     public function is_conditional_logic_supported(): bool
@@ -173,9 +176,9 @@ final class Field extends GF_Field
             $notice = $this->is_form_editor()
                 ? sprintf(
                     '<em>%s</em>',
-                    esc_html__('Cap CAPTCHA is not configured. Set the endpoint and keys in Settings → Cap CAPTCHA.', 'cap-captcha')
+                    esc_html__('Privacy CAPTCHA for Cap is not configured. Set the endpoint and keys in Settings → Privacy CAPTCHA for Cap.', 'privacy-captcha-for-cap')
                 )
-                : $renderer->renderAdminNotice(__('Gravity Forms', 'cap-captcha'));
+                : $renderer->renderAdminNotice(__('Gravity Forms', 'privacy-captcha-for-cap'));
 
             return sprintf('<div class="%s">%s</div>', esc_attr($cssClass), $notice);
         }

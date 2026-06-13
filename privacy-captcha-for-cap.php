@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Plugin Name:       Cap CAPTCHA
- * Plugin URI:        https://github.com/zirkeldesign/cap-captcha
- * Description:       Protect WordPress comments, login, registration, WooCommerce checkout, and Gravity Forms with a self-hosted Cap (trycap.dev) proof-of-work CAPTCHA.
+ * Plugin Name:       Privacy CAPTCHA for Cap
+ * Plugin URI:        https://github.com/zirkeldesign/privacy-captcha-for-cap
+ * Description:       Privacy-friendly spam protection for WordPress comments, login, registration, WooCommerce checkout, and Gravity Forms, powered by your own Cap (trycap.dev) server.
  * Version:           1.0.0
- * Author:            zirkel.design
+ * Author:            Zirkel Design
  * Author URI:        https://zirkel.design
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       cap-captcha
+ * Text Domain:       privacy-captcha-for-cap
  * Domain Path:       /languages
  * Requires PHP:      8.3
  * Requires at least: 6.5
@@ -41,8 +41,8 @@ add_action('plugins_loaded', static function (): void {
             printf(
                 '<div class="notice notice-error"><p>%s</p></div>',
                 esc_html__(
-                    'Cap CAPTCHA requires Gravity Forms to be installed and activated.',
-                    'cap-captcha'
+                    'Privacy CAPTCHA for Cap requires Gravity Forms to be installed and activated.',
+                    'privacy-captcha-for-cap'
                 )
             );
         });

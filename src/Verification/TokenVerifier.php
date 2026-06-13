@@ -17,10 +17,9 @@ final class TokenVerifier
 
     public function verifyCurrentRequest(): bool
     {
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Caller (login/register/comment/checkout/GF flow) enforces its own nonce on the surrounding form before this is invoked.
-        $token = isset($_POST['cap-token']) && is_string($_POST['cap-token'])
-            ? sanitize_text_field(wp_unslash($_POST['cap-token']))
-            : '';
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Caller (login/register/comment/checkout/GF flow) enforces its own nonce on the surrounding form; value is unslashed here and sanitized via sanitize_text_field() on the next line.
+        $raw = isset($_POST['cap-token']) ? wp_unslash($_POST['cap-token']) : '';
+        $token = is_string($raw) ? sanitize_text_field($raw) : '';
 
         return $this->verifyToken($token);
     }

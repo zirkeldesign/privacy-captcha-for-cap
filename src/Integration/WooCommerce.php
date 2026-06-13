@@ -40,7 +40,7 @@ final class WooCommerce implements Integration
     public function renderWidget(): void
     {
         if (! $this->settings->isConfigured()) {
-            echo $this->renderer->renderAdminNotice(__('WooCommerce checkout', 'cap-captcha')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            echo wp_kses($this->renderer->renderAdminNotice(__('WooCommerce checkout', 'privacy-captcha-for-cap')), Renderer::ADMIN_NOTICE_KSES);
 
             return;
         }
@@ -51,7 +51,8 @@ final class WooCommerce implements Integration
 
         // WC hooks woocommerce_order_button_html (below) so the existing
         // Place Order button becomes the floating trigger — no extra UI.
-        echo $this->renderer->renderForMode(self::WIDGET_ID, $mode, false); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Renderer returns a <cap-widget> custom element with dynamic data-cap-i18n-* attributes wp_kses cannot allowlist; every interpolated value is escaped via esc_attr()/esc_html() inside Renderer.
+        echo $this->renderer->renderForMode(self::WIDGET_ID, $mode, false);
     }
 
     public function attachFloatingAttrsToSubmit(string $button): string
@@ -67,7 +68,7 @@ final class WooCommerce implements Integration
     {
         if (! $this->verifier->verifyCurrentRequest() && function_exists('wc_add_notice')) {
             wc_add_notice(
-                esc_html__('CAPTCHA verification failed. Please try again.', 'cap-captcha'),
+                esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'),
                 'error'
             );
         }

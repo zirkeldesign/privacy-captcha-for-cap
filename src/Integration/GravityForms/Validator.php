@@ -29,16 +29,15 @@ final class Validator
         }
 
         // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- GF verifies its own nonce before this hook runs; the token is opaque text passed straight to Cap's /siteverify, sanitize_text_field would corrupt it.
-        $token = isset($_POST['cap-token']) && is_string($_POST['cap-token'])
-            ? trim(wp_unslash($_POST['cap-token']))
-            : '';
+        $raw = isset($_POST['cap-token']) ? wp_unslash($_POST['cap-token']) : '';
+        $token = is_string($raw) ? trim($raw) : '';
 
         if ($token === '') {
-            return $this->failResult($result, $field, esc_html__('Please complete the CAPTCHA before submitting.', 'cap-captcha'));
+            return $this->failResult($result, $field, esc_html__('Please complete the CAPTCHA before submitting.', 'privacy-captcha-for-cap'));
         }
 
         if (! $this->verifier->verifyToken($token)) {
-            return $this->failResult($result, $field, esc_html__('CAPTCHA verification failed. Please try again.', 'cap-captcha'));
+            return $this->failResult($result, $field, esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'));
         }
 
         return $result;

@@ -1,5 +1,5 @@
 {
-  "name": "@zirkeldesign/cap-captcha",
+  "name": "@zirkeldesign/privacy-captcha-for-cap",
   "version": "1.0.0",
   "description": "Build tooling to bundle the cap-widget and WASM assets for the WordPress plugin.",
   "private": true,
@@ -8,8 +8,8 @@
     "build": "node scripts/build-assets.mjs",
     "build:check": "node scripts/build-assets.mjs --check",
     "translate": "bun run translate:pot && bun run translate:update && bun run translate:mo",
-    "translate:pot": "php -d error_reporting=22527 $(which wp) i18n make-pot . ./languages/cap-captcha.pot --slug=cap-captcha --domain=cap-captcha --include='cap-captcha.php,src' --exclude='node_modules,vendor,assets,tests,scripts,dist'",
-    "translate:update": "for file in ./languages/*.po; do wp i18n update-po ./languages/cap-captcha.pot \"$file\"; done",
+    "translate:pot": "php -d error_reporting=22527 $(which wp) i18n make-pot . ./languages/privacy-captcha-for-cap.pot --slug=privacy-captcha-for-cap --domain=privacy-captcha-for-cap --include='privacy-captcha-for-cap.php,src' --exclude='node_modules,vendor,assets,tests,scripts,dist'",
+    "translate:update": "for file in ./languages/*.po; do wp i18n update-po ./languages/privacy-captcha-for-cap.pot \"$file\"; done",
     "translate:mo": "wp i18n make-mo ./languages ./languages"
   },
   "devDependencies": {

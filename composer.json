@@ -1,6 +1,6 @@
 {
-  "name": "zirkeldesign/cap-captcha",
-  "description": "Protect WordPress comments, login, registration, WooCommerce, and Gravity Forms with a self-hosted Cap (trycap.dev) proof-of-work CAPTCHA.",
+  "name": "zirkeldesign/privacy-captcha-for-cap",
+  "description": "Privacy-friendly spam protection for WordPress comments, login, registration, WooCommerce, and Gravity Forms, powered by your own Cap (trycap.dev) server.",
   "license": "GPL-2.0-or-later",
   "type": "wordpress-plugin",
   "keywords": [
@@ -27,10 +27,10 @@
       "homepage": "https://zirkel.design"
     }
   ],
-  "homepage": "https://github.com/zirkeldesign/cap-captcha",
+  "homepage": "https://github.com/zirkeldesign/privacy-captcha-for-cap",
   "support": {
-    "issues": "https://github.com/zirkeldesign/cap-captcha/issues",
-    "source": "https://github.com/zirkeldesign/cap-captcha"
+    "issues": "https://github.com/zirkeldesign/privacy-captcha-for-cap/issues",
+    "source": "https://github.com/zirkeldesign/privacy-captcha-for-cap"
   },
   "require": {
     "php": "^8.3"
@@ -71,7 +71,7 @@
     "test": "pest",
     "plugin-check": [
       "@php -r \"echo '🔍 Running Plugin Check...\\n';\"",
-      "wp plugin check cap-captcha 2>/dev/null | grep -c '\\\"type\\\":\\\"ERROR\\\"' | xargs -I {} sh -c 'if [ {} -eq 0 ]; then echo \"✅ No ERRORs found\"; else echo \"❌ {} ERROR(s) found — run wp plugin check cap-captcha for details\" && exit 1; fi'"
+      "wp plugin check privacy-captcha-for-cap 2>/dev/null | grep -c '\\\"type\\\":\\\"ERROR\\\"' | xargs -I {} sh -c 'if [ {} -eq 0 ]; then echo \"✅ No ERRORs found\"; else echo \"❌ {} ERROR(s) found — run wp plugin check privacy-captcha-for-cap for details\" && exit 1; fi'"
     ],
     "dist": [
       "@php -r \"echo '🔨 Building distribution archive...\\n';\"",
@@ -79,9 +79,9 @@
       "composer install --no-dev --optimize-autoloader --quiet",
       "mkdir -p dist",
       "@php get-version.php > .version",
-      "wp dist-archive . dist/cap-captcha-$(cat .version).zip",
+      "wp dist-archive . dist/privacy-captcha-for-cap-$(cat .version).zip --plugin-dirname=privacy-captcha-for-cap",
       "composer install --quiet",
-      "@php -r \"echo '✅ Distribution archive created: dist/cap-captcha-' . trim(file_get_contents('.version')) . '.zip\\n'; unlink('.version');\""
+      "@php -r \"echo '✅ Distribution archive created: dist/privacy-captcha-for-cap-' . trim(file_get_contents('.version')) . '.zip\\n'; unlink('.version');\""
     ]
   }
 }

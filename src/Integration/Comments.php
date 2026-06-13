@@ -41,7 +41,7 @@ final class Comments implements Integration
     public function renderWidget(): void
     {
         if (! $this->settings->isConfigured()) {
-            echo $this->renderer->renderAdminNotice(__('Comments', 'cap-captcha')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            echo wp_kses($this->renderer->renderAdminNotice(__('Comments', 'privacy-captcha-for-cap')), Renderer::ADMIN_NOTICE_KSES);
 
             return;
         }
@@ -52,7 +52,8 @@ final class Comments implements Integration
 
         // In floating mode we hook comment_form_submit_button (below) so the
         // existing submit button doubles as the trigger — no standalone UI.
-        echo $this->renderer->renderForMode(self::WIDGET_ID, $mode, false); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Renderer returns a <cap-widget> custom element with dynamic data-cap-i18n-* attributes wp_kses cannot allowlist; every interpolated value is escaped via esc_attr()/esc_html() inside Renderer.
+        echo $this->renderer->renderForMode(self::WIDGET_ID, $mode, false);
     }
 
     public function attachFloatingAttrsToSubmit(string $button): string
@@ -72,8 +73,8 @@ final class Comments implements Integration
     {
         if (! $this->verifier->verifyCurrentRequest()) {
             wp_die(
-                esc_html__('CAPTCHA verification failed. Please go back and complete the challenge.', 'cap-captcha'),
-                esc_html__('CAPTCHA verification failed', 'cap-captcha'),
+                esc_html__('CAPTCHA verification failed. Please go back and complete the challenge.', 'privacy-captcha-for-cap'),
+                esc_html__('CAPTCHA verification failed', 'privacy-captcha-for-cap'),
                 ['response' => 403, 'back_link' => true]
             );
         }

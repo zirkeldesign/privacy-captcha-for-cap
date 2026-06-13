@@ -5,8 +5,8 @@ All notable changes to this project will be documented in this file.
 ## [1.0.0] - Unreleased
 
 ### Added
-- Initial release as **Cap CAPTCHA** (renamed from "Cap CAPTCHA for Gravity Forms").
-- Top-level **Settings → Cap CAPTCHA** page with per-integration toggles.
+- Initial release as **Privacy CAPTCHA for Cap** (renamed from "Cap CAPTCHA for Gravity Forms").
+- Top-level **Settings → Privacy CAPTCHA for Cap** page with per-integration toggles.
 - **Comments** integration (`comment_form_after_fields` + `preprocess_comment`).
 - **Login** integration (`login_form` + `wp_authenticate_user`).
 - **Registration** integration (`register_form` + `registration_errors`).

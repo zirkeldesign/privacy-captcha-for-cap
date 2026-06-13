@@ -70,7 +70,7 @@ final class Login implements Integration
     public function renderWidget(): void
     {
         if (! $this->settings->isConfigured()) {
-            echo $this->renderer->renderAdminNotice(__('Login', 'cap-captcha')); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            echo wp_kses($this->renderer->renderAdminNotice(__('Login', 'privacy-captcha-for-cap')), Renderer::ADMIN_NOTICE_KSES);
 
             return;
         }
@@ -78,7 +78,8 @@ final class Login implements Integration
         $mode = $this->settings->getDisplayMode();
         $this->enqueuer->printGlobals();
 
-        echo $this->renderer->renderForMode('cap-captcha-login', $mode); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Renderer returns a <cap-widget> custom element with dynamic data-cap-i18n-* attributes wp_kses cannot allowlist; every interpolated value is escaped via esc_attr()/esc_html() inside Renderer.
+        echo $this->renderer->renderForMode('cap-captcha-login', $mode);
     }
 
     public function verifyLogin(WP_User|WP_Error $user, string $password): WP_User|WP_Error
@@ -90,7 +91,7 @@ final class Login implements Integration
         if (! $this->verifier->verifyCurrentRequest()) {
             return new WP_Error(
                 'cap_captcha_failed',
-                esc_html__('CAPTCHA verification failed. Please try again.', 'cap-captcha')
+                esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap')
             );
         }
 

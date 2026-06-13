@@ -1,4 +1,4 @@
-# Cap CAPTCHA
+# Privacy CAPTCHA for Cap
 
 WordPress plugin that integrates the self-hosted [Cap](https://trycap.dev/) proof-of-work CAPTCHA into WordPress comments, login, registration, WooCommerce checkout, and Gravity Forms — with server-side verification.
 
@@ -23,7 +23,7 @@ The `assets/js/vendor/cap-widget.*` and `assets/wasm/cap_wasm_bg.wasm` files are
 ## Configuration
 
 1. Activate the plugin.
-2. Go to **Settings → Cap CAPTCHA**.
+2. Go to **Settings → Privacy CAPTCHA for Cap**.
 3. Enter your Cap *endpoint base URL* (e.g. `https://cap.example.com/`), *site key*, and *secret key*. Optionally define `CAP_CAPTCHA_SECRET_KEY` in `wp-config.php` to keep the secret out of `wp_options`.
 4. Pick a default *display mode*: inline, floating, or programmatic.
 5. Pick a *WASM source*: bundled (default, DSGVO-clean), Cap server, or jsdelivr CDN.
@@ -69,7 +69,7 @@ The Gravity Forms field has a *Display mode* setting that overrides the global d
 ```
 src/
 ├── Plugin.php                          # boot, register integrations
-├── Settings.php                        # WP Settings → Cap CAPTCHA
+├── Settings.php                        # WP Settings → Privacy CAPTCHA for Cap
 ├── Asset/
 │   ├── Renderer.php                    # builds <cap-widget> markup
 │   └── Enqueuer.php                    # wp_enqueue_script_module, CSS, globals

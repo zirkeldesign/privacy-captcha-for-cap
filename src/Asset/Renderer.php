@@ -13,6 +13,17 @@ use ZirkelDesign\CapCaptcha\Settings;
  */
 final class Renderer
 {
+    /**
+     * Allowed HTML for the admin notice, so callers can echo it through
+     * wp_kses() instead of suppressing the output-escaping sniff.
+     *
+     * @var array<string, array<string, array<string, bool>>>
+     */
+    public const ADMIN_NOTICE_KSES = [
+        'div' => ['class' => [], 'role' => []],
+        'em' => [],
+    ];
+
     public function __construct(private readonly Settings $settings) {}
 
     /**
@@ -26,11 +37,11 @@ final class Renderer
         }
 
         $message = $integrationLabel === ''
-            ? esc_html__('Cap CAPTCHA is not configured. Set the endpoint and keys in Settings → Cap CAPTCHA.', 'cap-captcha')
+            ? esc_html__('Privacy CAPTCHA for Cap is not configured. Set the endpoint and keys in Settings → Privacy CAPTCHA for Cap.', 'privacy-captcha-for-cap')
             : sprintf(
                 /* translators: %s is the integration label, e.g. "Comments". */
-                esc_html__('Cap CAPTCHA (%s) is not configured. Set the endpoint and keys in Settings → Cap CAPTCHA.', 'cap-captcha'),
-                $integrationLabel
+                esc_html__('Privacy CAPTCHA for Cap (%s) is not configured. Set the endpoint and keys in Settings → Privacy CAPTCHA for Cap.', 'privacy-captcha-for-cap'),
+                esc_html($integrationLabel)
             );
 
         return sprintf(
@@ -125,7 +136,7 @@ final class Renderer
             esc_attr($buttonClasses),
             esc_attr($inputId),
             esc_attr($position),
-            esc_html__('Verify you are human', 'cap-captcha')
+            esc_html__('Verify you are human', 'privacy-captcha-for-cap')
         );
     }
 
@@ -141,13 +152,13 @@ final class Renderer
     private function buildI18nAttributes(): string
     {
         $defaults = [
-            'initial-state' => __("I'm not a robot", 'cap-captcha'),
-            'verifying-label' => __('Verifying…', 'cap-captcha'),
-            'solved-label' => __('Verified', 'cap-captcha'),
-            'error-label' => __('Error. Please try again.', 'cap-captcha'),
-            'verify-aria-label' => __('Start CAPTCHA verification', 'cap-captcha'),
-            'verifying-aria-label' => __('Verifying CAPTCHA', 'cap-captcha'),
-            'verified-aria-label' => __('CAPTCHA verified', 'cap-captcha'),
+            'initial-state' => __("I'm not a robot", 'privacy-captcha-for-cap'),
+            'verifying-label' => __('Verifying…', 'privacy-captcha-for-cap'),
+            'solved-label' => __('Verified', 'privacy-captcha-for-cap'),
+            'error-label' => __('Error. Please try again.', 'privacy-captcha-for-cap'),
+            'verify-aria-label' => __('Start CAPTCHA verification', 'privacy-captcha-for-cap'),
+            'verifying-aria-label' => __('Verifying CAPTCHA', 'privacy-captcha-for-cap'),
+            'verified-aria-label' => __('CAPTCHA verified', 'privacy-captcha-for-cap'),
         ];
 
         $strings = apply_filters('cap_captcha_i18n', $defaults);

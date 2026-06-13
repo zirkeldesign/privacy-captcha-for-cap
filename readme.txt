@@ -1,5 +1,5 @@
-=== Cap CAPTCHA ===
-Contributors: zirkeldesign, dsturm
+=== Privacy CAPTCHA for Cap ===
+Contributors: dsturm
 Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
 Tested up to: 7.0
@@ -8,17 +8,19 @@ Stable tag: 1.0.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Protect WordPress comments, login, registration, WooCommerce checkout, and Gravity Forms with a self-hosted Cap (trycap.dev) proof-of-work CAPTCHA.
+Privacy-friendly spam protection for comments, login, registration, WooCommerce, and Gravity Forms, powered by your own Cap server.
 
 == Description ==
 
-**Cap CAPTCHA** integrates [Cap](https://trycap.dev/) — a self-hosted, privacy-friendly, proof-of-work CAPTCHA — into the parts of WordPress that attract the most spam: comments, login, user registration, WooCommerce checkout, and Gravity Forms.
+**Privacy CAPTCHA for Cap** integrates [Cap](https://trycap.dev/) — a self-hosted, privacy-friendly, proof-of-work CAPTCHA — into the parts of WordPress that attract the most spam: comments, login, user registration, WooCommerce checkout, and Gravity Forms.
 
 Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof-of-work entirely in the visitor's browser and verifies the token against your own Cap server. No data leaves your infrastructure.
 
+> **Unofficial integration.** Cap is an independent open-source project by tiagozip (https://trycap.dev/, Apache-2.0). This plugin is a third-party integration and is **not affiliated with, endorsed by, or sponsored by** the Cap project. "Cap" refers to that project solely to describe what this plugin works with.
+
 = Features =
 
-* **First-class Gravity Forms field** — drag a "Cap CAPTCHA" into any form from the Advanced Fields group. Per-field display-mode override.
+* **First-class Gravity Forms field** — drag a "Privacy CAPTCHA for Cap" into any form from the Advanced Fields group. Per-field display-mode override.
 * **WordPress comments, wp-login, registration** integrations — togglable from one settings page.
 * **WooCommerce checkout** integration — only loads when WooCommerce is active.
 * **Three display modes**: inline widget, floating popover, or fully programmatic (auto-solves silently).
@@ -38,12 +40,16 @@ Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof
 
 == Installation ==
 
-1. Upload the `cap-captcha` folder to `/wp-content/plugins/`.
+1. Upload the `privacy-captcha-for-cap` folder to `/wp-content/plugins/`.
 2. Activate the plugin via the *Plugins* menu in WordPress.
-3. Go to **Settings → Cap CAPTCHA** and enter your Cap endpoint URL, site key, and secret key.
+3. Go to **Settings → Privacy CAPTCHA for Cap** and enter your Cap endpoint URL, site key, and secret key.
 4. Tick the integrations you want to enable.
 
 == Frequently Asked Questions ==
+
+= Is this an official Cap plugin? =
+
+No. Cap is an independent open-source project by tiagozip (https://trycap.dev/), licensed under Apache-2.0. This plugin is an unofficial third-party integration and is not affiliated with or endorsed by the Cap project. We reference the "Cap" name only to indicate which software this plugin works with.
 
 = Where do I get a Cap endpoint, site key and secret? =
 
@@ -51,7 +57,7 @@ You provision those in your self-hosted Cap server. See the Cap documentation at
 
 = Where is the WASM loaded from? =
 
-By default: from the copy bundled inside this plugin at `wp-content/plugins/cap-captcha/assets/wasm/cap_wasm_bg.wasm`. You can switch to your Cap server's own `/assets/cap_wasm_bg.wasm` endpoint or to the upstream jsdelivr CDN under **Settings → Cap CAPTCHA → Privacy**.
+By default: from the copy bundled inside this plugin at `wp-content/plugins/privacy-captcha-for-cap/assets/wasm/cap_wasm_bg.wasm`. You can switch to your Cap server's own `/assets/cap_wasm_bg.wasm` endpoint or to the upstream jsdelivr CDN under **Settings → Privacy CAPTCHA for Cap → Privacy**.
 
 = Can I store the secret outside the database? =
 
@@ -73,5 +79,5 @@ It loads `pako` from jsdelivr in the current upstream build. There's no override
 * Comments, login, registration, WooCommerce integrations.
 * Bundled WASM and cap-widget assets — DSGVO-clean by default.
 * WP 6.5 native script-module loading.
-* Top-level Settings → Cap CAPTCHA page with integration toggles, WASM source choice, fail-open switch.
+* Top-level Settings → Privacy CAPTCHA for Cap page with integration toggles, WASM source choice, fail-open switch.
 * German translations.
