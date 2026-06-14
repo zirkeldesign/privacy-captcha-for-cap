@@ -59,6 +59,12 @@ You provision those in your self-hosted Cap server. See the Cap documentation at
 
 By default: from the copy bundled inside this plugin at `wp-content/plugins/privacy-captcha-for-cap/assets/wasm/cap_wasm_bg.wasm`. You can switch to your Cap server's own `/assets/cap_wasm_bg.wasm` endpoint or to the upstream jsdelivr CDN under **Settings → Privacy CAPTCHA for Cap → Privacy**.
 
+= Why is a `.wasm` file bundled, and where does it come from? =
+
+The bundled `assets/wasm/cap_wasm_bg.wasm` is the WebAssembly module the Cap widget uses to run the proof-of-work challenge in the visitor's browser. Bundling it locally is the privacy-friendly default: it means no third-party CDN (jsdelivr) is contacted at page load, so visitor IPs are never shared (DSGVO/GDPR-clean).
+
+It is the unmodified upstream file from the `@cap.js/wasm` npm package (Apache-2.0), part of the open-source Cap project. The plugin does not alter it. Its source and build live in the Cap repository at https://github.com/tiagozip/cap, and the vendoring step is reproducible via `scripts/build-assets.mjs` (`bun run build`), which copies the file verbatim and `bun run build:check` verifies it matches upstream.
+
 = Can I store the secret outside the database? =
 
 Yes. Define `CAP_CAPTCHA_SECRET_KEY` in `wp-config.php` and the plugin will use it instead of the value saved in `wp_options`.
