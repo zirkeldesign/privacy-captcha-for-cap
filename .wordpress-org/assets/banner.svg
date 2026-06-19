@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 772 250">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f3d6c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f15a2b;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="772" height="250" fill="url(#bgGradient)"/>
+
+  <!-- Faint proof-of-work / hash motif (left) -->
+  <g font-family="'Monaco', 'Courier New', monospace" font-size="17" fill="white" opacity="0.18">
+    <text x="44" y="78">sha-256 · proof-of-work</text>
+    <text x="44" y="108">0x8f3a1c · nonce 49213</text>
+    <text x="44" y="138">00009b7e4c1d6a2f8e0b</text>
+    <text x="44" y="168">challenge → solve → ✓</text>
+  </g>
+
+  <!-- Centre glyph badge -->
+  <circle cx="330" cy="125" r="62" fill="white" opacity="0.12"/>
+  <path d="M 300 127 L 322 150 L 366 100" stroke="white" stroke-width="11" fill="none"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Title (right) -->
+  <text x="424" y="116" font-family="'Helvetica Neue', Arial, sans-serif" font-size="36" font-weight="bold" fill="white">Privacy CAPTCHA</text>
+  <text x="426" y="152" font-family="'Helvetica Neue', Arial, sans-serif" font-size="23" fill="white" opacity="0.85">for Cap</text>
+</svg>
