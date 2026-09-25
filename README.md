@@ -62,6 +62,20 @@ Beyond the on/off surface toggle, the two form plugins offer placement control (
 - **Contact Form 7** — *Automatic* protects every form (add the `[cap_captcha]` form-tag for custom placement, or `cap_captcha: off` in a form's Additional Settings to skip it); *Manual* protects only forms containing the `[cap_captcha]` tag. Verification is scoped to the same set, so an unprotected form is never blocked.
 - **Gravity Forms** — add the "Privacy CAPTCHA for Cap" field for precise placement, and/or enable "protect all Gravity Forms" globally. Each form has a **Default / Always / Never** override in its settings; an auto-protected form without the field gets a synthetic `cap_captcha` field injected at runtime.
 
+## Styling
+
+In Gravity Forms forms using the Orbital theme, the widget takes on the look of the fields around it: font, text and background colour, border, corner radius, height, checkbox, focus ring and spinner. `assets/css/cap-captcha.css` maps the form's `--gf-*` tokens onto the widget's `--cap-*` custom properties, so form styles picked in the block editor carry over too. Forms on the legacy Gravity Forms theme and all other surfaces keep the widget's own defaults.
+
+To change a value, set the `--cap-*` property on `cap-widget`, on `.cap-captcha` or on the form wrapper with any class selector:
+
+```css
+.gform_wrapper cap-widget {
+    --cap-focus-ring: var(--brand);
+}
+```
+
+Setting it on `:root` does not reach Gravity Forms forms, because the presets sit on the form wrapper, which is closer. The full list of properties is in cap-widget's `src/cap.css`. Return `''` from `cap_captcha_style_src` to drop the presets together with the rest of the bundled styles.
+
 ## Filter hooks
 
 - `cap_captcha_protect` — master gate for **every** surface. `($enabled, $context)` → bool. Runs before the widget renders and before a submission is verified, so it controls all situations. Example: `add_filter('cap_captcha_protect', fn($on, $ctx) => is_user_logged_in() ? false : $on, 10, 2);`

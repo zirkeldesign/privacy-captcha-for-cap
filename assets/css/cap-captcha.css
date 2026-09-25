@@ -91,6 +91,52 @@
         }
     }
 
+    /*
+     * Gravity Forms Orbital presets for <cap-widget>.
+     *
+     * The widget renders in a shadow root and reads its look from `--cap-*`
+     * custom properties, which inherit through the shadow boundary. Orbital
+     * keeps the look of every form control in `--gf-*` tokens on the form
+     * wrapper, including the colours and radius picked in the block editor's
+     * form styles, which Gravity Forms prints inline on that same wrapper.
+     * Mapping one onto the other makes the CAPTCHA look like the fields
+     * around it without any theme CSS.
+     *
+     * Set on the wrapper, not on `cap-widget`: a declaration on the element
+     * itself would beat anything a theme sets on an ancestor, regardless of
+     * layer or specificity. Here a theme overrides by setting `--cap-*` on
+     * `cap-widget`, on `.cap-captcha`, or on the wrapper with any class
+     * selector. Only `:root` no longer reaches, because this is closer.
+     *
+     * The legacy Gravity Forms theme has no `--gf-*` tokens and no
+     * `.gform-theme--framework` class, so nothing here applies to it.
+     */
+    :where(.gform-theme--framework) {
+        /*
+         * Orbital ships `--gf-font-family-base: initial`, so its fields end up
+         * with an invalid font-family and inherit the page font. `0` does the
+         * same for the widget: it is not a valid font-family, so the shadow
+         * root falls back to inheriting from the host instead of using the
+         * widget's system stack. `inherit` would not work here, a CSS-wide
+         * keyword in a custom property applies to the property itself.
+         */
+        --cap-font: var(--gf-font-family-base, 0);
+        --cap-color: var(--gf-ctrl-color);
+        --cap-background: var(--gf-ctrl-bg-color);
+        --cap-border-color: var(--gf-ctrl-border-color);
+        --cap-border-radius: var(--gf-ctrl-radius);
+        --cap-widget-height: var(--gf-ctrl-size);
+        --cap-widget-padding: var(--gf-ctrl-padding-x);
+        --cap-checkbox-size: var(--gf-ctrl-choice-size);
+        --cap-checkbox-border: var(--gf-ctrl-border-width) var(--gf-ctrl-border-style) var(--gf-ctrl-border-color);
+        --cap-checkbox-border-radius: var(--gf-ctrl-checkbox-check-radius);
+        --cap-checkbox-background: var(--gf-ctrl-bg-color);
+        --cap-focus-ring: var(--gf-ctrl-outline-color-focus);
+        --cap-spinner-color: var(--gf-color-primary);
+        --cap-spinner-background-color: var(--gf-ctrl-border-color);
+        --cap-invalid-border-color: var(--gf-ctrl-border-color-error);
+    }
+
 }
 
 /*
