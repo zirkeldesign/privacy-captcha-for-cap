@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- **French translation (`fr_FR`).** Contributed by [@loxK](https://github.com/loxK) (Laurent Dinclaux, Gecka) in [#23](https://github.com/zirkeldesign/privacy-captcha-for-cap/pull/23), their first contribution to the plugin. Thank you! All 131 strings, tested on a French site with the settings page, the dashboard widget and the inline widget in a Contact Form 7 form. The WASM source label that changed in 1.4.0 was added on top.
+
 ## [1.4.0] - 2026-09-25
 
 ### Fixed

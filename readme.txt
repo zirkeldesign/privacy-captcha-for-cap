@@ -112,6 +112,9 @@ The full, annotated list with examples is in README.md.
 
 == Changelog ==
 
+= Unreleased =
+* Added: French translation.
+
 = 1.4.0 =
 * Fixed: the CAPTCHA failed with "unsupported format-2 protocol 'hashwx'" on site keys created with Cap 3.1 or newer, which use the new hashwx challenge by default. Those keys work now, and older keys keep working as before.
 * Improved: the solver for the new challenge ships inside the plugin like the existing one, so still no third-party CDN is contacted.
