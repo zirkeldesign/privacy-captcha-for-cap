@@ -2,10 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [1.5.0] - 2026-09-25
 
 ### Added
 
+- **Gravity Forms Orbital presets for the widget.** `assets/css/cap-captcha.css` maps Orbital's `--gf-*` control tokens onto cap-widget's `--cap-*` custom properties (font, colours, border, radius, height, padding, checkbox, focus ring, spinner, invalid border), so the CAPTCHA looks like the fields around it without theme CSS. Form styles picked in the block editor follow automatically, since Gravity Forms prints them as inline `--gf-*` tokens on the same wrapper. Verified on Gravity Forms 3.1.2 with a customised Orbital form (widget and text input computed to the same height, border colour, radius, background, colour and font; widget checkbox and form checkbox to the same size, border and radius), on stock Orbital, and with block-editor colours applied.
+  - The presets sit on `:where(.gform-theme--framework)`, the wrapper, not on `cap-widget`. A declaration on the element itself would beat anything a theme sets on an ancestor regardless of layer or specificity. As it is, themes override on `cap-widget`, `.cap-captcha` or the wrapper; only `:root` no longer reaches.
+  - `--cap-font` falls back to the token `0`, not `inherit`. Orbital ships `--gf-font-family-base: initial`, and its fields inherit the page font because their font-family becomes invalid at computed-value time. `0` does the same inside the shadow root. `inherit` does not: a CSS-wide keyword in a custom property applies to the custom property itself, which left `--cap-font` empty and the widget on its own system font stack.
+  - The legacy Gravity Forms theme has neither the class nor the tokens and is unaffected.
+- `tests/Unit/OrbitalPresetsTest.php` pins both sides of the mapping: every `--cap-*` property set is read by the vendored widget, the presets are never declared on `cap-widget`, and every `--gf-*` token exists in Gravity Forms. The last check runs only where Gravity Forms is installed (the integration fixture), since it is commercial and not available in CI.
 - **French translation (`fr_FR`).** Contributed by [@loxK](https://github.com/loxK) (Laurent Dinclaux, Gecka) in [#23](https://github.com/zirkeldesign/privacy-captcha-for-cap/pull/23), their first contribution to the plugin. Thank you! All 131 strings, tested on a French site with the settings page, the dashboard widget and the inline widget in a Contact Form 7 form. The WASM source label that changed in 1.4.0 was added on top.
 
 ## [1.4.0] - 2026-09-25

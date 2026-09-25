@@ -4,7 +4,7 @@ Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.4.0
+Stable tag: 1.5.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -30,7 +30,7 @@ Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof
 * **Fully self-hosted assets** — the proof-of-work WebAssembly module, the cap-widget script, and the pako decompression library all ship inside the plugin and are served locally, so no jsdelivr or other third-party CDN is contacted at runtime. DSGVO/GDPR-clean by default.
 * **WP 6.5+ native script-module API** for proper ES-module loading.
 * **i18n-ready** with German translations bundled.
-* **Theme-friendly CSS** built on Gravity Forms Orbital tokens with `--cap-captcha-*` overrides.
+* **Matches your Gravity Forms design:** in Orbital forms the CAPTCHA takes on the look of the fields around it, including form styles set in the block editor. Everything stays overridable with CSS custom properties.
 * **Filter hooks** for protection gating, asset URLs, button classes, i18n strings, and the display mode.
 
 = Requirements =
@@ -92,6 +92,10 @@ Yes. Every surface passes through the `cap_captcha_protect` filter — `($enable
 
 Yes — useful for legally required or accessibility-sensitive forms. For **Contact Form 7**, set the mode to *Manual* (Settings → Form placement) and add the `[cap_captcha]` tag only to the forms you want protected; or, in *Automatic* mode, add `cap_captcha: off` to a form's Additional Settings to skip just that one. For **Gravity Forms**, each form has a *Privacy CAPTCHA* setting (Default / Always / Never) so you can exclude individual forms even when "protect all" is on.
 
+= Can I change how the CAPTCHA looks? =
+
+In Gravity Forms forms using the Orbital theme it already follows the look of your fields. Anywhere else, or to change a detail, set the widget's CSS custom properties (`--cap-background`, `--cap-border-color`, `--cap-border-radius`, `--cap-focus-ring` and others) on `cap-widget` or on the form. In Gravity Forms, set them on the form or the widget rather than on `:root`.
+
 = Are there developer hooks / filters? =
 
 Yes. The main ones:
@@ -112,7 +116,8 @@ The full, annotated list with examples is in README.md.
 
 == Changelog ==
 
-= Unreleased =
+= 1.5.0 =
+* Improved: in Gravity Forms forms using the Orbital theme, the CAPTCHA now matches the fields around it (font, colours, border, corners, height), including form styles set in the block editor.
 * Added: French translation.
 
 = 1.4.0 =
