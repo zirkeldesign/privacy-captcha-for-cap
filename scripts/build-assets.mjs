@@ -40,8 +40,9 @@ const pakoVersion = JSON.parse(
 
 /**
  * Neutralises the upstream jsdelivr fallback URLs baked into the minified
- * widget bundle. The plugin always sets `window.CAP_PAKO_URL` and
- * `window.CAP_CUSTOM_WASM_URL` (see Asset\Enqueuer), so these `X || "<url>"`
+ * widget bundle. The plugin always sets `window.CAP_PAKO_URL`,
+ * `window.CAP_CUSTOM_WASM_URL` and `window.CAP_CUSTOM_HASHWX_URL` (see
+ * Asset\Enqueuer), so these `X || "<url>"`
  * fallbacks are never reached at runtime — but stripping the literals keeps
  * the shipped file free of any third-party CDN reference, as WordPress.org
  * requires (Guideline 8). Each URL literal becomes an empty string.
@@ -62,6 +63,10 @@ const files = [
     { srcDir: widgetPkg, src: 'cap.min.js', destDir: jsDestDir, dest: 'cap-widget.js', transform: stripCdnFallbacks },
     { srcDir: widgetPkg, src: 'cap-floating.min.js', destDir: jsDestDir, dest: 'cap-widget.floating.js' },
     { srcDir: wasmPkg, src: 'browser/cap_wasm_bg.wasm', destDir: wasmDestDir, dest: 'cap_wasm_bg.wasm' },
+    // Solver for the `hashwx` protocol, which Cap Standalone 3.1+ issues for new
+    // site keys by default. Unlike sha256-pow it has no JS fallback: without
+    // this file the widget cannot solve a hashwx challenge at all.
+    { srcDir: wasmPkg, src: 'browser/hashwx.wasm', destDir: wasmDestDir, dest: 'hashwx.wasm' },
     { srcDir: pakoPkg, src: 'dist/pako_inflate.min.js', destDir: jsDestDir, dest: 'pako_inflate.min.js' },
 ];
 

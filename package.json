@@ -13,8 +13,8 @@
     "translate:mo": "wp i18n make-mo ./languages ./languages"
   },
   "devDependencies": {
-    "@cap.js/wasm": "^0.0.7",
-    "cap-widget": "^0.1.56",
+    "@cap.js/wasm": "^0.0.8",
+    "cap-widget": "^0.1.58",
     "pako": "^2.2.0"
   }
 }

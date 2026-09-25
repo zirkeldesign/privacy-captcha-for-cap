@@ -126,6 +126,12 @@ final class Enqueuer
             $globals['CAP_CUSTOM_WASM_URL'] = $wasmUrl;
         }
 
+        $hashwxDefault = $this->settings->getSelfHostedHashwxUrl();
+        $hashwxUrl = (string) apply_filters('cap_captcha_hashwx_url', $hashwxDefault);
+        if ($hashwxUrl !== '') {
+            $globals['CAP_CUSTOM_HASHWX_URL'] = $hashwxUrl;
+        }
+
         $pakoDefault = CAP_CAPTCHA_URL.'assets/js/vendor/pako_inflate.min.js';
         $pakoUrl = (string) apply_filters('cap_captcha_pako_url', $pakoDefault);
         if ($pakoUrl !== '') {

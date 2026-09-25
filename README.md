@@ -18,7 +18,7 @@ bun install
 bun run build   # copies cap-widget + WASM into assets/
 ```
 
-The `assets/js/vendor/cap-widget.*` and `assets/wasm/cap_wasm_bg.wasm` files are committed so the plugin works straight from a checkout (and from a WordPress.org zip). Rerun `bun run build` after bumping the upstream deps. `bun run build:check` fails CI if the vendored files drift.
+The `assets/js/vendor/cap-widget.*`, `assets/wasm/cap_wasm_bg.wasm` and `assets/wasm/hashwx.wasm` files are committed so the plugin works straight from a checkout (and from a WordPress.org zip). Rerun `bun run build` after bumping the upstream deps. `bun run build:check` fails CI if the vendored files drift.
 
 ## Configuration
 
@@ -73,6 +73,7 @@ Beyond the on/off surface toggle, the two form plugins offer placement control (
 - `cap_captcha_programmatic_src` — override the URL of `assets/js/programmatic.js`.
 - `cap_captcha_style_src` — override the front-end stylesheet URL. Return `''` to disable the bundled styles entirely.
 - `cap_captcha_wasm_url` — override the URL the widget loads its WASM bundle from (sets `window.CAP_CUSTOM_WASM_URL`). Default is whatever the *WASM source* setting resolves to.
+- `cap_captcha_hashwx_url` - override the URL of the solver for the `hashwx` protocol (sets `window.CAP_CUSTOM_HASHWX_URL`). Follows the *WASM source* setting like `cap_captcha_wasm_url`. The widget has no JS fallback for hashwx, so this must point at a reachable `hashwx.wasm` whenever the Cap server issues hashwx challenges.
 - `cap_captcha_pako_url` — override the URL the widget loads the `pako` decompression library from (sets `window.CAP_PAKO_URL`). Only fetched by older browsers lacking the native `DecompressionStream` API. Default: `assets/js/vendor/pako_inflate.min.js`.
 - `cap_captcha_i18n` — override the `data-cap-i18n-*` strings used on `<cap-widget>`. Accepts an `array<string,string>`.
 - `cap_captcha_floating_button_classes` — override the CSS classes on the floating-mode trigger button.
