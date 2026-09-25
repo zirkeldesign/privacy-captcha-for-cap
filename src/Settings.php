@@ -409,7 +409,7 @@ class Settings
                                 </label><br>
                                 <label>
                                     <input type="radio" name="<?php echo esc_attr(self::OPTION_KEY); ?>[wasm_source]" value="<?php echo esc_attr(self::WASM_CAP_SERVER); ?>" <?php checked($v['wasm_source'], self::WASM_CAP_SERVER); ?>>
-                                    <?php echo esc_html__('Cap server — load from your endpoint at /assets/cap_wasm_bg.wasm', 'privacy-captcha-for-cap'); ?>
+                                    <?php echo esc_html__('Cap server: load from your endpoint under /assets/', 'privacy-captcha-for-cap'); ?>
                                 </label>
                             </fieldset>
                         </td>
@@ -973,15 +973,29 @@ class Settings
 
     public function getSelfHostedWasmUrl(): string
     {
+        return $this->resolveWasmUrl('cap_wasm_bg.wasm');
+    }
+
+    /**
+     * Solver for the `hashwx` protocol, which Cap Standalone 3.1+ issues for
+     * new site keys by default. Follows the same WASM source setting as the
+     * sha256 solver.
+     */
+    public function getSelfHostedHashwxUrl(): string
+    {
+        return $this->resolveWasmUrl('hashwx.wasm');
+    }
+
+    private function resolveWasmUrl(string $file): string
+    {
         $values = $this->getAll();
         $source = (string) ($values['wasm_source'] ?? self::WASM_BUNDLED);
 
         return match ($source) {
-            self::WASM_BUNDLED => CAP_CAPTCHA_URL.'assets/wasm/cap_wasm_bg.wasm',
             self::WASM_CAP_SERVER => $this->getEndpointBase() === ''
                 ? ''
-                : $this->getEndpointBase().'assets/cap_wasm_bg.wasm',
-            default => CAP_CAPTCHA_URL.'assets/wasm/cap_wasm_bg.wasm',
+                : $this->getEndpointBase()."assets/{$file}",
+            default => CAP_CAPTCHA_URL."assets/wasm/{$file}",
         };
     }
 

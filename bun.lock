@@ -5,16 +5,16 @@
     "": {
       "name": "@zirkeldesign/privacy-captcha-for-cap",
       "devDependencies": {
-        "@cap.js/wasm": "^0.0.7",
-        "cap-widget": "^0.1.56",
-        "pako": "^2.1.0",
+        "@cap.js/wasm": "^0.0.8",
+        "cap-widget": "^0.1.58",
+        "pako": "^2.2.0",
       },
     },
   },
   "packages": {
-    "@cap.js/wasm": ["@cap.js/wasm@0.0.7", "", {}, "sha512-IgUjrPOUBaOjTp+BkrhfEBBeQ4An7fQiSWWezDy9Uvd+OdTYm4+h3AJU0j/CpHYayp7FltZU+UePC6p28oGQaw=="],
+    "@cap.js/wasm": ["@cap.js/wasm@0.0.8", "", {}, "sha512-rX+4/v2sz4GKLnygXHOS89O7c4GM2qNQcDJP6Y2cyGwoKjg83bsfWHt1TWr9GBzHpFADvju5fvLWYds21nS8sA=="],
 
-    "cap-widget": ["cap-widget@0.1.56", "", {}, "sha512-mAoFWzouxCjvi0B0Y0s7cRGGaLvJxifMVeNIHiFCkZme/9BOASWliN0aqz9wTUdlrt3Awm0UEA8h8DV1IDUuug=="],
+    "cap-widget": ["cap-widget@0.1.58", "", {}, "sha512-7iS/Q++AaiVvWR8xvMSxRwGWY+fV1ZADJNwPzLk4P1gibCmCbS5G6MGOtoUjsj9OxI9+0nkewW6gRsOGDCOZZA=="],
 
     "pako": ["pako@2.2.0", "", {}, "sha512-zJq6RP/5q+TO2OpFV3FHzlPnFjmkb7Nc99a5SNjJE+uu/PkpChs+NIZSSzbBoD+6kjiISXjfYdwj1ZRQ81dz/w=="],
   }
