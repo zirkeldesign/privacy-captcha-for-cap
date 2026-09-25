@@ -7,14 +7,15 @@
   "scripts": {
     "build": "node scripts/build-assets.mjs",
     "build:check": "node scripts/build-assets.mjs --check",
+    "upstream:watch": "node scripts/upstream-watch.mjs",
     "translate": "bun run translate:pot && bun run translate:update && bun run translate:mo",
     "translate:pot": "php -d error_reporting=22527 $(which wp) i18n make-pot . ./languages/privacy-captcha-for-cap.pot --slug=privacy-captcha-for-cap --domain=privacy-captcha-for-cap --include='privacy-captcha-for-cap.php,src' --exclude='node_modules,vendor,assets,tests,scripts,dist'",
     "translate:update": "for file in ./languages/*.po; do wp i18n update-po ./languages/privacy-captcha-for-cap.pot \"$file\"; done",
     "translate:mo": "wp i18n make-mo ./languages ./languages"
   },
   "devDependencies": {
-    "@cap.js/wasm": "^0.0.7",
-    "cap-widget": "^0.1.56",
+    "@cap.js/wasm": "^0.0.8",
+    "cap-widget": "^0.1.58",
     "pako": "^2.2.0"
   }
 }

@@ -6,3 +6,6 @@
 
 # Integration-test WordPress install
 /.wp-integration/
+
+# Written by scripts/upstream-watch.mjs
+upstream-report.md

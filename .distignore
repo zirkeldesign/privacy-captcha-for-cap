@@ -47,3 +47,6 @@ AGENTS.md
 # OS noise
 .DS_Store
 Thumbs.db
+
+# Written by scripts/upstream-watch.mjs
+upstream-report.md

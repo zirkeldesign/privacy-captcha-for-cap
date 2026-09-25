@@ -2,7 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.3.2] - 2026-08-13
+## [1.4.0] - 2026-09-25
+
+### Fixed
+
+- **Site keys using the `hashwx` protocol could not be solved.** Cap Standalone 3.1 creates new site keys with `protocol: "hashwx"` by default (`keyDefaults` in `standalone/src/server.js`). The vendored cap-widget 0.1.56 only knew `sha256-pow`, `rsw` and `instrumentation` and aborted with *"unsupported format-2 protocol 'hashwx'"*, so every form protected by such a key was unsubmittable. cap-widget is now 0.1.58, which adds the hashwx solver. Verified end to end against a freshly created default key on Cap 3.1.14 (Gravity Forms submit accepted, counted as verified on the Cap server), and against sha256-pow keys on both 3.1.14 and an older 3.x instance.
+
+### Added
+
+- `assets/wasm/hashwx.wasm`, vendored verbatim from `@cap.js/wasm@0.0.8` by `scripts/build-assets.mjs` alongside `cap_wasm_bg.wasm`. hashwx has **no JS fallback**: if the widget cannot load this file it fails the challenge outright, and since the build strips the widget's jsdelivr fallback, `window.CAP_CUSTOM_HASHWX_URL` must always be set. `Asset\Enqueuer` now emits it next to `CAP_CUSTOM_WASM_URL`.
+- `Settings::getSelfHostedHashwxUrl()`, resolved through the same *WASM source* setting as the sha256 solver (bundled copy, or `<endpoint>/assets/hashwx.wasm` on the Cap server). The widget only fetches it when a challenge actually uses hashwx.
+- `cap_captcha_hashwx_url` filter, the hashwx counterpart of `cap_captcha_wasm_url`.
+
+### Changed
+
+- `@cap.js/wasm` 0.0.7 to 0.0.8. `cap_wasm_bg.wasm` is byte-identical.
+- The *Cap server* WASM source label now names the `/assets/` directory instead of a single file, since both solvers are loaded from there.
+- Kept the `cap-widget` package name rather than switching to `@cap.js/widget`: upstream publishes the same build under both names (`widget/build.js`), and the docs still install `cap-widget`.
+
+## [1.3.2] - 2026-08-13 (never tagged; shipped as part of 1.4.0)
 
 ### Changed
 

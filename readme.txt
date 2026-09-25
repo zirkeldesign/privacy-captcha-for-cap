@@ -4,7 +4,7 @@ Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.3.2
+Stable tag: 1.4.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -60,13 +60,13 @@ You provision those in your self-hosted Cap server. See the Cap documentation at
 
 = Where is the WASM loaded from? =
 
-By default: from the copy bundled inside this plugin at `wp-content/plugins/privacy-captcha-for-cap/assets/wasm/cap_wasm_bg.wasm`. You can optionally switch to your own Cap server's `/assets/cap_wasm_bg.wasm` endpoint under **Settings → Privacy CAPTCHA for Cap → Privacy**. Either way the file is served from your own infrastructure — no third-party CDN is contacted.
+By default: from the copies bundled inside this plugin under `wp-content/plugins/privacy-captcha-for-cap/assets/wasm/`. There are two: `cap_wasm_bg.wasm` for the classic SHA-256 challenge and `hashwx.wasm` for the `hashwx` challenge that newer Cap servers issue by default. You can optionally switch to your own Cap server's `/assets/` endpoint under **Settings → Privacy CAPTCHA for Cap → Privacy**. Either way the files are served from your own infrastructure, and no third-party CDN is contacted.
 
 = Why is a `.wasm` file bundled, and where does it come from? =
 
-The bundled `assets/wasm/cap_wasm_bg.wasm` is the WebAssembly module the Cap widget uses to run the proof-of-work challenge in the visitor's browser. Bundling it locally is the privacy-friendly default: it means no third-party CDN (jsdelivr) is contacted at page load, so visitor IPs are never shared (DSGVO/GDPR-clean).
+The bundled `assets/wasm/cap_wasm_bg.wasm` and `assets/wasm/hashwx.wasm` are the WebAssembly modules the Cap widget uses to run the proof-of-work challenge in the visitor's browser. Bundling it locally is the privacy-friendly default: it means no third-party CDN (jsdelivr) is contacted at page load, so visitor IPs are never shared (DSGVO/GDPR-clean).
 
-It is the unmodified upstream file from the `@cap.js/wasm` npm package (Apache-2.0), part of the open-source Cap project. The plugin does not alter it. Its source and build live in the Cap repository at https://github.com/tiagozip/cap, and the vendoring step is reproducible via `scripts/build-assets.mjs` (`bun run build`), which copies the file verbatim and `bun run build:check` verifies it matches upstream.
+Both are the unmodified upstream files from the `@cap.js/wasm` npm package (Apache-2.0), part of the open-source Cap project. The plugin does not alter them. Its source and build live in the Cap repository at https://github.com/tiagozip/cap, and the vendoring step is reproducible via `scripts/build-assets.mjs` (`bun run build`), which copies the files verbatim and `bun run build:check` verifies they match upstream.
 
 = Can I store the secret outside the database? =
 
@@ -103,7 +103,7 @@ Yes. The main ones:
 * `cap_captcha_gf_field_page` — `($page, $form)` which page the auto-injected Gravity Forms field is placed on (defaults to the last page).
 * `cap_captcha_gf_verified_ttl` — `($seconds)` how long a solved challenge stays valid across the pages of one multi-page Gravity Forms submission (default one hour); plus a `cap_captcha_gf_skipped_hidden($formId, $fieldId)` action when conditional logic hid the field and enforcement was skipped.
 * `cap_captcha_widget_src`, `cap_captcha_floating_src`, `cap_captcha_programmatic_src`, `cap_captcha_style_src` — override the script/style URLs (return `''` for the style to disable bundled CSS).
-* `cap_captcha_wasm_url`, `cap_captcha_pako_url` — override the WASM / pako URLs (default to the bundled copies).
+* `cap_captcha_wasm_url`, `cap_captcha_hashwx_url`, `cap_captcha_pako_url`: override the WASM / pako URLs (default to the bundled copies).
 * `cap_captcha_i18n` — override the widget's `data-cap-i18n-*` strings.
 * `cap_captcha_floating_button_classes`, `cap_captcha_floating_position`, `cap_captcha_floating_autosubmit_src` — floating-mode tweaks.
 * `cap_captcha_display_mode` — override the resolved display mode for a specific Gravity Forms field.
@@ -111,6 +111,10 @@ Yes. The main ones:
 The full, annotated list with examples is in README.md.
 
 == Changelog ==
+
+= 1.4.0 =
+* Fixed: the CAPTCHA failed with "unsupported format-2 protocol 'hashwx'" on site keys created with Cap 3.1 or newer, which use the new hashwx challenge by default. Those keys work now, and older keys keep working as before.
+* Improved: the solver for the new challenge ships inside the plugin like the existing one, so still no third-party CDN is contacted.
 
 = 1.3.2 =
 * Improved: tested and confirmed compatible with WordPress 7.1.
