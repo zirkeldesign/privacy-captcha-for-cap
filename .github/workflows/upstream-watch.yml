@@ -1,0 +1,77 @@
+name: Upstream Cap watch
+
+# Weekly check whether Cap moved in a way that breaks the vendored widget.
+# See scripts/upstream-watch.mjs for what counts as breaking and why.
+#
+# Findings go into one open issue labelled `upstream-cap`, updated in place
+# when the report changes. A breaking finding also fails the run, so the
+# scheduled-workflow failure mail arrives even if the issue is overlooked.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    name: Compare vendored Cap with upstream
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Check upstream
+        id: watch
+        run: bun scripts/upstream-watch.mjs
+        env:
+          REPORT_FILE: upstream-report.md
+
+      - name: File or update the issue
+        if: steps.watch.outputs.findings == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          label=upstream-cap
+          gh label create "$label" --color d93f0b --description "Cap upstream changed" --force
+
+          hash=$(sha256sum upstream-report.md | cut -c1-16)
+          {
+            cat upstream-report.md
+            echo
+            echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo
+            echo "<!-- upstream-watch:$hash -->"
+          } > issue-body.md
+
+          if [ "${{ steps.watch.outputs.breaking }}" = "true" ]; then
+            title="Cap upstream: breaking change for the vendored widget"
+          else
+            title="Cap upstream: new release to review"
+          fi
+
+          number=$(gh issue list --label "$label" --state open --json number --jq '.[0].number // empty')
+
+          if [ -z "$number" ]; then
+            gh issue create --title "$title" --body-file issue-body.md --label "$label" --assignee dsturm
+            exit 0
+          fi
+
+          if gh issue view "$number" --json body --jq .body | grep -q "upstream-watch:$hash"; then
+            echo "Issue #$number already carries this report."
+            exit 0
+          fi
+
+          gh issue edit "$number" --title "$title" --body-file issue-body.md
+          gh issue comment "$number" --body "The upstream report changed, see the updated description."
+
+      - name: Fail on breaking changes
+        if: steps.watch.outputs.breaking == 'true'
+        run: |
+          echo "::error::Cap upstream has a breaking change for the vendored widget. See the upstream-cap issue."
+          exit 1
