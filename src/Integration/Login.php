@@ -60,12 +60,23 @@ final class Login implements Integration
 
     public function enqueueAssets(): void
     {
-        if (! $this->settings->isProtected('login') || ! $this->settings->isConfigured()) {
+        if (! self::isScreen('login') || ! $this->settings->isProtected('login') || ! $this->settings->isConfigured()) {
             return;
         }
 
         $mode = $this->settings->getDisplayMode();
         $this->enqueuer->enqueueForMode($mode);
+    }
+
+    /**
+     * Whether wp-login.php is showing the given screen. `login_enqueue_scripts`
+     * fires on every screen, but the widget and its window globals are only
+     * printed by the matching form hook. Enqueueing elsewhere loads the widget
+     * without CAP_CUSTOM_WASM_URL, and its wasm prefetch then fetches the page.
+     */
+    public static function isScreen(string $action): bool
+    {
+        return ($GLOBALS['action'] ?? 'login') === $action;
     }
 
     public function renderWidget(): void

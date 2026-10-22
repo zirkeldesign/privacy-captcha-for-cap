@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+
+- The login screen no longer loads the CAPTCHA script when only registration is protected (and the registration screen not when only login is protected). The script ran there without its settings and logged a "wasm load failed" warning.
+
 ## [1.5.0] - 2026-09-25
 
 ### Added
