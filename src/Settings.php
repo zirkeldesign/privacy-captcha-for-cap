@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ZirkelDesign\CapCaptcha;
 
+use ZirkelDesign\CapCaptcha\Status\ConnectionCheck;
+use ZirkelDesign\CapCaptcha\Status\SolverProbe;
 use ZirkelDesign\CapCaptcha\Status\StatsClient;
 use ZirkelDesign\CapCaptcha\Status\StatusPanel;
 
@@ -111,31 +113,13 @@ class Settings
             wp_send_json_error(['message' => __('You do not have permission to run this check.', 'privacy-captcha-for-cap')], 403);
         }
 
-        if (! $this->isConfigured()) {
-            wp_send_json_error(['message' => __('Endpoint / Site key / Secret key not yet configured.', 'privacy-captcha-for-cap')]);
+        $result = (new ConnectionCheck($this, new StatsClient($this), new SolverProbe))->run();
+
+        if (! $result->success) {
+            wp_send_json_error(['message' => $result->message]);
         }
 
-        if ($this->getAdminApiKey() === '') {
-            wp_send_json_error(['message' => __('Admin API key is empty — connection test needs it.', 'privacy-captcha-for-cap')]);
-        }
-
-        $stats = (new StatsClient($this))->fetch(true);
-
-        if ($stats === null) {
-            wp_send_json_error(['message' => __('Cap server did not return a valid response. Verify endpoint and admin API key.', 'privacy-captcha-for-cap')]);
-        }
-
-        $name = (string) ($stats['key']['name'] ?? '');
-        $siteKey = (string) ($stats['key']['siteKey'] ?? '');
-
-        wp_send_json_success([
-            'message' => sprintf(
-                /* translators: 1: site name, 2: site key */
-                __('Connected — site "%1$s" (%2$s)', 'privacy-captcha-for-cap'),
-                $name !== '' ? $name : '—',
-                $siteKey
-            ),
-        ]);
+        wp_send_json_success(['message' => $result->message]);
     }
 
     public function registerMenu(): void
@@ -984,6 +968,15 @@ class Settings
     public function getSelfHostedHashwxUrl(): string
     {
         return $this->resolveWasmUrl('hashwx.wasm');
+    }
+
+    /**
+     * Whether the widget loads its solvers from the Cap server's /assets/
+     * route rather than from the copies bundled with the plugin.
+     */
+    public function isWasmFromCapServer(): bool
+    {
+        return (string) ($this->getAll()['wasm_source'] ?? self::WASM_BUNDLED) === self::WASM_CAP_SERVER;
     }
 
     private function resolveWasmUrl(string $file): string

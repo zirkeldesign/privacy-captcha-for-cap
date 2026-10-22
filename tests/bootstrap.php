@@ -309,6 +309,29 @@ if (! function_exists('wp_remote_post')) {
     }
 }
 
+if (! function_exists('wp_remote_get')) {
+    /**
+     * Test stub. $GLOBALS['__cap_remote_get_responses'] maps a URL fragment to
+     * the response returned for any URL containing it, so one test can answer
+     * the stats call and the solver probe differently. Every request lands in
+     * $GLOBALS['__cap_remote_get_requests'], in order.
+     *
+     * @param  array<string, mixed>  $args
+     */
+    function wp_remote_get(string $url, array $args = []): array|\WP_Error
+    {
+        $GLOBALS['__cap_remote_get_requests'][] = ['url' => $url, 'args' => $args];
+
+        foreach ($GLOBALS['__cap_remote_get_responses'] ?? [] as $fragment => $response) {
+            if (str_contains($url, (string) $fragment)) {
+                return $response;
+            }
+        }
+
+        return ['response' => ['code' => 200], 'body' => ''];
+    }
+}
+
 if (! function_exists('wp_remote_retrieve_body')) {
     function wp_remote_retrieve_body(mixed $response): string
     {
@@ -320,10 +343,26 @@ if (! function_exists('wp_remote_retrieve_body')) {
     }
 }
 
+if (! function_exists('wp_remote_retrieve_response_code')) {
+    function wp_remote_retrieve_response_code(mixed $response): int|string
+    {
+        if (is_array($response) && isset($response['response']['code'])) {
+            return (int) $response['response']['code'];
+        }
+
+        return '';
+    }
+}
+
 /**
- * Reset the wp_remote_post stub between tests.
+ * Reset the wp_remote_post and wp_remote_get stubs between tests.
  */
 function cap_reset_remote_stub(): void
 {
-    unset($GLOBALS['__cap_remote_response'], $GLOBALS['__cap_remote_last_request']);
+    unset(
+        $GLOBALS['__cap_remote_response'],
+        $GLOBALS['__cap_remote_last_request'],
+        $GLOBALS['__cap_remote_get_responses'],
+        $GLOBALS['__cap_remote_get_requests'],
+    );
 }

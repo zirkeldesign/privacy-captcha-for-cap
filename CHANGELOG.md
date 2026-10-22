@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- The status panel shows the site key's protocol (sha256-pow, hashwx or rsw) and the difficulty figure that belongs to it. Contributed by [@loxK](https://github.com/loxK) in [#27](https://github.com/zirkeldesign/privacy-captcha-for-cap/pull/27).
+- "Test connection" names the key's protocol and, when the WASM source is the Cap server, checks that the server actually serves the solver file the protocol needs. Contributed by [@loxK](https://github.com/loxK) in [#27](https://github.com/zirkeldesign/privacy-captcha-for-cap/pull/27).
+
 ## [1.5.1] - 2026-10-22
 
 ### Fixed

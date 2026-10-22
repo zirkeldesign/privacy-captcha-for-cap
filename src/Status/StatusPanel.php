@@ -21,9 +21,7 @@ final class StatusPanel
         $name = (string) ($stats['key']['name'] ?? '');
         $siteKey = (string) ($stats['key']['siteKey'] ?? '');
         $config = is_array($stats['key']['config'] ?? null) ? $stats['key']['config'] : [];
-        $difficulty = (int) ($config['difficulty'] ?? 0);
-        $challengeCount = (int) ($config['challengeCount'] ?? 0);
-        $saltSize = (int) ($config['saltSize'] ?? 0);
+        $protocol = KeyProtocol::fromConfig($config);
 
         $current = is_array($stats['stats'] ?? null) ? $stats['stats'] : [];
         $prev = is_array($stats['prevStats'] ?? null) ? $stats['prevStats'] : [];
@@ -73,21 +71,35 @@ final class StatusPanel
         ?>
             <div class="cap-captcha-status__card">
                 <span class="cap-captcha-status__label"><?php echo esc_html__('Difficulty', 'privacy-captcha-for-cap'); ?></span>
-                <strong class="cap-captcha-status__value"><?php echo esc_html((string) $difficulty); ?></strong>
-                <span class="cap-captcha-status__sub">
-                    <?php echo esc_html(sprintf(
-                        /* translators: 1: challenge count, 2: salt size in bytes */
-                        __('%1$d challenges · %2$d-byte salt', 'privacy-captcha-for-cap'),
-                        $challengeCount,
-                        $saltSize
-                    )); ?>
-                </span>
+                <strong class="cap-captcha-status__value"><?php echo esc_html(number_format_i18n($protocol->difficulty)); ?></strong>
+                <span class="cap-captcha-status__sub"><?php echo esc_html($this->difficultyDetail($protocol)); ?></span>
             </div>
         </div>
 
         <?php if ($buckets !== []) {
             $this->sparkline($buckets);
         }
+    }
+
+    /**
+     * What the difficulty figure counts, which depends on the protocol. The
+     * protocol name leads so an administrator can tell a hashwx key (expected
+     * hashes per solve, in the millions) from a sha256-pow key (leading hex
+     * zeros, a single digit) at a glance.
+     */
+    private function difficultyDetail(KeyProtocol $protocol): string
+    {
+        return match ($protocol->name) {
+            KeyProtocol::HASHWX => __('hashwx · expected hashes per solve', 'privacy-captcha-for-cap'),
+            KeyProtocol::RSW => __('rsw · time-lock squarings', 'privacy-captcha-for-cap'),
+            KeyProtocol::SHA256 => sprintf(
+                /* translators: 1: challenge count, 2: salt size in bytes */
+                __('sha256-pow · %1$d challenges · %2$d-byte salt', 'privacy-captcha-for-cap'),
+                $protocol->challengeCount,
+                $protocol->saltSize
+            ),
+            default => $protocol->name,
+        };
     }
 
     /**
