@@ -574,31 +574,31 @@ msgstr "Verbunden — Site „%1$s“ (%2$s), %3$s-Schlüssel"
 #: src/Status/ConnectionCheck.php:70
 #, php-format
 msgid "%1$s · %2$s served by the Cap server"
-msgstr ""
+msgstr "%1$s · %2$s wird vom Cap-Server ausgeliefert"
 
 #. translators: 1: the connection message, 2: solver file name, 3: "HTTP 503" or "no response", 4: challenge protocol
 #: src/Status/ConnectionCheck.php:78
 #, php-format
 msgid "%1$s, but the Cap server does not serve %2$s (%3$s). The widget cannot solve a %4$s challenge without it: enable the asset server on the Cap server with a WASM_VERSION that ships the file, or switch the WASM source to Bundled."
-msgstr ""
+msgstr "%1$s, aber der Cap-Server liefert %2$s nicht aus (%3$s). Ohne diese Datei kann das Widget keine %4$s-Aufgabe lösen: Aktiviere den Asset-Server auf dem Cap-Server mit einer WASM_VERSION, die die Datei enthält, oder stelle die WASM-Quelle auf „Mitgeliefert“ um."
 
 #: src/Status/ConnectionCheck.php:82
 msgid "no response"
-msgstr ""
+msgstr "keine Antwort"
 
 #. translators: %d: HTTP status code
 #: src/Status/ConnectionCheck.php:84
 #, php-format
 msgid "HTTP %d"
-msgstr ""
+msgstr "HTTP %d"
 
 #: src/Status/StatusPanel.php:93
 msgid "hashwx · expected hashes per solve"
-msgstr ""
+msgstr "hashwx · erwartete Hashes pro Lösung"
 
 #: src/Status/StatusPanel.php:94
 msgid "rsw · time-lock squarings"
-msgstr ""
+msgstr "rsw · Quadrierungen des Time-Lock-Rätsels"
 
 #. translators: 1: challenge count, 2: salt size in bytes
 #: src/Status/StatusPanel.php:97
