@@ -43,7 +43,7 @@ final class Registration implements Integration
 
     public function enqueueAssets(): void
     {
-        if (! $this->settings->isProtected('registration') || ! $this->settings->isConfigured()) {
+        if (! Login::isScreen('register') || ! $this->settings->isProtected('registration') || ! $this->settings->isConfigured()) {
             return;
         }
         $this->enqueuer->enqueueForMode($this->settings->getDisplayMode());
