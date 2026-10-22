@@ -4,7 +4,7 @@ Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -115,6 +115,9 @@ Yes. The main ones:
 The full, annotated list with examples is in README.md.
 
 == Changelog ==
+
+= 1.5.1 =
+* Fixed: a "wasm load failed" warning on the login page when only registration (or only login) is protected.
 
 = 1.5.0 =
 * Improved: in Gravity Forms forms using the Orbital theme, the CAPTCHA now matches the fields around it (font, colours, border, corners, height), including form styles set in the block editor.
