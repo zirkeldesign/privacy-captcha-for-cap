@@ -4,7 +4,7 @@ Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -115,6 +115,9 @@ Yes. The main ones:
 The full, annotated list with examples is in README.md.
 
 == Changelog ==
+
+= 1.6.1 =
+* Fixed: the CAPTCHA added to Gravity Forms automatically no longer gets squeezed into one column by themes that lay out form fields in a grid.
 
 = 1.6.0 =
 * Improved: the status panel shows the real difficulty of keys created with Cap 3.1 or newer, and "Test connection" checks that your Cap server serves the files the CAPTCHA needs. Thanks to @loxK.
