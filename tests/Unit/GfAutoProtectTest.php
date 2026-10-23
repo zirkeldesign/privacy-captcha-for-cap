@@ -88,3 +88,10 @@ it('lets cap_captcha_gf_field_page move the auto-injected field', function (): v
 
     expect((int) end($form['fields'])->pageNumber)->toBe(1);
 });
+
+it('gives the auto-injected field a full grid row', function (): void {
+    $form = capGfIntegration()->injectAutoField(capThreePageForm());
+    $injected = end($form['fields']);
+
+    expect((int) $injected->layoutGridColumnSpan)->toBe(12);
+});

@@ -154,6 +154,9 @@ final class GravityForms implements Integration
             'type' => 'cap_captcha',
             'label' => esc_html__('Privacy CAPTCHA for Cap', 'privacy-captcha-for-cap'),
             'pageNumber' => self::autoFieldPage($form),
+            // GF's editor gives every field it adds a full row; without it a theme
+            // that grids .gform_fields squeezes the widget into one column.
+            'layoutGridColumnSpan' => 12,
         ]);
 
         $form['fields'][] = $field;
