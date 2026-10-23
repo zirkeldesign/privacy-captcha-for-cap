@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+
+- The CAPTCHA that is added to Gravity Forms automatically now takes a full row. Themes that lay form fields out in a grid squeezed it into a single column, so the widget stuck out of the form.
+
 ## [1.6.0] - 2026-10-22
 
 ### Changed
