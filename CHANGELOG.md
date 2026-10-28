@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.2] - 2026-10-28
+
+### Fixed
+
+- `Contributors` in `readme.txt` named `dsturm`, which WordPress.org resolves to an unrelated account (@dsturm-1). It now lists `zirkeldesign, d.sturm`: the zirkel.design organisation account and Daniel Sturm's login.
+
 ## [1.6.1] - 2026-10-23
 
 ### Fixed
