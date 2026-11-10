@@ -47,6 +47,15 @@ if (! function_exists('update_option')) {
     }
 }
 
+if (! function_exists('delete_option')) {
+    function delete_option(string $name): bool
+    {
+        unset($GLOBALS['__cap_options'][$name]);
+
+        return true;
+    }
+}
+
 /**
  * Reset the in-memory wp_options store between tests.
  */

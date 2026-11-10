@@ -120,6 +120,19 @@ it('passes without an API key and says the statistics stay off', function (): vo
         ->and($GLOBALS['__cap_remote_get_requests'] ?? [])->toBe([]);
 });
 
+it('warns without an API key that a mode without a press cannot be checked against the key', function (string $mode, int $warnings): void {
+    $settings = capConfigureConnection(['admin_api_key' => '', 'display_mode' => $mode]);
+
+    $result = capCheck($settings)->run();
+
+    expect($result->success)->toBeTrue()
+        ->and($result->warnings)->toHaveCount($warnings);
+})->with([
+    [Settings::MODE_INLINE, 1],
+    [Settings::MODE_FLOATING, 2],
+    [Settings::MODE_PROGRAMMATIC, 2],
+]);
+
 it('probes both solvers without an API key and warns about the one that is missing', function (): void {
     $settings = capConfigureConnection(['admin_api_key' => '', 'wasm_source' => Settings::WASM_CAP_SERVER]);
     $GLOBALS['__cap_remote_get_responses'] = [
@@ -235,7 +248,7 @@ it('accepts an isolated frame on a key that only reports', function (): void {
     expect(capCheck($settings)->run()->success)->toBeTrue();
 });
 
-it('warns when the key wants a press that the display mode never gives', function (): void {
+it('says that forms fall back to inline when the key wants a press the display mode never gives', function (): void {
     $settings = capConfigureConnection(['display_mode' => Settings::MODE_FLOATING, 'isolate_frame' => false]);
     $GLOBALS['__cap_remote_get_responses'] = [
         '/server/keys/' => capKeyResponse(['protocol' => 'hashwx', 'behavior' => 'block', 'requireInteraction' => true]),
@@ -245,7 +258,7 @@ it('warns when the key wants a press that the display mode never gives', functio
 
     expect($result->success)->toBeTrue()
         ->and($result->warnings)->toHaveCount(1)
-        ->and($result->warnings[0])->toContain('requires a press on the widget');
+        ->and($result->warnings[0])->toContain('every form uses it instead of the chosen mode');
 });
 
 it('names the key protocol and skips the solver probe with the bundled solvers', function (): void {

@@ -87,6 +87,10 @@ final class ConnectionCheck
         $connected = __('Connected — the Cap server accepts the site key and secret key', 'privacy-captcha-for-cap');
         $warnings = [__('No API key: the status panel and the dashboard statistics stay off.', 'privacy-captcha-for-cap')];
 
+        if ($this->settings->getConfiguredDisplayMode() !== Settings::MODE_INLINE) {
+            $warnings[] = $this->settings->displayModeUncheckedMessage();
+        }
+
         if (! $this->settings->isWasmFromCapServer()) {
             return ConnectionCheckResult::ok($connected, $warnings);
         }
@@ -176,8 +180,8 @@ final class ConnectionCheck
 
         $warnings = [];
 
-        if ($policy->requiresInteraction && $this->settings->getDisplayMode() !== Settings::MODE_INLINE) {
-            $warnings[] = __('The key requires a press on the widget, which the floating and programmatic display modes never give: forms in those modes fail. Use the inline mode.', 'privacy-captcha-for-cap');
+        if ($policy->requiresInteraction && $this->settings->getConfiguredDisplayMode() !== Settings::MODE_INLINE) {
+            $warnings[] = __('The key requires a press on the widget, which only the "Visible in the form" mode allows: every form uses it instead of the chosen mode.', 'privacy-captcha-for-cap');
         }
 
         $readable = $this->stats->siteKeyCount();

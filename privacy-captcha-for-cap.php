@@ -41,3 +41,5 @@ if (file_exists(CAP_CAPTCHA_DIR.'vendor/autoload.php')) {
 add_action('plugins_loaded', static function (): void {
     Plugin::boot();
 });
+
+register_deactivation_hook(__FILE__, [Plugin::class, 'deactivate']);
