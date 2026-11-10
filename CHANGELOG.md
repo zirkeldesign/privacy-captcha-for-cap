@@ -11,8 +11,9 @@ All notable changes to this project will be documented in this file.
 - Cap 4 support. The bundled widget is now cap-widget 0.1.63: Cap 4 rejects older widgets on site keys that block on behavior or on automated interactions, and flags the solves it still accepts from them.
 - "Isolate the Cap check from the page" under Privacy, on by default. Since cap-widget 0.1.59 the script the Cap server sends to tell browsers from bots runs with the rights of the page, on every protected form and on `wp-login.php`, unless the widget is told to isolate it. With the setting on it runs in a frame that cannot read the page, as it always did up to 1.7.0. Site keys that block on behavior or on automated interactions reject an isolated check: turn the setting off for those, ideally only with a Cap server you run yourself. Also available as the `cap_captcha_isolate_frame` filter.
 - "Test connection" checks the secret key and reports what the Cap server answers when it refuses a key: a secret or an API key that Cap 4 no longer accepts now says so instead of "did not return a valid response".
-- "Test connection" warns about an API key that can read other site keys and about a display mode the site key cannot accept, and fails when the site key rejects an isolated check.
+- "Test connection" warns about an API key that can read other site keys, and fails when the site key rejects an isolated check.
 - The status panel says when the Cap server no longer accepts the secret of the site key.
+- Forms fall back to the inline widget when the site key requires a press on the widget, which the floating and programmatic modes never give. The plugin reads the rule through the API key, on the settings page, on the dashboard and every hour. The `cap_captcha_force_inline` filter overrides it. The settings page says under the display mode when the key overrides the choice, and when the rule could not be read, for lack of an API key or of an answer from the Cap server; "Test connection" says the latter too when it runs without an API key.
 - The widget's "Blocked by this page" and "Troubleshoot" labels are translatable.
 
 ### Changed
