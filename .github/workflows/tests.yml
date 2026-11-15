@@ -96,7 +96,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      CAP_WP_ROOT: ${{ runner.temp }}/cap-fluent-wordpress
       CAP_WP_VERSION: '7.1.4'
       CAP_FLUENT_ONLY: '1'
       FLUENT_FORMS_VERSION: '6.2.17'
@@ -104,6 +103,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+
+      # The runner context is not available in a job-level env block.
+      - name: Point the fixture at the runner's temp directory
+        run: echo "CAP_WP_ROOT=$RUNNER_TEMP/cap-fluent-wordpress" >> "$GITHUB_ENV"
 
       - name: Setup PHP and WP-CLI
         uses: shivammathur/setup-php@v2
