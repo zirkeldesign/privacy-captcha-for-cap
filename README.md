@@ -104,7 +104,7 @@ Setting it on `:root` does not reach Gravity Forms forms, because the presets si
 | Command | What it does |
 | --- | --- |
 | `composer test` | Run Pest unit tests (no WordPress needed) |
-| `node --test tests/FluentFormsJavaScript.test.cjs` | Test Fluent Forms AJAX retry handling |
+| `bun run test:js` | Node tests for the programmatic and Fluent Forms scripts |
 | `composer test:integration:setup` | Provision a disposable WordPress fixture for integration tests |
 | `composer test:integration` | Run the integration suite against installed form plugins |
 | `composer phpstan` | Static analysis (level 6) |

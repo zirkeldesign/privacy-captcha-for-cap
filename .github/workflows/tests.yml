@@ -66,8 +66,8 @@ jobs:
       - name: Verify vendored cap-widget + WASM are up to date
         run: bun run build:check
 
-      - name: Test Fluent Forms AJAX handling
-        run: node --test tests/FluentFormsJavaScript.test.cjs
+      - name: Test the programmatic and Fluent Forms scripts
+        run: bun run test:js
 
   tests:
     name: PHP ${{ matrix.php }}

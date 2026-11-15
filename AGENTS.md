@@ -8,6 +8,7 @@ WordPress core release passes are the `wp-core-release` skill.
 
 ```sh
 composer format:test && composer phpstan && composer test
+bun run test:js                      # Node tests for the front-end scripts
 bun run build:check                  # vendored cap-widget/WASM up to date
 composer pcp                         # Plugin Check on the BUILT zip, throwaway WP
 WP_VERSION=7.1-RC3 composer pcp      # ... against a specific core
