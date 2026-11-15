@@ -55,11 +55,19 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
       - name: Verify vendored cap-widget + WASM are up to date
         run: bun run build:check
+
+      - name: Test Fluent Forms AJAX handling
+        run: node --test tests/FluentFormsJavaScript.test.cjs
 
   tests:
     name: PHP ${{ matrix.php }}
@@ -82,4 +90,37 @@ jobs:
 
       - name: Run tests
         run: composer test
+
+  fluent-forms:
+    name: Fluent Forms integration
+    runs-on: ubuntu-latest
+    env:
+      CAP_WP_ROOT: ${{ runner.temp }}/cap-fluent-wordpress
+      CAP_WP_VERSION: '7.1.4'
+      CAP_FLUENT_ONLY: '1'
+      FLUENT_FORMS_VERSION: '6.2.17'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP and WP-CLI
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, sqlite3
+          tools: wp-cli
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Provision WordPress
+        run: composer test:integration:setup
+
+      - name: Install Fluent Forms
+        run: |
+          wp plugin install fluentform --version="$FLUENT_FORMS_VERSION" --activate --path="$CAP_WP_ROOT"
+          wp option patch insert cap_captcha_settings integrations fluent_forms true --format=json --path="$CAP_WP_ROOT"
+
+      - name: Test real Fluent Forms submissions
+        run: composer test:integration -- tests/Integration/FluentFormsFlowTest.php --fail-on-skipped
 
