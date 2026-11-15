@@ -44,6 +44,9 @@ AGENTS.md
 # Integration-test WordPress install
 .wp-integration
 
+# Local copy of the optional Fluent Forms plugin
+fluentform
+
 # OS noise
 .DS_Store
 Thumbs.db
