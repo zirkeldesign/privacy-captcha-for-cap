@@ -6,7 +6,7 @@ const path = require('node:path');
 
 const source = fs.readFileSync(path.join(__dirname, '../assets/js/fluent-forms.js'), 'utf8');
 
-function fixture(count = 1) {
+function fixture(count = 1, overrides = {}) {
     const handlers = {};
     const jqueryHandlers = {};
     let solves = 0;
@@ -50,6 +50,7 @@ function fixture(count = 1) {
         Cap: class {
             solve() { return Promise.resolve({ token: 'token-' + ++solves }); }
         },
+            ...overrides,
     };
     vm.runInNewContext(source, { window, document, jQuery: jquery, HTMLFormElement: Form, Promise, WeakMap, setTimeout });
 
@@ -114,4 +115,43 @@ test('solver errors are visible and a later submit starts a new challenge', asyn
     assert.equal(context.forms[0].field.value, 'retry');
     assert.equal(context.forms[0].message.hidden, true);
     assert.equal(context.forms[0].submissions.length, 1);
+});
+
+test('a missing endpoint shows the error instead of starting a challenge', async () => {
+    let constructed = 0;
+    const context = fixture(1, {
+        CAP_CAPTCHA_PROGRAMMATIC: undefined,
+        Cap: class { constructor() { constructed++; } },
+    });
+    await settle();
+    assert.equal(constructed, 0);
+    assert.equal(context.forms[0].field.value, '');
+    assert.equal(context.forms[0].message.hidden, false);
+});
+
+test('a refresh during a pending solve discards the stale token', async () => {
+    const resolvers = [];
+    const context = fixture(1, {
+        Cap: class { solve() { return new Promise((resolve) => resolvers.push(resolve)); } },
+    });
+    const form = context.forms[0];
+    await settle();
+    context.jqueryHandlers.fluentform_submission_failed.call(form);
+    await settle();
+    assert.equal(resolvers.length, 2);
+
+    resolvers[0]({ token: 'stale' });
+    await settle();
+    assert.equal(form.field.value, '');
+
+    resolvers[1]({ token: 'fresh' });
+    await settle();
+    assert.equal(form.field.value, 'fresh');
+});
+
+test('a submit event from something that is not a form is left alone', () => {
+    const context = fixture();
+    const event = { target: {}, preventDefault() { this.prevented = true; }, stopImmediatePropagation() {} };
+    context.handlers.submit(event);
+    assert.equal(event.prevented, undefined);
 });

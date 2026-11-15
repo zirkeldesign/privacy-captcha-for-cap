@@ -36,7 +36,7 @@ final class FluentForms implements Integration
         add_filter('fluentform/editor_element_settings_placement', [$this, 'addEditorSettings']);
         add_filter('fluentform/form_input_types', [$this, 'addInputType']);
         add_action('fluentform/render_item_'.self::ELEMENT, [$this, 'render'], 10, 2);
-        add_filter('fluentform/validation_errors', [$this, 'validate'], 10, 4);
+        add_filter('fluentform/validation_errors', [$this, 'validate'], 10, 3);
         add_filter('fluentform/insert_response_data', [$this, 'removeToken'], 10, 3);
     }
 
@@ -115,31 +115,62 @@ final class FluentForms implements Integration
     }
 
     /**
+     * Whether the form is protected is read from the form itself, never from
+     * the field list Fluent Forms passes to this filter: that list leaves out
+     * every field whose container is hidden by conditional logic, and the
+     * conditions are evaluated against the submitted data. A submitter could
+     * otherwise switch the CAPTCHA off by choosing what to send.
+     *
      * @param  array<string, array<int, string>>  $errors
      * @param  array<string, mixed>  $formData
-     * @param  array<string, array<string, mixed>>  $fields
      * @return array<string, array<int, string>>
      */
-    public function validate(array $errors, array $formData, object $form, array $fields): array
+    public function validate(array $errors, array $formData, object $form): array
     {
         if (! $this->settings->isProtected($this->id())) {
             return $errors;
         }
 
-        foreach ($fields as $field) {
-            if (($field['element'] ?? '') !== self::ELEMENT) {
-                continue;
-            }
+        if (! $this->formHasField($form)) {
+            return $errors;
+        }
 
-            $raw = $formData['cap-token'] ?? '';
-            $token = is_string($raw) ? sanitize_text_field($raw) : '';
-            if (! $this->verifier->verifyToken($token, $this->id())) {
-                $errors['cap-token'][] = __('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap');
-            }
-            break;
+        $raw = $formData['cap-token'] ?? '';
+        $token = is_string($raw) ? sanitize_text_field($raw) : '';
+
+        if (! $this->verifier->verifyToken($token, $this->id())) {
+            $errors['cap-token'][] = __('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap');
         }
 
         return $errors;
+    }
+
+    private function formHasField(object $form): bool
+    {
+        $fields = json_decode((string) ($form->form_fields ?? ''), true);
+
+        return is_array($fields) && $this->containsField($fields);
+    }
+
+    /**
+     * Containers, steps and repeaters nest fields at different depths, so walk
+     * the whole tree instead of knowing each shape.
+     *
+     * @param  array<int|string, mixed>  $node
+     */
+    private function containsField(array $node): bool
+    {
+        if (($node['element'] ?? null) === self::ELEMENT) {
+            return true;
+        }
+
+        foreach ($node as $child) {
+            if (is_array($child) && $this->containsField($child)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

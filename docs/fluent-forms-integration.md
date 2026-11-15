@@ -19,8 +19,10 @@ The integration was exercised with WordPress 7.1.4 and the built Fluent Forms 6.
 | `fluentform/editor_element_settings_placement` | Provide the field's editor settings groups. |
 | `fluentform/form_input_types` | Include the element so Fluent Forms' field parser retains its submitted input. |
 | `fluentform/render_item_cap_captcha` | Render the configured widget and enqueue the required assets. Widget IDs are unique per rendered instance. |
-| `fluentform/validation_errors` | Check parsed submission data only when the enabled integration has a parsed CAPTCHA field. Add errors under `cap-token`. |
+| `fluentform/validation_errors` | Verify the token from the parsed submission data whenever the stored form contains the CAPTCHA field. Add errors under `cap-token`. |
 | `fluentform/insert_response_data` | Remove `cap-token` from the response before entry storage. |
+
+Whether a form is protected is read from the form's stored `form_fields`, never from the `$fields` argument of `fluentform/validation_errors`. Fluent Forms builds that argument with `getEssentialInputs()`, which drops every field inside a container whose conditional logic is not met, and it evaluates those conditions against the submitted data. Trusting it would let a submitter switch the CAPTCHA off by choosing what to send. The consequence is deliberate: a CAPTCHA field inside a conditionally hidden container still demands a token, so a visitor who cannot see the widget cannot submit. Keep the field outside conditional containers.
 
 Fluent Forms sends AJAX submissions as serialized form data and parses them before validation. Do not switch this integration to `TokenVerifier::verifyCurrentRequest()`: the token is in Fluent Forms' parsed data, not necessarily top-level `$_POST`. Missing or rejected tokens fail verification when configured and protected; fail-open applies to an unreachable Cap server, not to a missing or rejected token. The existing `cap_captcha_require_token` filter can explicitly override the missing-token requirement. An unconfigured integration renders no widget and does not block submissions.
 
@@ -33,7 +35,7 @@ The PHP unit tests use WordPress stubs; they do **not** require WordPress or Flu
 ```sh
 composer install
 composer test
-node --test tests/FluentFormsJavaScript.test.cjs
+bun run test:js
 ```
 
 The real-plugin tests need WordPress and an **installed, activated, built Fluent Forms plugin**, but no Gravity Forms licence and no running Cap server. The tests stub Cap's `/siteverify` response, create temporary forms and entries, and clean them up. A raw source checkout alone lacks the generated dependencies needed to activate the plugin.
