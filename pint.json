@@ -2,8 +2,7 @@
     "preset": "laravel",
     "exclude": [
         "vendor",
-        "tests",
-        "fluentform"
+        "tests"
     ],
     "notPath": [
         "vendor"

@@ -117,7 +117,7 @@ Setting it on `:root` does not reach Gravity Forms forms, because the presets si
 
 ## Integration tests
 
-`tests/Unit` runs against hand-rolled WordPress stubs and Composer development dependencies; it needs neither WordPress nor a Fluent Forms checkout. The real-plugin tests in `tests/Integration` need a WordPress fixture and the relevant form plugin.
+`tests/Unit` runs against hand-rolled WordPress stubs and needs nothing installed. The real-plugin tests in `tests/Integration` need a WordPress fixture and the relevant form plugin.
 
 The Gravity Forms suite drives `GFFormDisplay::process_form()` so the multi-page paging logic under test is GF's own rather than our reading of it. That distinction matters: the unit suite hand-sets `pageNumber` on a field, while real Gravity Forms derives it from the field's position relative to the page breaks.
 

@@ -28,7 +28,7 @@ Cap tokens are single-use. On Fluent Forms AJAX failure or success, the integrat
 
 ## Tests
 
-The PHP unit tests use WordPress stubs; they do **not** require WordPress, Fluent Forms, or a `fluentform/` checkout. The JavaScript tests use Node's built-in test runner and mocked browser objects. Neither suite replaces a real browser test.
+The PHP unit tests use WordPress stubs; they do **not** require WordPress or Fluent Forms. The JavaScript tests use Node's built-in test runner and mocked browser objects. Neither suite replaces a real browser test.
 
 ```sh
 composer install
@@ -53,7 +53,7 @@ composer test:integration -- tests/Integration/FluentFormsFlowTest.php --fail-on
 
 The setup command resets the settings, so repeat the option patch after rerunning it. On a fixture where `fluent_forms` is already present, use `wp option patch update` instead of `insert`. `CAP_FLUENT_ONLY=1` requires Fluent Forms to be active and bypasses the Gravity Forms bootstrap requirement; select the Fluent Forms test file as shown. Without that flag the existing integration suite requires Gravity Forms.
 
-The real-plugin tests cover editor registration, rendering, missing and rejected tokens, a verified submission, entry token removal, and an unprotected form. They do not run a browser. [tests.yml](../.github/workflows/tests.yml) runs them on the pinned WordPress and Fluent Forms versions, and separately runs the JavaScript tests. The public WordPress.org release is installed for CI; neither the local `fluentform/` checkout nor its files are bundled in this plugin.
+The real-plugin tests cover editor registration, rendering, missing and rejected tokens, a verified submission, entry token removal, and an unprotected form. They do not run a browser. [tests.yml](../.github/workflows/tests.yml) runs them on the pinned WordPress and Fluent Forms versions, and separately runs the JavaScript tests. CI installs the public WordPress.org release; nothing of Fluent Forms is bundled in this plugin.
 
 ## Version updates and debugging
 
