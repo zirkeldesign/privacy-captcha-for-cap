@@ -108,6 +108,7 @@ jobs:
           php-version: '8.3'
           extensions: pdo_sqlite, sqlite3
           tools: wp-cli
+          ini-values: memory_limit=512M
           coverage: none
 
       - name: Install dependencies
