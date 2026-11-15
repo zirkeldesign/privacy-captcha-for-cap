@@ -7,6 +7,7 @@ const path = require('node:path');
 const source = fs.readFileSync(path.join(__dirname, '../assets/js/fluent-forms.js'), 'utf8');
 
 function fixture(count = 1, overrides = {}) {
+    const { setTimeout: timer = setTimeout, ...windowOverrides } = overrides;
     const handlers = {};
     const jqueryHandlers = {};
     let solves = 0;
@@ -50,9 +51,9 @@ function fixture(count = 1, overrides = {}) {
         Cap: class {
             solve() { return Promise.resolve({ token: 'token-' + ++solves }); }
         },
-            ...overrides,
+            ...windowOverrides,
     };
-    vm.runInNewContext(source, { window, document, jQuery: jquery, HTMLFormElement: Form, Promise, WeakMap, setTimeout });
+    vm.runInNewContext(source, { window, document, jQuery: jquery, HTMLFormElement: Form, Promise, WeakMap, setTimeout: timer });
 
     return { forms, handlers, jqueryHandlers, window, getResetCount: () => resetCount };
 }
@@ -154,4 +155,31 @@ test('a submit event from something that is not a form is left alone', () => {
     const event = { target: {}, preventDefault() { this.prevented = true; }, stopImmediatePropagation() {} };
     context.handlers.submit(event);
     assert.equal(event.prevented, undefined);
+});
+
+test('a widget script that never loads ends in the visible error and blocks the submit', async () => {
+    let polls = 0;
+    const context = fixture(1, { Cap: undefined, setTimeout: (callback) => { polls++; callback(); } });
+    const form = context.forms[0];
+    await settle();
+    assert.equal(polls, 200);
+    assert.equal(form.message.hidden, false);
+
+    const event = { target: form, preventDefault() { this.prevented = true; }, stopImmediatePropagation() {} };
+    context.handlers.submit(event);
+    await settle();
+    assert.equal(event.prevented, true);
+    assert.equal(form.submissions.length, 0);
+});
+
+test('an empty token counts as a failed solve and is never resubmitted', async () => {
+    const context = fixture(1, { Cap: class { solve() { return Promise.resolve({ token: '' }); } } });
+    const form = context.forms[0];
+    await settle();
+    assert.equal(form.field.value, '');
+    assert.equal(form.message.hidden, false);
+
+    context.handlers.submit({ target: form, preventDefault() {}, stopImmediatePropagation() {} });
+    await settle();
+    assert.equal(form.submissions.length, 0);
 });

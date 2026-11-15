@@ -11,12 +11,25 @@
         if (message) message.hidden = true;
 
         var promise = new Promise(function (resolve, reject) {
+            var waited = 0;
             function start() {
                 if (typeof window.Cap === 'undefined') {
+                    // A blocked or failed widget script must end in the visible
+                    // error, not in a submit button that silently does nothing.
+                    waited += 50;
+                    if (waited > 10000) {
+                        reject(new Error('Cap did not load'));
+                        return;
+                    }
                     setTimeout(start, 50);
                     return;
                 }
-                new window.Cap({ apiEndpoint: config.apiEndpoint }).solve().then(resolve, reject);
+                new window.Cap({ apiEndpoint: config.apiEndpoint }).solve().then(function (result) {
+                    // An empty token would leave the field empty and make the
+                    // submit handler below resubmit forever.
+                    if (!result || !result.token) throw new Error('Cap returned no token');
+                    return result;
+                }).then(resolve, reject);
             }
             start();
         });

@@ -94,6 +94,7 @@ jobs:
   fluent-forms:
     name: Fluent Forms integration
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       CAP_WP_ROOT: ${{ runner.temp }}/cap-fluent-wordpress
       CAP_WP_VERSION: '7.1.4'
@@ -101,6 +102,8 @@ jobs:
       FLUENT_FORMS_VERSION: '6.2.17'
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup PHP and WP-CLI
         uses: shivammathur/setup-php@v2
