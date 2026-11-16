@@ -29,3 +29,13 @@ it('lets a filter isolate the frame on chosen requests', function (): void {
 
     expect((new Enqueuer(new Settings))->globals()['CAP_ISOLATE'])->toBeTrue();
 });
+
+it('passes the widget its labels for a check the page blocked', function (): void {
+    update_option(Settings::OPTION_KEY, ['endpoint_base' => 'https://cap.example.test', 'site_key' => 'abc123', 'secret_key' => 'deadbeef']);
+    capResetSettingsSingleton();
+
+    $html = (new ZirkelDesign\CapCaptcha\Asset\Renderer(Settings::get_instance()))->renderForMode('cap-test', 'inline');
+
+    expect($html)->toContain('data-cap-i18n-csp-error-label="Blocked by this page"')
+        ->and($html)->toContain('data-cap-i18n-troubleshooting-label="Troubleshoot"');
+});

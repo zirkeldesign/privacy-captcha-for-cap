@@ -78,3 +78,11 @@ it('cuts the error text of an endpoint that is not Cap to a readable length', fu
 
     expect(strlen($client->failure()->serverMessage))->toBe(300);
 });
+
+it('drops the cached status when asked to flush', function (): void {
+    set_transient('cap_captcha_stats', ['stale' => true], 300);
+
+    (new StatsClient(Settings::get_instance()))->flush();
+
+    expect(get_transient('cap_captcha_stats'))->toBeFalse();
+});
