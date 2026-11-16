@@ -110,6 +110,9 @@ class Settings
         );
     }
 
+    /** Set on a preview whose typed endpoint gave way to the saved one. */
+    public bool $typedEndpointSkipped = false;
+
     public function ajaxTestConnection(): void
     {
         check_ajax_referer('cap_captcha_test_connection');
@@ -125,11 +128,15 @@ class Settings
 
         $result = (new ConnectionCheck($settings, new StatsClient($settings), new SolverProbe, new SecretProbe))->run();
 
+        $skipped = $settings->typedEndpointSkipped
+            ? [__('The endpoint in the form was not tested. While a key is defined in wp-config.php, the test uses the saved endpoint. Save the settings first.', 'privacy-captcha-for-cap')]
+            : [];
+
         if (! $result->success) {
-            wp_send_json_error(['message' => $result->message]);
+            wp_send_json_error(['message' => implode(' ', [$result->message, ...$skipped])]);
         }
 
-        wp_send_json_success(['message' => $result->message, 'warnings' => $result->warnings]);
+        wp_send_json_success(['message' => $result->message, 'warnings' => [...$skipped, ...$result->warnings]]);
     }
 
     public function registerMenu(): void
@@ -154,7 +161,8 @@ class Settings
 
     /**
      * These settings as they would read once the submitted form is saved.
-     * Fields a wp-config.php constant defines keep the value of the constant.
+     * Fields a wp-config.php constant defines keep the value of the constant,
+     * and so does the saved endpoint while a secret or API key is a constant.
      *
      * @param  mixed  $input
      */
@@ -162,6 +170,14 @@ class Settings
     {
         $preview = clone $this;
         $preview->cache = array_replace($this->getAll(), $this->sanitize($input));
+
+        // A secret kept in wp-config.php must only travel to the saved
+        // endpoint, or a typed one would receive it without a trace.
+        if (($this->isSecretKeyConstantSet() || $this->isAdminApiKeyConstantSet()) && ! $this->isEndpointConstantSet()) {
+            $saved = (string) ($this->getAll()['endpoint_base'] ?? '');
+            $preview->typedEndpointSkipped = $preview->cache['endpoint_base'] !== $saved;
+            $preview->cache['endpoint_base'] = $saved;
+        }
 
         return $preview;
     }

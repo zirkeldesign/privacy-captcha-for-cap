@@ -102,3 +102,29 @@ it('previews a submitted form without touching what is saved', function (): void
         ->and($settings->getSiteKey())->toBe('saved')
         ->and(get_option(Settings::OPTION_KEY)['site_key'])->toBe('saved');
 });
+
+it('keeps a wp-config secret away from an endpoint that is only typed into the form', function (): void {
+    // A constant cannot be undefined again, so this case runs in its own process.
+    $script = <<<'PHP'
+    define('CAP_CAPTCHA_SECRET_KEY', 'locked');
+    require 'tests/bootstrap.php';
+    update_option(ZirkelDesign\CapCaptcha\Settings::OPTION_KEY, ['endpoint_base' => 'https://cap.example.test/', 'site_key' => 'saved']);
+    $preview = ZirkelDesign\CapCaptcha\Settings::get_instance()->withSubmitted(['endpoint_base' => 'https://elsewhere.example.test/', 'site_key' => 'typed']);
+    echo $preview->getEndpointBase(), '|', $preview->getSiteKey(), '|', $preview->getSecretKey(), '|', var_export($preview->typedEndpointSkipped, true);
+    PHP;
+
+    exec(escapeshellarg(PHP_BINARY).' -r '.escapeshellarg($script).' 2>&1', $output, $exit);
+
+    expect($exit)->toBe(0)
+        ->and(implode('', $output))->toBe('https://cap.example.test/|typed|locked|true');
+});
+
+it('previews a typed endpoint when no secret is a wp-config constant', function (): void {
+    update_option(Settings::OPTION_KEY, ['endpoint_base' => 'https://cap.example.test/']);
+    capResetSettingsSingleton();
+
+    $preview = Settings::get_instance()->withSubmitted(['endpoint_base' => 'https://elsewhere.example.test/']);
+
+    expect($preview->getEndpointBase())->toBe('https://elsewhere.example.test/')
+        ->and($preview->typedEndpointSkipped)->toBeFalse();
+});

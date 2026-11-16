@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - "Test connection" no longer needs an API key. Without one it passes on the site key and secret alone and says that the statistics stay off.
-- "Test connection" tests the form as it stands, before it is saved.
+- "Test connection" tests the form as it stands, before it is saved. One exception: while the secret or the API key is defined in `wp-config.php`, it keeps to the saved endpoint and says so, so that a key hidden from administrators is never sent to an address that was only typed in.
 - "Admin API key" is now "API key". The option and the `CAP_CAPTCHA_ADMIN_API_KEY` constant keep their names.
 - The message about a solver file the Cap server does not serve names the Cap 4 dashboard setting.
 
