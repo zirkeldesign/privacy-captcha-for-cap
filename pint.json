@@ -1,6 +1,7 @@
 {
     "preset": "laravel",
     "exclude": [
+        "fluentform",
         "vendor",
         "tests"
     ],

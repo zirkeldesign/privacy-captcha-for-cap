@@ -115,6 +115,16 @@ Setting it on `:root` does not reach Gravity Forms forms, because the presets si
 | `bun run build:check` | Fail if vendored assets are out of date |
 | `bun run translate` | Regenerate POT + update PO files + compile MO |
 
+With Docker and `act`, run the complete Tests workflow or select an individual job:
+
+```sh
+act -W .github/workflows/tests.yml
+act -j lint
+act -j fluent-forms
+```
+
+Select the workflow or job explicitly: a bare `act` can also select the WordPress.org asset-deployment workflow. If `act` runs the Fluent Forms job as root, the workflow enables WP-CLI's root override only in that disposable container; GitHub-hosted runs are unchanged. A local `fluentform/` source checkout is excluded from Pint and distribution archives.
+
 ## Integration tests
 
 `tests/Unit` runs against hand-rolled WordPress stubs and needs nothing installed. The real-plugin tests in `tests/Integration` need a WordPress fixture and the relevant form plugin.
