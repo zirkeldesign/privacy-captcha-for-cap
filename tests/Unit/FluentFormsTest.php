@@ -54,10 +54,11 @@ function capFluentFields(): array
     return ['cap-token' => ['element' => FluentForms::ELEMENT, 'raw' => ['attributes' => ['name' => 'cap-token']]]];
 }
 
-function capFluentRender(FluentForms $integration): string
+/** @param array<string, mixed> $element */
+function capFluentRender(FluentForms $integration, array $element = []): string
 {
     ob_start();
-    $integration->render([], (object) ['id' => 1]);
+    $integration->render($element, (object) ['id' => 1]);
 
     return (string) ob_get_clean();
 }
@@ -77,6 +78,8 @@ it('registers the Fluent Forms editor, renderer and submission hooks', function 
     expect($GLOBALS['__cap_filters'])->toHaveKeys([
         'fluentform/editor_components',
         'fluentform/editor_element_settings_placement',
+        'fluentform/editor_element_customization_settings',
+        'fluentform/editor_init_element_cap_captcha',
         'fluentform/form_input_types',
         'fluentform/render_item_cap_captcha',
         'fluentform/validation_errors',
@@ -93,12 +96,24 @@ it('adds the field to the editor without touching existing components', function
     expect($components['advanced'][0])->toBe(['element' => 'existing'])
         ->and($component['element'])->toBe(FluentForms::ELEMENT)
         ->and($component['attributes']['name'])->toBe('cap-token')
+        ->and($component['settings']['cap_display_mode'])->toBe('')
         ->and($component['editor_options']['template'])->toBe('customHTML')
         ->and($integration->addInputType(['input_text']))->toBe(['input_text', FluentForms::ELEMENT])
         ->and($integration->addEditorSettings(['input_text' => ['general' => ['label']]]))->toBe([
             'input_text' => ['general' => ['label']],
             FluentForms::ELEMENT => ['general' => ['cap_display_mode'], 'advanced' => []],
         ]);
+});
+
+it('provides the editor with a display-mode select and initializes existing fields', function (): void {
+    $integration = capFluentForms();
+    $options = $integration->addEditorCustomization([])['cap_display_mode'];
+
+    expect($options['template'])->toBe('select')
+        ->and(array_column($options['options'], 'value'))->toBe(['', 'inline', 'floating', 'programmatic'])
+        ->and($integration->initializeField(['settings' => []])['settings']['cap_display_mode'])->toBe('')
+        ->and($integration->initializeField(['settings' => ['cap_display_mode' => 'floating']])['settings']['cap_display_mode'])->toBe('floating')
+        ->and($integration->initializeField(false))->toBeFalse();
 });
 
 it('requires a token only when the enabled, configured form holds the field', function (): void {
@@ -213,6 +228,39 @@ it('renders a token field per form in programmatic mode and leaves the shared so
         ->and($GLOBALS['__cap_modules'])->toBe([Enqueuer::WIDGET_MODULE_ID])
         ->and($GLOBALS['__cap_scripts'])->toHaveKey('cap-captcha-fluent-forms');
 });
+
+it('uses the field display mode or falls back to the global setting', function (string $global, mixed $override, string $expected): void {
+    $html = capFluentRender(capFluentForms(mode: $global), ['settings' => ['cap_display_mode' => $override]]);
+
+    expect($html)->toContain($expected);
+})->with([
+    'global inline' => [Settings::MODE_INLINE, '', 'cap-captcha--inline'],
+    'global floating' => [Settings::MODE_FLOATING, '', 'cap-captcha--floating'],
+    'global programmatic' => [Settings::MODE_PROGRAMMATIC, '', 'data-cap-programmatic="1"'],
+    'override inline' => [Settings::MODE_PROGRAMMATIC, Settings::MODE_INLINE, 'cap-captcha--inline'],
+    'override floating' => [Settings::MODE_INLINE, Settings::MODE_FLOATING, 'cap-captcha--floating'],
+    'override programmatic' => [Settings::MODE_INLINE, Settings::MODE_PROGRAMMATIC, 'data-cap-programmatic="1"'],
+    'invalid override' => [Settings::MODE_FLOATING, 'unknown', 'cap-captcha--floating'],
+    'non-string override' => [Settings::MODE_INLINE, ['programmatic'], 'cap-captcha--inline'],
+]);
+
+it('provides programmatic configuration alongside another display mode', function (bool $programmaticFirst): void {
+    $integration = capFluentForms(mode: Settings::MODE_INLINE);
+    $element = ['settings' => ['cap_display_mode' => Settings::MODE_PROGRAMMATIC]];
+    if ($programmaticFirst) {
+        $programmatic = capFluentRender($integration, $element);
+        $inline = capFluentRender($integration);
+    } else {
+        $inline = capFluentRender($integration);
+        $programmatic = capFluentRender($integration, $element);
+    }
+
+    expect($inline)->toContain('cap-captcha--inline')
+        ->and($programmatic)->toContain('data-cap-programmatic="1"')
+        ->and($inline.$programmatic)->toContain('window.CAP_CAPTCHA_PROGRAMMATIC={"apiEndpoint":')
+        ->and(substr_count($inline.$programmatic, 'window.CAP_CAPTCHA_PROGRAMMATIC='))->toBe(1)
+        ->and($GLOBALS['__cap_modules'])->not->toContain(Enqueuer::PROGRAMMATIC_MODULE_ID);
+})->with([false, true]);
 
 it('renders nothing when the surface is off or the plugin is not configured', function (): void {
     expect(capFluentRender(capFluentForms(false)))->toBe('')
