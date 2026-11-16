@@ -9,6 +9,7 @@ use ZirkelDesign\CapCaptcha\Asset\Enqueuer;
 use ZirkelDesign\CapCaptcha\Asset\Renderer;
 use ZirkelDesign\CapCaptcha\Integration\Comments;
 use ZirkelDesign\CapCaptcha\Integration\ContactForm7;
+use ZirkelDesign\CapCaptcha\Integration\FluentForms;
 use ZirkelDesign\CapCaptcha\Integration\GravityForms;
 use ZirkelDesign\CapCaptcha\Integration\Integration;
 use ZirkelDesign\CapCaptcha\Integration\Login;
@@ -63,6 +64,7 @@ final class Plugin
     ): iterable {
         yield new GravityForms($settings, $renderer, $enqueuer, $verifier);
         yield new ContactForm7($settings, $renderer, $enqueuer, $verifier);
+        yield new FluentForms($settings, $renderer, $enqueuer, $verifier);
         yield new Comments($settings, $renderer, $enqueuer, $verifier);
         yield new Login($settings, $renderer, $enqueuer, $verifier);
         yield new Registration($settings, $renderer, $enqueuer, $verifier);

@@ -39,6 +39,7 @@ class Settings
     public const SURFACES = [
         'gravity_forms',
         'contact_form_7',
+        'fluent_forms',
         'comments',
         'login',
         'registration',
@@ -527,7 +528,7 @@ class Settings
             [
                 'label' => __('Form plugins', 'privacy-captcha-for-cap'),
                 'description' => __('Protect form-builder plugin submissions.', 'privacy-captcha-for-cap'),
-                'items' => array_intersect_key($all, array_flip(['gravity_forms', 'contact_form_7'])),
+                'items' => array_intersect_key($all, array_flip(['gravity_forms', 'contact_form_7', 'fluent_forms'])),
             ],
             [
                 'label' => __('WooCommerce', 'privacy-captcha-for-cap'),
@@ -554,6 +555,11 @@ class Settings
                 'label' => __('Contact Form 7', 'privacy-captcha-for-cap'),
                 'description' => __('Protects every Contact Form 7 form submission.', 'privacy-captcha-for-cap'),
                 'available' => defined('WPCF7_VERSION') || class_exists('WPCF7'),
+            ],
+            'fluent_forms' => [
+                'label' => __('Fluent Forms', 'privacy-captcha-for-cap'),
+                'description' => __('Adds a "Privacy CAPTCHA for Cap" field to the form editor.', 'privacy-captcha-for-cap'),
+                'available' => defined('FLUENTFORM'),
             ],
             'comments' => [
                 'label' => __('Comments', 'privacy-captcha-for-cap'),
@@ -1092,6 +1098,7 @@ class Settings
                 // integration ticked on installs with no Gravity Forms at all.
                 'gravity_forms' => false,
                 'contact_form_7' => false,
+                'fluent_forms' => false,
                 'comments' => false,
                 'login' => false,
                 'registration' => false,

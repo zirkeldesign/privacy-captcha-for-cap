@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Privacy CAPTCHA for Cap 1.6.2\n"
+"Project-Id-Version: Privacy CAPTCHA for Cap 1.7.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/privacy-captcha-for-cap\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-11T01:12:36+11:00\n"
+"POT-Creation-Date: 2026-11-16T09:14:27+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: privacy-captcha-for-cap\n"
@@ -17,13 +17,15 @@ msgstr ""
 #. Plugin Name of the plugin
 #: privacy-captcha-for-cap.php
 #: src/Admin/DashboardWidget.php:36
+#: src/Integration/FluentForms.php:54
+#: src/Integration/FluentForms.php:58
 #: src/Integration/GravityForms.php:117
 #: src/Integration/GravityForms.php:155
 #: src/Integration/GravityForms/Field.php:18
 #: src/Integration/GravityForms/Field.php:103
-#: src/Settings.php:137
 #: src/Settings.php:138
-#: src/Settings.php:279
+#: src/Settings.php:139
+#: src/Settings.php:280
 msgid "Privacy CAPTCHA for Cap"
 msgstr ""
 
@@ -112,7 +114,7 @@ msgid "CAPTCHA verified"
 msgstr ""
 
 #: src/Integration/Comments.php:52
-#: src/Settings.php:559
+#: src/Settings.php:565
 msgid "Comments"
 msgstr ""
 
@@ -124,12 +126,25 @@ msgstr ""
 msgid "CAPTCHA verification failed"
 msgstr ""
 
+#: src/Integration/FluentForms.php:111
+msgid "CAPTCHA could not be started. Please try again."
+msgstr ""
+
+#: src/Integration/FluentForms.php:142
+#: src/Integration/GravityForms/Validator.php:75
+#: src/Integration/Login.php:130
+#: src/Integration/Registration.php:87
+#: src/Integration/WooCommerce.php:103
+#: src/Integration/WooCommerce.php:213
+msgid "CAPTCHA verification failed. Please try again."
+msgstr ""
+
 #: src/Integration/GravityForms.php:122
 msgid "Protection"
 msgstr ""
 
 #: src/Integration/GravityForms.php:125
-#: src/Settings.php:702
+#: src/Settings.php:708
 msgid "Default (use the global setting)"
 msgstr ""
 
@@ -170,16 +185,8 @@ msgid "Programmatic (auto-solves silently)"
 msgstr ""
 
 #: src/Integration/GravityForms/Field.php:186
-#: src/Settings.php:549
+#: src/Settings.php:550
 msgid "Gravity Forms"
-msgstr ""
-
-#: src/Integration/GravityForms/Validator.php:75
-#: src/Integration/Login.php:130
-#: src/Integration/Registration.php:87
-#: src/Integration/WooCommerce.php:103
-#: src/Integration/WooCommerce.php:213
-msgid "CAPTCHA verification failed. Please try again."
 msgstr ""
 
 #: src/Integration/GravityForms/Validator.php:114
@@ -187,12 +194,12 @@ msgid "Please complete the CAPTCHA before submitting."
 msgstr ""
 
 #: src/Integration/Login.php:89
-#: src/Settings.php:564
+#: src/Settings.php:570
 msgid "Login"
 msgstr ""
 
 #: src/Integration/Registration.php:59
-#: src/Settings.php:569
+#: src/Settings.php:575
 msgid "Registration"
 msgstr ""
 
@@ -216,324 +223,332 @@ msgstr ""
 msgid "WooCommerce lost password"
 msgstr ""
 
-#: src/Settings.php:103
+#: src/Settings.php:104
 msgid "Testing…"
 msgstr ""
 
-#: src/Settings.php:104
+#: src/Settings.php:105
 msgid "Connection OK"
 msgstr ""
 
-#: src/Settings.php:105
+#: src/Settings.php:106
 msgid "Connection failed"
 msgstr ""
 
-#: src/Settings.php:117
+#: src/Settings.php:118
 msgid "You do not have permission to run this check."
 msgstr ""
 
-#: src/Settings.php:273
+#: src/Settings.php:274
 msgid "You do not have permission to access this page."
 msgstr ""
 
 #. translators: %s is a link to trycap.dev
-#: src/Settings.php:284
+#: src/Settings.php:285
 #, php-format
 msgid "Connect WordPress to your self-hosted Cap server and choose which forms to protect. See %s for server setup."
 msgstr ""
 
-#: src/Settings.php:293
+#: src/Settings.php:294
 msgid "Cap server"
 msgstr ""
 
-#: src/Settings.php:297
+#: src/Settings.php:298
 msgid "Endpoint base URL"
 msgstr ""
 
-#: src/Settings.php:310
+#: src/Settings.php:311
 msgid "Defined via CAP_CAPTCHA_ENDPOINT in wp-config.php — value here is read-only."
 msgstr ""
 
-#: src/Settings.php:312
+#: src/Settings.php:313
 msgid "Public URL of your Cap server, e.g. https://cap.example.com/"
 msgstr ""
 
-#: src/Settings.php:319
+#: src/Settings.php:320
 msgid "Site key"
 msgstr ""
 
-#: src/Settings.php:332
+#: src/Settings.php:333
 msgid "Defined via CAP_CAPTCHA_SITE_KEY in wp-config.php — value here is read-only."
 msgstr ""
 
-#: src/Settings.php:334
+#: src/Settings.php:335
 msgid "Public site key issued by your Cap server."
 msgstr ""
 
-#: src/Settings.php:341
+#: src/Settings.php:342
 msgid "Secret key"
 msgstr ""
 
-#: src/Settings.php:354
+#: src/Settings.php:355
 msgid "Defined via CAP_CAPTCHA_SECRET_KEY in wp-config.php — value here is read-only."
 msgstr ""
 
-#: src/Settings.php:356
+#: src/Settings.php:357
 msgid "Secret key used to call /siteverify. Define CAP_CAPTCHA_SECRET_KEY in wp-config.php to override."
 msgstr ""
 
-#: src/Settings.php:363
+#: src/Settings.php:364
 msgid "API key"
 msgstr ""
 
-#: src/Settings.php:376
+#: src/Settings.php:377
 msgid "Defined via CAP_CAPTCHA_ADMIN_API_KEY in wp-config.php — value here is read-only."
 msgstr ""
 
-#: src/Settings.php:378
+#: src/Settings.php:379
 msgid "Optional, for the status panel and the dashboard statistics. Create it under Settings → API keys in the Cap dashboard, read-only and limited to this site key. Define CAP_CAPTCHA_ADMIN_API_KEY in wp-config.php to override."
 msgstr ""
 
-#: src/Settings.php:383
+#: src/Settings.php:384
 msgid "Test connection"
 msgstr ""
 
-#: src/Settings.php:393
+#: src/Settings.php:394
 msgid "Display"
 msgstr ""
 
-#: src/Settings.php:396
+#: src/Settings.php:397
 msgid "Default display mode"
 msgstr ""
 
-#: src/Settings.php:399
+#: src/Settings.php:400
 msgid "Inline — widget visible in the form"
 msgstr ""
 
-#: src/Settings.php:400
+#: src/Settings.php:401
 msgid "Floating — opens on click of a trigger button"
 msgstr ""
 
-#: src/Settings.php:401
+#: src/Settings.php:402
 msgid "Programmatic — solves silently in the background (no user interaction)"
 msgstr ""
 
-#: src/Settings.php:403
+#: src/Settings.php:404
 msgid "Per-form integrations can override this default."
 msgstr ""
 
-#: src/Settings.php:404
+#: src/Settings.php:405
 msgid "Floating and programmatic solve without a press on the widget. A site key that scores behavior and requires an interaction rejects them."
 msgstr ""
 
-#: src/Settings.php:409
+#: src/Settings.php:410
 msgid "Privacy"
 msgstr ""
 
-#: src/Settings.php:412
+#: src/Settings.php:413
 msgid "WASM source"
 msgstr ""
 
-#: src/Settings.php:417
+#: src/Settings.php:418
 msgid "Bundled — load from this plugin (recommended, DSGVO-clean)"
 msgstr ""
 
-#: src/Settings.php:421
+#: src/Settings.php:422
 msgid "Cap server: load from your endpoint under /assets/"
 msgstr ""
 
-#: src/Settings.php:427
+#: src/Settings.php:428
 msgid "Cap check"
 msgstr ""
 
-#: src/Settings.php:431
+#: src/Settings.php:432
 msgid "Isolate the Cap check from the page"
 msgstr ""
 
-#: src/Settings.php:433
+#: src/Settings.php:434
 msgid "The widget tells browsers from bots with a script the Cap server sends, which runs with the same rights as the page it is on. Turn this on when the Cap server is operated by a third party: the script then runs in a frame that cannot read the page. Site keys that block on behavior or on automated interactions reject an isolated check."
 msgstr ""
 
-#: src/Settings.php:438
+#: src/Settings.php:439
 msgid "Integrations"
 msgstr ""
 
-#: src/Settings.php:445
+#: src/Settings.php:446
 msgid "Behavior"
 msgstr ""
 
-#: src/Settings.php:448
+#: src/Settings.php:449
 msgid "Fail-open mode"
 msgstr ""
 
-#: src/Settings.php:452
+#: src/Settings.php:453
 msgid "Let submissions through when the Cap server is unreachable"
 msgstr ""
 
-#: src/Settings.php:454
+#: src/Settings.php:455
 msgid "Off by default. Enable only if temporary Cap outages must not block legitimate users (logins, checkouts)."
 msgstr ""
 
-#: src/Settings.php:459
+#: src/Settings.php:460
 msgid "Admin notices"
 msgstr ""
 
-#: src/Settings.php:463
+#: src/Settings.php:464
 msgid "Warn site admins inline when an enabled integration is not configured"
 msgstr ""
 
-#: src/Settings.php:465
+#: src/Settings.php:466
 msgid "Only users with manage_options ever see these notices — anonymous visitors get nothing rendered."
 msgstr ""
 
-#: src/Settings.php:470
+#: src/Settings.php:471
 msgid "Save settings"
 msgstr ""
 
-#: src/Settings.php:486
+#: src/Settings.php:487
 msgid "Status"
 msgstr ""
 
-#: src/Settings.php:505
+#: src/Settings.php:506
 msgid "Refresh now"
 msgstr ""
 
-#: src/Settings.php:506
+#: src/Settings.php:507
 msgid "Status is cached for 5 minutes."
 msgstr ""
 
-#: src/Settings.php:523
+#: src/Settings.php:524
 msgid "WordPress"
 msgstr ""
 
-#: src/Settings.php:524
+#: src/Settings.php:525
 msgid "Protect WordPress core forms."
 msgstr ""
 
-#: src/Settings.php:528
+#: src/Settings.php:529
 msgid "Form plugins"
 msgstr ""
 
-#: src/Settings.php:529
+#: src/Settings.php:530
 msgid "Protect form-builder plugin submissions."
 msgstr ""
 
-#: src/Settings.php:533
-#: src/Settings.php:574
+#: src/Settings.php:534
+#: src/Settings.php:580
 msgid "WooCommerce"
 msgstr ""
 
-#: src/Settings.php:534
+#: src/Settings.php:535
 msgid "Protect WooCommerce checkout and My Account forms."
 msgstr ""
 
-#: src/Settings.php:550
+#: src/Settings.php:551
 msgid "Adds a \"Privacy CAPTCHA for Cap\" field to the form editor under Advanced Fields."
 msgstr ""
 
-#: src/Settings.php:554
+#: src/Settings.php:555
 msgid "Contact Form 7"
 msgstr ""
 
-#: src/Settings.php:555
+#: src/Settings.php:556
 msgid "Protects every Contact Form 7 form submission."
 msgstr ""
 
 #: src/Settings.php:560
+msgid "Fluent Forms"
+msgstr ""
+
+#: src/Settings.php:561
+msgid "Adds a \"Privacy CAPTCHA for Cap\" field to the form editor."
+msgstr ""
+
+#: src/Settings.php:566
 msgid "Protects the default WordPress comment form."
 msgstr ""
 
-#: src/Settings.php:565
+#: src/Settings.php:571
 msgid "Protects wp-login.php and any front-end login form using login_form."
 msgstr ""
 
-#: src/Settings.php:570
+#: src/Settings.php:576
 msgid "Protects the WordPress user registration form."
 msgstr ""
 
-#: src/Settings.php:575
+#: src/Settings.php:581
 msgid "Enable WooCommerce protection, then choose which forms below."
 msgstr ""
 
-#: src/Settings.php:579
+#: src/Settings.php:585
 msgid "Checkout"
 msgstr ""
 
-#: src/Settings.php:580
+#: src/Settings.php:586
 msgid "Protects the WooCommerce checkout form."
 msgstr ""
 
-#: src/Settings.php:584
+#: src/Settings.php:590
 msgid "Account login"
 msgstr ""
 
-#: src/Settings.php:585
+#: src/Settings.php:591
 msgid "Protects the My Account login form."
 msgstr ""
 
-#: src/Settings.php:589
+#: src/Settings.php:595
 msgid "Account registration"
 msgstr ""
 
-#: src/Settings.php:590
+#: src/Settings.php:596
 msgid "Protects the My Account registration form."
 msgstr ""
 
-#: src/Settings.php:594
+#: src/Settings.php:600
 msgid "Lost password"
 msgstr ""
 
-#: src/Settings.php:595
+#: src/Settings.php:601
 msgid "Protects the My Account lost-password form."
 msgstr ""
 
-#: src/Settings.php:625
+#: src/Settings.php:631
 msgid "Plugin not active"
 msgstr ""
 
-#: src/Settings.php:628
+#: src/Settings.php:634
 msgid "Options"
 msgstr ""
 
 #. translators: %s is the integration name, e.g. "Gravity Forms".
-#: src/Settings.php:658
+#: src/Settings.php:664
 #, php-format
 msgid "%s options"
 msgstr ""
 
-#: src/Settings.php:694
+#: src/Settings.php:700
 msgid "Override fail-open per form"
 msgstr ""
 
-#: src/Settings.php:703
+#: src/Settings.php:709
 msgid "Fail-open (let through if Cap is unreachable)"
 msgstr ""
 
-#: src/Settings.php:704
+#: src/Settings.php:710
 msgid "Fail-closed (always require a valid proof)"
 msgstr ""
 
-#: src/Settings.php:710
+#: src/Settings.php:716
 msgid "For example, let logins through during a Cap outage but always require a valid proof on contact forms."
 msgstr ""
 
-#: src/Settings.php:737
+#: src/Settings.php:743
 msgid "Automatic — protect every form (add the [cap_captcha] tag to a form for custom placement, or “cap_captcha: off” in its Additional Settings to skip it)"
 msgstr ""
 
-#: src/Settings.php:741
+#: src/Settings.php:747
 msgid "Manual — only protect forms that contain the [cap_captcha] tag"
 msgstr ""
 
-#: src/Settings.php:744
+#: src/Settings.php:750
 msgid "Use Manual to keep the CAPTCHA off legally required or accessibility-sensitive forms."
 msgstr ""
 
-#: src/Settings.php:753
+#: src/Settings.php:759
 msgid "Automatically protect every Gravity Form"
 msgstr ""
 
-#: src/Settings.php:755
+#: src/Settings.php:761
 msgid "Otherwise add the “Privacy CAPTCHA for Cap” field to a form. Each form can override this under its own settings (Default / Always / Never)."
 msgstr ""
 

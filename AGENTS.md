@@ -8,6 +8,7 @@ WordPress core release passes are the `wp-core-release` skill.
 
 ```sh
 composer format:test && composer phpstan && composer test
+bun run test:js                      # Node tests for the front-end scripts
 bun run build:check                  # vendored cap-widget/WASM up to date
 composer pcp                         # Plugin Check on the BUILT zip, throwaway WP
 WP_VERSION=7.1-RC3 composer pcp      # ... against a specific core
@@ -40,6 +41,7 @@ every WordPress core release, confirm the widget still renders on:
 | WooCommerce | checkout, login, registration, lost password | needs WooCommerce active |
 | Gravity Forms | field settings panel in the form editor | the integration suite covers submission flow |
 | Contact Form 7 | a form with the automatic mode on | |
+| Fluent Forms | a form containing the "Privacy CAPTCHA for Cap" field | CI runs the real-plugin suite. Check inline, floating and programmatic mode, and two forms on one page: tokens are single-use and per form. Hook contracts and setup: `docs/fluent-forms-integration.md` |
 | Settings | Settings → Privacy CAPTCHA, incl. "Test connection" | tests the form as it stands, saved or not; a wp-config constant wins over its field |
 
 Minimum config that makes the widget render — `isConfigured()` requires all three:
