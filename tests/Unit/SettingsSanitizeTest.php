@@ -62,6 +62,14 @@ it('does not resurrect an unavailable integration that was already off', functio
     expect($saved['integrations']['gravity_forms'])->toBeFalse();
 });
 
+it('preserves the Fluent Forms setting when that plugin is unavailable', function (): void {
+    update_option(Settings::OPTION_KEY, ['integrations' => ['fluent_forms' => true]]);
+
+    $saved = Settings::get_instance()->sanitize(['integrations' => []]);
+
+    expect($saved['integrations']['fluent_forms'])->toBeTrue();
+});
+
 it('preserves the WooCommerce master toggle too', function (): void {
     update_option(Settings::OPTION_KEY, [
         'integrations' => ['woocommerce' => true, 'woocommerce_checkout' => true],

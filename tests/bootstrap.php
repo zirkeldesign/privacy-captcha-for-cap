@@ -366,3 +366,37 @@ function cap_reset_remote_stub(): void
         $GLOBALS['__cap_remote_get_requests'],
     );
 }
+
+if (! function_exists('wp_enqueue_script_module')) {
+    function wp_enqueue_script_module(string $id, string $src = '', array $deps = [], string|false|null $version = false): void
+    {
+        $GLOBALS['__cap_modules'][] = $id;
+    }
+}
+
+if (! function_exists('wp_enqueue_style')) {
+    function wp_enqueue_style(string $handle, string $src = '', array $deps = [], string|bool|null $ver = false, string $media = 'all'): void {}
+}
+
+if (! function_exists('wp_enqueue_script')) {
+    function wp_enqueue_script(string $handle, string $src = '', array $deps = [], string|bool|null $ver = false, array|bool $args = []): void
+    {
+        $GLOBALS['__cap_scripts'][$handle] = ['src' => $src, 'deps' => $deps, 'args' => $args];
+    }
+}
+
+if (! function_exists('wp_unique_id')) {
+    function wp_unique_id(string $prefix = ''): string
+    {
+        static $counter = 0;
+
+        return $prefix.(string) ++$counter;
+    }
+}
+
+if (! function_exists('wp_print_inline_script_tag')) {
+    function wp_print_inline_script_tag(string $data, array $attributes = []): void
+    {
+        echo '<script>'.$data.'</script>';
+    }
+}

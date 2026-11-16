@@ -1,6 +1,6 @@
 # Privacy CAPTCHA for Cap
 
-WordPress plugin that integrates the self-hosted [Cap](https://trycap.dev/) proof-of-work CAPTCHA into WordPress comments, login, registration, WooCommerce checkout, and Gravity Forms — with server-side verification.
+WordPress plugin that integrates the self-hosted [Cap](https://trycap.dev/) proof-of-work CAPTCHA into WordPress comments, login, registration, WooCommerce, Gravity Forms, Contact Form 7, and Fluent Forms — with server-side verification.
 
 ## Requirements
 
@@ -47,6 +47,7 @@ Each surface is an independent on/off toggle in **Settings → Privacy CAPTCHA f
 | --- | --- |
 | `gravity_forms` | Gravity Forms field |
 | `contact_form_7` | Contact Form 7 forms |
+| `fluent_forms` | Fluent Forms field |
 | `comments` | WordPress comment form |
 | `login` | wp-login.php / `login_form` |
 | `registration` | WordPress registration |
@@ -55,12 +56,15 @@ Each surface is an independent on/off toggle in **Settings → Privacy CAPTCHA f
 | `woocommerce_registration` | WooCommerce My Account registration |
 | `woocommerce_lost_password` | WooCommerce My Account lost password |
 
-## Form placement (Gravity Forms & Contact Form 7)
+## Form placement
 
-Beyond the on/off surface toggle, the two form plugins offer placement control (Settings → Form placement), so a CAPTCHA can be kept off legally required or accessibility-sensitive forms:
+Beyond the on/off surface toggle, form placement controls let you keep a CAPTCHA off legally required or accessibility-sensitive forms:
 
 - **Contact Form 7** — *Automatic* protects every form (add the `[cap_captcha]` form-tag for custom placement, or `cap_captcha: off` in a form's Additional Settings to skip it); *Manual* protects only forms containing the `[cap_captcha]` tag. Verification is scoped to the same set, so an unprotected form is never blocked.
 - **Gravity Forms** — add the "Privacy CAPTCHA for Cap" field for precise placement, and/or enable "protect all Gravity Forms" globally. Each form has a **Default / Always / Never** override in its settings; an auto-protected form without the field gets a synthetic `cap_captcha` field injected at runtime.
+- **Fluent Forms** — enable the integration, then add one "Privacy CAPTCHA for Cap" field from Advanced Fields to each regular form you want to protect. Forms without the field are not protected. On multi-step forms place the field on the final step, and do not hide it with conditional logic. Conversational forms are not supported. Failed AJAX submissions reset the widget or start a new programmatic challenge.
+
+For maintenance, hook contracts, test setup, and version updates, see the [Fluent Forms integration guide](docs/fluent-forms-integration.md).
 
 ## Styling
 
@@ -100,8 +104,9 @@ Setting it on `:root` does not reach Gravity Forms forms, because the presets si
 | Command | What it does |
 | --- | --- |
 | `composer test` | Run Pest unit tests (no WordPress needed) |
-| `composer test:integration:setup` | Provision the WordPress + Gravity Forms fixture |
-| `composer test:integration` | Run the integration suite against real Gravity Forms |
+| `bun run test:js` | Node tests for the programmatic and Fluent Forms scripts |
+| `composer test:integration:setup` | Provision a disposable WordPress fixture for integration tests |
+| `composer test:integration` | Run the integration suite against installed form plugins |
 | `composer phpstan` | Static analysis (level 6) |
 | `composer format` | Apply Pint formatting |
 | `composer format:test` | Check Pint formatting |
@@ -112,7 +117,9 @@ Setting it on `:root` does not reach Gravity Forms forms, because the presets si
 
 ## Integration tests
 
-`tests/Unit` runs against hand-rolled WordPress stubs and needs nothing installed. `tests/Integration` runs against a **real** WordPress + Gravity Forms, driving `GFFormDisplay::process_form()` so the multi-page paging logic under test is GF's own rather than our reading of it. That distinction matters: the unit suite hand-sets `pageNumber` on a field, while real Gravity Forms derives it from the field's position relative to the page breaks.
+`tests/Unit` runs against hand-rolled WordPress stubs and needs nothing installed. The real-plugin tests in `tests/Integration` need a WordPress fixture and the relevant form plugin.
+
+The Gravity Forms suite drives `GFFormDisplay::process_form()` so the multi-page paging logic under test is GF's own rather than our reading of it. That distinction matters: the unit suite hand-sets `pageNumber` on a field, while real Gravity Forms derives it from the field's position relative to the page breaks.
 
 Provision the fixture once — it needs `wp-cli`, PHP with `pdo_sqlite`, and a Gravity Forms copy you hold a licence for (no MySQL, no Gravity Perks):
 
@@ -125,7 +132,9 @@ The install is cached in `.wp-integration/` (gitignored); pass `--fresh` to the 
 
 The preview-step form is a plain two-page Gravity Form (page break plus an HTML field holding `{all_fields}`), which is exactly the shape the Gravity Wiz *GP Preview Submission* perk produces — so the reported bug reproduces without the commercial perk.
 
-CI does not run this suite: Gravity Forms is commercial and would need its licence credentials as repository secrets. To wire it up, add a job that installs GF from the `gravity.io` Composer repo using a `COMPOSER_AUTH` secret and `if: github.event.pull_request.head.repo.full_name == github.repository` so it skips on forks.
+CI does not run the Gravity Forms suite: Gravity Forms is commercial and would need its licence credentials as repository secrets. To wire it up, add a job that installs GF from the `gravity.io` Composer repo using a `COMPOSER_AUTH` secret and `if: github.event.pull_request.head.repo.full_name == github.repository` so it skips on forks.
+
+The Fluent Forms flow runs separately without Gravity Forms. CI provisions WordPress and installs a pinned, built Fluent Forms release from WordPress.org; it also runs the JavaScript retry tests. For the exact local setup, version pins, and coverage limitations, see the [Fluent Forms integration guide](docs/fluent-forms-integration.md#tests).
 
 ## Architecture
 

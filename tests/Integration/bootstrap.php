@@ -58,7 +58,12 @@ add_filter('pre_http_request', static function ($preempt, $args, $url) {
     return new WP_Error('cap_integration_offline', 'Blocked outbound request to '.$url);
 }, 999, 3);
 
-if (! class_exists('GFAPI')) {
+if (getenv('CAP_FLUENT_ONLY') === '1' && ! defined('FLUENTFORM')) {
+    fwrite(STDERR, "Fluent Forms is not active in {$root}. Install and activate it before running the Fluent Forms integration tests.\n");
+    exit(1);
+}
+
+if (! class_exists('GFAPI') && getenv('CAP_FLUENT_ONLY') !== '1') {
     fwrite(STDERR, <<<TXT
 
         Gravity Forms is not active in {$root}.

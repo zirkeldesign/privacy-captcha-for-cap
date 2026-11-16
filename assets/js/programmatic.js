@@ -28,6 +28,7 @@
 
         function writeToken(token) {
             document.querySelectorAll('input[name="' + fieldName + '"]').forEach(function (field) {
+                if (field.closest('.cap-captcha--fluent')) return;
                 field.value = token;
             });
         }
@@ -41,6 +42,7 @@
             if (!(form instanceof HTMLFormElement)) return;
             var field = form.querySelector('input[name="' + fieldName + '"]');
             if (!field || field.value) return;
+            if (field.closest('.cap-captcha--fluent')) return;
 
             event.preventDefault();
             tokenPromise.then(function (result) {

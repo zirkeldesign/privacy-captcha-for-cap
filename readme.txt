@@ -22,6 +22,7 @@ Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof
 
 * **First-class Gravity Forms field** — drag a "Privacy CAPTCHA for Cap" into any form from the Advanced Fields group. Per-field display-mode override.
 * **Contact Form 7** integration — protects every CF7 form automatically.
+* **Fluent Forms** integration — add a "Privacy CAPTCHA for Cap" field to each regular form you want to protect.
 * **WordPress comments, wp-login, registration** integrations — togglable from one settings page.
 * **WooCommerce** integration — checkout plus the My Account login, registration, and lost-password forms, each its own toggle. Only loads when WooCommerce is active.
 * **Dashboard widget** — at-a-glance Cap server stats (challenges, verified, failed, hourly chart) right on the WordPress dashboard.
@@ -90,7 +91,7 @@ Yes. Every surface passes through the `cap_captcha_protect` filter — `($enable
 
 = Can I keep the CAPTCHA off a specific Contact Form 7 or Gravity Forms form? =
 
-Yes — useful for legally required or accessibility-sensitive forms. For **Contact Form 7**, set the mode to *Manual* (Settings → Form placement) and add the `[cap_captcha]` tag only to the forms you want protected; or, in *Automatic* mode, add `cap_captcha: off` to a form's Additional Settings to skip just that one. For **Gravity Forms**, each form has a *Privacy CAPTCHA* setting (Default / Always / Never) so you can exclude individual forms even when "protect all" is on.
+Yes — useful for legally required or accessibility-sensitive forms. For **Contact Form 7**, set the mode to *Manual* (Settings → Form placement) and add the `[cap_captcha]` tag only to the forms you want protected; or, in *Automatic* mode, add `cap_captcha: off` to a form's Additional Settings to skip just that one. For **Gravity Forms**, each form has a *Privacy CAPTCHA* setting (Default / Always / Never) so you can exclude individual forms even when "protect all" is on. For **Fluent Forms**, only forms containing the CAPTCHA field are protected; add one field on the last step of a regular form. Conversational forms are not supported.
 
 = Can I change how the CAPTCHA looks? =
 
