@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Cap 4 support. The bundled widget is now cap-widget 0.1.62: Cap 4 rejects older widgets on site keys that block on behavior or on automated interactions, and flags the solves it still accepts from them.
+- Cap 4 support. The bundled widget is now cap-widget 0.1.63: Cap 4 rejects older widgets on site keys that block on behavior or on automated interactions, and flags the solves it still accepts from them.
 - "Isolate the Cap check from the page" under Privacy, for sites whose Cap server is operated by a third party. Since cap-widget 0.1.59 the script the Cap server sends to tell browsers from bots runs with the rights of the page, on every protected form and on `wp-login.php`, whatever the version of the server. With this on it runs in a frame that cannot read the page. It is off by default: turn it on unless you run the Cap server yourself. Also available as the `cap_captcha_isolate_frame` filter.
 - "Test connection" checks the secret key and reports what the Cap server answers when it refuses a key: a secret or an API key that Cap 4 no longer accepts now says so instead of "did not return a valid response".
 - "Test connection" warns about an API key that can read other site keys and about a display mode the site key cannot accept, and fails when the site key rejects an isolated check.
