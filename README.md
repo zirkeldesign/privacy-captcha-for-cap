@@ -37,7 +37,7 @@ The `assets/js/vendor/cap-widget.*`, `assets/wasm/cap_wasm_bg.wasm` and `assets/
 | **Floating** | A trigger button is shown; clicking it opens the widget as a popover. |
 | **Programmatic** | A hidden `cap-token` input is rendered. A background script solves the proof-of-work on page load and writes the token before submit. No user interaction needed. |
 
-The Gravity Forms field has a *Display mode* setting that overrides the global default per field.
+The Gravity Forms and Fluent Forms fields have a *Display mode* setting that can override the global default per field. In Fluent Forms, select the field and open **Input Customization** to choose a mode, or leave it on **Use global setting**.
 
 ## Protected surfaces
 

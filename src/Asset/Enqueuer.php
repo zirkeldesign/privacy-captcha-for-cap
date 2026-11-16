@@ -137,14 +137,12 @@ final class Enqueuer
         if ($pakoUrl !== '') {
             $globals['CAP_PAKO_URL'] = $pakoUrl;
         }
-        if ($this->settings->isProgrammatic()) {
-            $endpoint = $this->settings->getWidgetEndpoint();
-            if ($endpoint !== '') {
-                $globals['CAP_CAPTCHA_PROGRAMMATIC'] = [
-                    'apiEndpoint' => $endpoint,
-                    'tokenField' => 'cap-token',
-                ];
-            }
+        $endpoint = $this->settings->getWidgetEndpoint();
+        if ($endpoint !== '') {
+            $globals['CAP_CAPTCHA_PROGRAMMATIC'] = [
+                'apiEndpoint' => $endpoint,
+                'tokenField' => 'cap-token',
+            ];
         }
 
         if ($globals === []) {

@@ -97,7 +97,7 @@ it('adds the field to the editor without touching existing components', function
         ->and($integration->addInputType(['input_text']))->toBe(['input_text', FluentForms::ELEMENT])
         ->and($integration->addEditorSettings(['input_text' => ['general' => ['label']]]))->toBe([
             'input_text' => ['general' => ['label']],
-            FluentForms::ELEMENT => ['general' => [], 'advanced' => []],
+            FluentForms::ELEMENT => ['general' => ['cap_display_mode'], 'advanced' => []],
         ]);
 });
 
