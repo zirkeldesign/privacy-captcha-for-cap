@@ -106,6 +106,25 @@ it('renders the field in a real Fluent Forms form', function (): void {
         ->and(wp_script_is('cap-captcha-fluent-forms', 'enqueued'))->toBeTrue();
 });
 
+it('turns the real submit button into the floating trigger', function (): void {
+    // Settings reads the option once per request, so drop what earlier tests loaded.
+    $forget = static fn () => (new ReflectionProperty(Settings::class, 'cache'))->setValue(Settings::get_instance(), null);
+    $floating = static fn ($settings): array => ['display_mode' => Settings::MODE_FLOATING] + (array) $settings;
+    add_filter('option_'.Settings::OPTION_KEY, $floating);
+    $forget();
+    try {
+        $html = do_shortcode('[fluentform id="'.$this->formId.'"]');
+    } finally {
+        remove_filter('option_'.Settings::OPTION_KEY, $floating);
+        $forget();
+    }
+
+    expect(preg_match('/<cap-widget id="([^"]+)"/', $html, $widget))->toBe(1)
+        ->and(substr_count($html, 'data-cap-floating='))->toBe(1)
+        ->and($html)->toMatch('/<button data-cap-floating="#'.preg_quote($widget[1], '/').'"[^>]*type="submit"/')
+        ->and($html)->not->toContain('cap-captcha-floating-trigger');
+});
+
 it('rejects a real submission without a token', function (): void {
     try {
         (new SubmissionHandlerService)->handleSubmission([], $this->formId);

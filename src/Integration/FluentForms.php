@@ -13,6 +13,9 @@ final class FluentForms implements Integration
 {
     public const ELEMENT = 'cap_captcha';
 
+    /** @var array<int|string, string> Floating widget waiting for its form's submit button, by form id. */
+    private array $pendingFloating = [];
+
     public function __construct(
         private readonly Settings $settings,
         private readonly Renderer $renderer,
@@ -36,6 +39,7 @@ final class FluentForms implements Integration
         add_filter('fluentform/editor_element_settings_placement', [$this, 'addEditorSettings']);
         add_filter('fluentform/form_input_types', [$this, 'addInputType']);
         add_action('fluentform/render_item_'.self::ELEMENT, [$this, 'render'], 10, 2);
+        add_action('fluentform/render_item_submit_button', [$this, 'wireSubmitButton'], 9, 2);
         add_filter('fluentform/validation_errors', [$this, 'validate'], 10, 3);
         add_filter('fluentform/insert_response_data', [$this, 'removeToken'], 10, 3);
     }
@@ -107,11 +111,62 @@ final class FluentForms implements Integration
             ['in_footer' => true]
         );
         $this->enqueuer->printGlobals();
-        $widget = $this->renderer->renderForMode(wp_unique_id('cap-captcha-fluent-'), $mode);
+        $widgetId = wp_unique_id('cap-captcha-fluent-');
+        $ownTrigger = $mode !== Settings::MODE_FLOATING || ! $this->canUseSubmitButton($form);
+        if (! $ownTrigger) {
+            $this->pendingFloating[$form->id ?? 0] = $widgetId;
+        }
+        $widget = $this->renderer->renderForMode($widgetId, $mode, $ownTrigger);
         $error = esc_html__('CAPTCHA could not be started. Please try again.', 'privacy-captcha-for-cap');
 
         // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Renderer escapes the widget attributes and text.
         echo '<div class="ff-el-group cap-captcha--fluent"><div class="ff-el-input--content">'.$widget.'<div class="cap-captcha-fluent-error text-danger" role="alert" hidden>'.$error.'</div></div></div>';
+    }
+
+    /**
+     * In floating mode the form's own submit button opens the check, so the
+     * visitor sees one button instead of two that both send the form. Fluent
+     * Forms names the button element differently across versions, hence the
+     * filter is attached from the button's own data, for this one render.
+     *
+     * @param  array<string, mixed>  $button
+     */
+    public function wireSubmitButton(array $button, object $form): void
+    {
+        $formId = $form->id ?? 0;
+        $widgetId = $this->pendingFloating[$formId] ?? '';
+        unset($this->pendingFloating[$formId]);
+        if ($widgetId === '' || ! is_string($button['element'] ?? null)) {
+            return;
+        }
+
+        $hook = 'fluentform/rendering_field_html_'.$button['element'];
+        $wire = static function (mixed $html) use (&$wire, $hook, $widgetId): mixed {
+            remove_filter($hook, $wire);
+
+            return is_string($html) ? Renderer::addFloatingAttrsToSubmit($html, $widgetId) : $html;
+        };
+        add_filter($hook, $wire);
+    }
+
+    /**
+     * Step forms, a custom submit button field and a hidden submit button all
+     * render no standard button after the field. Those keep the separate
+     * trigger, or the hidden widget could never be opened.
+     */
+    private function canUseSubmitButton(object $form): bool
+    {
+        $fields = $form->fields ?? null;
+        if (! is_array($fields) || ! isset($fields['submitButton']) || ! empty($fields['stepsWrapper'])) {
+            return false;
+        }
+
+        if ($this->containsField($fields, 'custom_submit_button')) {
+            return false;
+        }
+
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Fluent Forms' own filter, asked the way Fluent Forms asks it.
+        return ! apply_filters('fluentform/is_hide_submit_btn_'.($form->id ?? 0), false);
     }
 
     /**
@@ -158,14 +213,14 @@ final class FluentForms implements Integration
      *
      * @param  array<int|string, mixed>  $node
      */
-    private function containsField(array $node): bool
+    private function containsField(array $node, string $element = self::ELEMENT): bool
     {
-        if (($node['element'] ?? null) === self::ELEMENT) {
+        if (($node['element'] ?? null) === $element) {
             return true;
         }
 
         foreach ($node as $child) {
-            if (is_array($child) && $this->containsField($child)) {
+            if (is_array($child) && $this->containsField($child, $element)) {
                 return true;
             }
         }

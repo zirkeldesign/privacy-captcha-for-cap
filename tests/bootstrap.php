@@ -99,6 +99,18 @@ if (! function_exists('add_filter')) {
     }
 }
 
+if (! function_exists('remove_filter')) {
+    function remove_filter(string $hook_name, callable $callback, int $priority = 10): bool
+    {
+        $GLOBALS['__cap_filters'][$hook_name] = array_values(array_filter(
+            $GLOBALS['__cap_filters'][$hook_name] ?? [],
+            static fn (array $entry): bool => $entry['cb'] !== $callback,
+        ));
+
+        return true;
+    }
+}
+
 if (! function_exists('apply_filters')) {
     function apply_filters(string $hook_name, mixed $value, mixed ...$args): mixed
     {

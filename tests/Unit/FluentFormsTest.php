@@ -54,10 +54,11 @@ function capFluentFields(): array
     return ['cap-token' => ['element' => FluentForms::ELEMENT, 'raw' => ['attributes' => ['name' => 'cap-token']]]];
 }
 
-function capFluentRender(FluentForms $integration): string
+/** @param array<string, mixed>|null $fields The decoded form fields, as Fluent Forms sets them while rendering. */
+function capFluentRender(FluentForms $integration, ?array $fields = null): string
 {
     ob_start();
-    $integration->render([], (object) ['id' => 1]);
+    $integration->render([], (object) ['id' => 1, 'fields' => $fields]);
 
     return (string) ob_get_clean();
 }
@@ -79,6 +80,7 @@ it('registers the Fluent Forms editor, renderer and submission hooks', function 
         'fluentform/editor_element_settings_placement',
         'fluentform/form_input_types',
         'fluentform/render_item_cap_captcha',
+        'fluentform/render_item_submit_button',
         'fluentform/validation_errors',
         'fluentform/insert_response_data',
     ]);
@@ -193,12 +195,52 @@ it('renders the inline widget with a unique id per form', function (): void {
         ->and($GLOBALS['__cap_scripts']['cap-captcha-fluent-forms']['deps'])->toBe(['jquery']);
 });
 
-it('renders the floating trigger and loads the floating modules', function (): void {
-    $html = capFluentRender(capFluentForms(mode: Settings::MODE_FLOATING));
+it('makes the submit button the floating trigger', function (): void {
+    $integration = capFluentForms(mode: Settings::MODE_FLOATING);
+    $button = ['element' => 'button'];
+    $html = capFluentRender($integration, ['fields' => [], 'submitButton' => $button]);
+    preg_match('/<cap-widget id="([^"]+)"/', $html, $id);
 
-    expect($html)->toContain('data-cap-floating="#cap-captcha-fluent-')
-        ->and($html)->toContain('data-cap-autosubmit')
+    $integration->wireSubmitButton($button, (object) ['id' => 1]);
+    $submit = apply_filters('fluentform/rendering_field_html_button', '<div><button type="submit">Send</button></div>');
+
+    expect($html)->not->toContain('<button')
+        ->and($html)->not->toContain('data-cap-autosubmit')
+        ->and($submit)->toContain('<button data-cap-floating="#'.$id[1].'"')
         ->and($GLOBALS['__cap_modules'])->toContain(Enqueuer::FLOATING_MODULE_ID);
+
+    // One widget, one button: a later form's button on the same page stays untouched.
+    $integration->wireSubmitButton($button, (object) ['id' => 1]);
+    expect(apply_filters('fluentform/rendering_field_html_button', '<button type="submit">Other</button>'))
+        ->toBe('<button type="submit">Other</button>');
+});
+
+it('keeps its own floating trigger when the form renders no standard submit button', function (?array $fields): void {
+    $html = capFluentRender(capFluentForms(mode: Settings::MODE_FLOATING), $fields);
+
+    expect($html)->toContain('<button type="button"')
+        ->and($html)->toContain('data-cap-floating="#cap-captcha-fluent-')
+        ->and($html)->toContain('data-cap-autosubmit');
+})->with([
+    'fields unknown' => [null],
+    'step form' => [['fields' => [], 'submitButton' => [], 'stepsWrapper' => ['stepStart' => []]]],
+    'custom submit button' => [['fields' => [['element' => 'custom_submit_button']], 'submitButton' => []]],
+]);
+
+it('keeps its own floating trigger when a filter hides the submit button', function (): void {
+    add_filter('fluentform/is_hide_submit_btn_1', fn (): bool => true);
+    $html = capFluentRender(capFluentForms(mode: Settings::MODE_FLOATING), ['fields' => [], 'submitButton' => []]);
+
+    expect($html)->toContain('data-cap-autosubmit');
+});
+
+it('leaves the submit button alone outside floating mode', function (): void {
+    $integration = capFluentForms();
+    capFluentRender($integration, ['fields' => [], 'submitButton' => ['element' => 'button']]);
+    $integration->wireSubmitButton(['element' => 'button'], (object) ['id' => 1]);
+
+    expect(apply_filters('fluentform/rendering_field_html_button', '<button type="submit">Send</button>'))
+        ->toBe('<button type="submit">Send</button>');
 });
 
 it('renders a token field per form in programmatic mode and leaves the shared solver out', function (): void {
