@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use FluentForm\App\Modules\Form\Form as FormCreator;
 use FluentForm\App\Services\Form\SubmissionHandlerService;
+use FluentForm\App\Services\Form\Updater;
 use FluentForm\Framework\Validator\ValidationException;
 use ZirkelDesign\CapCaptcha\Integration\FluentForms;
 use ZirkelDesign\CapCaptcha\Settings;
@@ -105,6 +106,70 @@ it('renders the field in a real Fluent Forms form', function (): void {
         ->and($html)->toContain('cap-captcha--fluent')
         ->and(wp_script_is('cap-captcha-fluent-forms', 'enqueued'))->toBeTrue();
 });
+
+it('exposes the display-mode control and initializes fields saved before the setting existed', function (): void {
+    $placements = apply_filters('fluentform/editor_element_settings_placement', [], (object) ['id' => $this->formId]);
+    $customization = fluentformLoadFile('Services/FormBuilder/ElementCustomization.php');
+    $oldField = $this->capField;
+    unset($oldField['settings']['cap_display_mode']);
+    $initialized = apply_filters('fluentform/editor_init_element_cap_captcha', $oldField, (object) ['id' => $this->formId]);
+
+    expect($placements[FluentForms::ELEMENT]['general'])->toContain('cap_display_mode')
+        ->and($customization['cap_display_mode']['template'])->toBe('select')
+        ->and(array_column($customization['cap_display_mode']['options'], 'value'))->toBe(['', 'inline', 'floating', 'programmatic'])
+        ->and($initialized['settings']['cap_display_mode'])->toBe('');
+});
+
+it('renders the saved field display-mode override in a real Fluent Forms form', function (string $mode, string $expected): void {
+    $field = $this->capField;
+    $field['settings']['cap_display_mode'] = $mode;
+    capFluentSetFields($this->formId, [$field]);
+
+    expect(do_shortcode('[fluentform id="'.$this->formId.'"]'))->toContain($expected);
+})->with([
+    'inline' => [Settings::MODE_INLINE, 'cap-captcha--inline'],
+    'floating' => [Settings::MODE_FLOATING, 'cap-captcha--floating'],
+    'programmatic' => [Settings::MODE_PROGRAMMATIC, 'data-cap-programmatic="1"'],
+]);
+
+it('preserves the field display mode when Fluent Forms sanitizes and saves a form', function (string $mode): void {
+    global $wpdb;
+
+    $field = $this->capField;
+    $field['settings']['cap_display_mode'] = $mode;
+    $field['attributes']['placeholder'] = 'Before <b>after</b>';
+    $formFields = wp_json_encode([
+        'fields' => [$field],
+        'submitButton' => [
+            'element' => 'submit_button',
+            'attributes' => ['type' => 'submit', 'class' => 'ff-btn-submit'],
+            'settings' => ['button_ui' => ['type' => 'default', 'text' => 'Submit']],
+        ],
+    ]);
+
+    $previousUser = get_current_user_id();
+    wp_set_current_user(0);
+    try {
+        expect(fluentformCanUnfilteredHTML())->toBeFalse();
+        (new Updater)->update([
+            'form_id' => $this->formId,
+            'title' => 'CAPTCHA test',
+            'status' => 'published',
+            'formFields' => $formFields,
+        ]);
+    } finally {
+        wp_set_current_user($previousUser);
+    }
+
+    $saved = $wpdb->get_var($wpdb->prepare(
+        "SELECT form_fields FROM {$wpdb->prefix}fluentform_forms WHERE id = %d",
+        $this->formId,
+    ));
+    $savedFields = json_decode((string) $saved, true, 512, JSON_THROW_ON_ERROR);
+
+    expect($savedFields['fields'][0]['settings']['cap_display_mode'])->toBe($mode)
+        ->and($savedFields['fields'][0]['attributes']['placeholder'])->toBe('Before after');
+})->with(['global' => '', 'inline' => Settings::MODE_INLINE, 'floating' => Settings::MODE_FLOATING, 'programmatic' => Settings::MODE_PROGRAMMATIC]);
 
 it('rejects a real submission without a token', function (): void {
     try {

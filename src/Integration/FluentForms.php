@@ -34,6 +34,8 @@ final class FluentForms implements Integration
     {
         add_filter('fluentform/editor_components', [$this, 'addComponent']);
         add_filter('fluentform/editor_element_settings_placement', [$this, 'addEditorSettings']);
+        add_filter('fluentform/editor_element_customization_settings', [$this, 'addEditorCustomization']);
+        add_filter('fluentform/editor_init_element_'.self::ELEMENT, [$this, 'initializeField']);
         add_filter('fluentform/form_input_types', [$this, 'addInputType']);
         add_action('fluentform/render_item_'.self::ELEMENT, [$this, 'render'], 10, 2);
         add_filter('fluentform/validation_errors', [$this, 'validate'], 10, 3);
@@ -53,6 +55,7 @@ final class FluentForms implements Integration
             'settings' => [
                 'html_codes' => '<p>'.esc_html__('Privacy CAPTCHA for Cap', 'privacy-captcha-for-cap').'</p>',
                 'validation_rules' => [],
+                'cap_display_mode' => '',
             ],
             'editor_options' => [
                 'title' => __('Privacy CAPTCHA for Cap', 'privacy-captcha-for-cap'),
@@ -70,9 +73,42 @@ final class FluentForms implements Integration
      */
     public function addEditorSettings(array $settings): array
     {
-        $settings[self::ELEMENT] = ['general' => [], 'advanced' => []];
+        $settings[self::ELEMENT] = ['general' => ['cap_display_mode'], 'advanced' => []];
 
         return $settings;
+    }
+
+    /**
+     * @param  array<string, mixed>  $settings
+     * @return array<string, mixed>
+     */
+    public function addEditorCustomization(array $settings): array
+    {
+        $settings['cap_display_mode'] = [
+            'template' => 'select',
+            'label' => __('Display mode', 'privacy-captcha-for-cap'),
+            'options' => [
+                ['value' => '', 'label' => __('Use global setting', 'privacy-captcha-for-cap')],
+                ['value' => Settings::MODE_INLINE, 'label' => __('Inline (always visible)', 'privacy-captcha-for-cap')],
+                ['value' => Settings::MODE_FLOATING, 'label' => __('Floating (opens on click)', 'privacy-captcha-for-cap')],
+                ['value' => Settings::MODE_PROGRAMMATIC, 'label' => __('Programmatic (auto-solves silently)', 'privacy-captcha-for-cap')],
+            ],
+        ];
+
+        return $settings;
+    }
+
+    public function initializeField(mixed $element): mixed
+    {
+        if (! is_array($element)) {
+            return $element;
+        }
+        if (! isset($element['settings']) || ! is_array($element['settings'])) {
+            $element['settings'] = [];
+        }
+        $element['settings']['cap_display_mode'] ??= '';
+
+        return $element;
     }
 
     /**
@@ -93,7 +129,10 @@ final class FluentForms implements Integration
             return;
         }
 
-        $mode = $this->settings->getDisplayMode();
+        $override = $element['settings']['cap_display_mode'] ?? '';
+        $mode = in_array($override, [Settings::MODE_INLINE, Settings::MODE_FLOATING, Settings::MODE_PROGRAMMATIC], true)
+            ? $override
+            : $this->settings->getDisplayMode();
         if ($mode === Settings::MODE_PROGRAMMATIC) {
             $this->enqueuer->enqueueCore();
         } else {

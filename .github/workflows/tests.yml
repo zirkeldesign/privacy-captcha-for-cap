@@ -105,8 +105,16 @@ jobs:
           persist-credentials: false
 
       # The runner context is not available in a job-level env block.
+      # Support running this test locally using act (https://github.com/nektos/act):
+      # When the workflow runs under nektos/act, the workflow runs inside act's
+      # docker container as root, so we need to allow WP-CLI to run as root.
+      # This ensures that WP-CLI commands can be executed without permission issues.
       - name: Point the fixture at the runner's temp directory
-        run: echo "CAP_WP_ROOT=$RUNNER_TEMP/cap-fluent-wordpress" >> "$GITHUB_ENV"
+        run: |
+          echo "CAP_WP_ROOT=$RUNNER_TEMP/cap-fluent-wordpress" >> "$GITHUB_ENV"
+          if [[ "${ACT:-}" == "true" && "$(id -u)" -eq 0 ]]; then
+            echo "WP_CLI_ALLOW_ROOT=1" >> "$GITHUB_ENV"
+          fi
 
       - name: Setup PHP and WP-CLI
         uses: shivammathur/setup-php@v2

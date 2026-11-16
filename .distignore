@@ -25,6 +25,7 @@ node_modules
 
 # Source-only / build inputs
 bin
+fluentform
 scripts
 tests
 .phpunit.cache

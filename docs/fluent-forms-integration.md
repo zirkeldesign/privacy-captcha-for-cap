@@ -7,6 +7,7 @@ This guide is for maintaining and debugging the optional Fluent Forms integratio
 - [FluentForms.php](../src/Integration/FluentForms.php) registers the editor field, rendering, verification, and entry cleanup. [Plugin.php](../src/Plugin.php) loads it only when `FLUENTFORM` is defined; [Settings.php](../src/Settings.php) exposes the `fluent_forms` toggle and filter context.
 - [fluent-forms.js](../assets/js/fluent-forms.js) handles per-form programmatic solves and AJAX retries. The shared [programmatic.js](../assets/js/programmatic.js) deliberately skips Fluent Forms fields.
 - Add **one** Privacy CAPTCHA for Cap field to each regular form that needs protection. Forms without it are not protected. Place it on the final step of a multi-step form and do not conditionally hide it or its container. Conversational forms are not supported: Fluent Forms' converter drops every element it does not know, so converting a regular form to a conversational one removes the CAPTCHA field and leaves that form unprotected.
+- In **Input Customization**, the field's display mode can use the global setting or override it with inline, floating, or programmatic mode. Fields saved before this option existed use the global setting until changed.
 - Fluent Forms Pro has not been tested. Verification runs on the final submit; Pro features that store data earlier (step-form drafts, save and resume, partial entries) are assumed to bypass it, as they do for Fluent Forms' own CAPTCHAs.
 - Duplicate CAPTCHA fields are not supported: Fluent Forms can rename duplicate input names, while verification uses the fixed `cap-token` name. The field is not registered as a general-purpose conditional field.
 
@@ -18,6 +19,8 @@ The integration was exercised with WordPress 7.1.4 and the built Fluent Forms 6.
 | --- | --- |
 | `fluentform/editor_components` | Add the `cap_captcha` element to Advanced Fields, using the existing `customHTML` editor template and `cap-token` input name. |
 | `fluentform/editor_element_settings_placement` | Provide the field's editor settings groups. |
+| `fluentform/editor_element_customization_settings` | Define the display-mode select shown in Input Customization. |
+| `fluentform/editor_init_element_cap_captcha` | Supply the default display-mode setting for existing fields when they are opened in the editor. |
 | `fluentform/form_input_types` | Include the element so Fluent Forms' field parser retains its submitted input. |
 | `fluentform/render_item_cap_captcha` | Render the configured widget and enqueue the required assets. Widget IDs are unique per rendered instance. |
 | `fluentform/validation_errors` | Verify the token from the parsed submission data whenever the stored form contains the CAPTCHA field. Add errors under `cap-token`. |
@@ -28,6 +31,8 @@ Whether a form is protected is read from the form's stored `form_fields`, never 
 Fluent Forms sends AJAX submissions as serialized form data and parses them before validation. Do not switch this integration to `TokenVerifier::verifyCurrentRequest()`: the token is in Fluent Forms' parsed data, not necessarily top-level `$_POST`. Missing or rejected tokens fail verification when configured and protected; fail-open applies to an unreachable Cap server, not to a missing or rejected token. The existing `cap_captcha_require_token` filter can explicitly override the missing-token requirement. An unconfigured integration renders no widget and does not block submissions.
 
 Cap tokens are single-use. On Fluent Forms AJAX failure or success, the integration resets visible widgets or starts a fresh programmatic solve for the affected form. Programmatic forms must not share a token; submission waits for that form's pending solve, and a solve failure displays an error and permits a later retry. Check the behavior with more than one form on a page when changing this code.
+
+The programmatic endpoint configuration is emitted with the shared widget globals even when the global display mode is not programmatic. This allows a later Fluent Forms field on the same page to override the default without relying on rendering order.
 
 ## Tests
 
@@ -56,7 +61,7 @@ composer test:integration -- tests/Integration/FluentFormsFlowTest.php --fail-on
 
 The setup command resets the settings, so repeat the option patch after rerunning it. On a fixture where `fluent_forms` is already present, use `wp option patch update` instead of `insert`. `CAP_FLUENT_ONLY=1` requires Fluent Forms to be active and bypasses the Gravity Forms bootstrap requirement; select the Fluent Forms test file as shown. Without that flag the existing integration suite requires Gravity Forms.
 
-The real-plugin tests cover editor registration, rendering, missing and rejected tokens, a verified submission, entry token removal, and an unprotected form. They do not run a browser. [tests.yml](../.github/workflows/tests.yml) runs them on the pinned WordPress and Fluent Forms versions, and separately runs the JavaScript tests. CI installs the public WordPress.org release; nothing of Fluent Forms is bundled in this plugin.
+The real-plugin tests cover editor registration, old-field initialization, each display-mode override, and saving all four selector choices through Fluent Forms' sanitizer as a user without `unfiltered_html`. They also cover missing and rejected tokens, a verified submission, entry token removal, and an unprotected form. They do not automate the editor or run a browser. [tests.yml](../.github/workflows/tests.yml) runs them on the pinned WordPress and Fluent Forms versions, and separately runs the JavaScript tests. CI installs the public WordPress.org release; nothing of Fluent Forms is bundled in this plugin.
 
 ## Version updates and debugging
 
