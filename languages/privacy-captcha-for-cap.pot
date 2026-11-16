@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-16T09:19:00+00:00\n"
+"POT-Creation-Date: 2026-11-16T09:44:28+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: privacy-captcha-for-cap\n"
@@ -362,7 +362,7 @@ msgid "Isolate the Cap check from the page"
 msgstr ""
 
 #: src/Settings.php:450
-msgid "The widget tells browsers from bots with a script the Cap server sends, which runs with the same rights as the page it is on. Turn this on when the Cap server is operated by a third party: the script then runs in a frame that cannot read the page. Site keys that block on behavior or on automated interactions reject an isolated check."
+msgid "The widget tells browsers from bots with a script the Cap server sends. With this on, the script runs in a frame that cannot read the page. Site keys that block on behavior or on automated interactions reject an isolated check. Turn it off only for such keys, and only with a Cap server you run yourself: the script then runs with the same rights as the page it is on."
 msgstr ""
 
 #: src/Settings.php:455

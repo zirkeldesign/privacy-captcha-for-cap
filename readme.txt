@@ -109,7 +109,7 @@ Yes. The main ones:
 * `cap_captcha_gf_verified_ttl` — `($seconds)` how long a solved challenge stays valid across the pages of one multi-page Gravity Forms submission (default one hour); plus a `cap_captcha_gf_skipped_hidden($formId, $fieldId)` action when conditional logic hid the field and enforcement was skipped.
 * `cap_captcha_widget_src`, `cap_captcha_floating_src`, `cap_captcha_programmatic_src`, `cap_captcha_style_src` — override the script/style URLs (return `''` for the style to disable bundled CSS).
 * `cap_captcha_wasm_url`, `cap_captcha_hashwx_url`, `cap_captcha_pako_url`: override the WASM / pako URLs (default to the bundled copies).
-* `cap_captcha_isolate_frame`: `($isolated)` return `true` to run the Cap server's check in a frame that cannot read the page, e.g. on chosen requests.
+* `cap_captcha_isolate_frame`: `($isolated)` return `false` to let the Cap server's check share the page instead of running in a frame that cannot read it, e.g. on chosen requests.
 * `cap_captcha_i18n` — override the widget's `data-cap-i18n-*` strings.
 * `cap_captcha_floating_button_classes`, `cap_captcha_floating_position`, `cap_captcha_floating_autosubmit_src` — floating-mode tweaks.
 * `cap_captcha_display_mode` — override the resolved display mode for a specific Gravity Forms field.

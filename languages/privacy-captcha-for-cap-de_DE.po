@@ -611,8 +611,8 @@ msgid "Isolate the Cap check from the page"
 msgstr "Cap-Prüfung von der Seite isolieren"
 
 #: src/Settings.php:450
-msgid "The widget tells browsers from bots with a script the Cap server sends, which runs with the same rights as the page it is on. Turn this on when the Cap server is operated by a third party: the script then runs in a frame that cannot read the page. Site keys that block on behavior or on automated interactions reject an isolated check."
-msgstr "Das Widget unterscheidet Browser von Bots mit einem Skript, das der Cap-Server sendet und das mit denselben Rechten läuft wie die Seite, auf der es sich befindet. Aktiviere diese Option, wenn der Cap-Server von einem Dritten betrieben wird: Das Skript läuft dann in einem Frame, der die Seite nicht lesen kann. Site-Schlüssel, die anhand des Verhaltens oder automatisierter Interaktionen blockieren, lehnen eine isolierte Prüfung ab."
+msgid "The widget tells browsers from bots with a script the Cap server sends. With this on, the script runs in a frame that cannot read the page. Site keys that block on behavior or on automated interactions reject an isolated check. Turn it off only for such keys, and only with a Cap server you run yourself: the script then runs with the same rights as the page it is on."
+msgstr "Das Widget unterscheidet Browser von Bots mit einem Skript, das der Cap-Server sendet. Ist diese Option aktiv, läuft das Skript in einem Frame, der die Seite nicht lesen kann. Site-Schlüssel, die anhand des Verhaltens oder automatisierter Interaktionen blockieren, lehnen eine isolierte Prüfung ab. Schalte die Option nur für solche Schlüssel aus, und nur bei einem Cap-Server, den du selbst betreibst: Das Skript läuft dann mit denselben Rechten wie die Seite, auf der es sich befindet."
 
 #: src/Status/ConnectionCheck.php:59
 msgid "The Cap server did not answer. Check the endpoint URL."

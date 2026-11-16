@@ -11,23 +11,23 @@ beforeEach(function (): void {
     capResetSettingsSingleton();
 });
 
-it('points the widget at the bundled solvers and leaves the frame on the page origin', function (): void {
+it('points the widget at the bundled solvers and isolates the frame by default', function (): void {
     $globals = (new Enqueuer(new Settings))->globals();
 
     expect($globals)->toHaveKeys(['CAP_CUSTOM_WASM_URL', 'CAP_CUSTOM_HASHWX_URL', 'CAP_PAKO_URL'])
-        ->and($globals)->not->toHaveKey('CAP_ISOLATE');
+        ->and($globals['CAP_ISOLATE'])->toBeTrue();
 });
 
-it('isolates the instrumentation frame when the setting is on', function (): void {
-    update_option(Settings::OPTION_KEY, ['isolate_frame' => true]);
+it('leaves the frame on the page origin when the setting is off', function (): void {
+    update_option(Settings::OPTION_KEY, ['isolate_frame' => false]);
 
-    expect((new Enqueuer(new Settings))->globals()['CAP_ISOLATE'])->toBeTrue();
+    expect((new Enqueuer(new Settings))->globals())->not->toHaveKey('CAP_ISOLATE');
 });
 
-it('lets a filter isolate the frame on chosen requests', function (): void {
-    add_filter('cap_captcha_isolate_frame', fn (): bool => true);
+it('lets a filter open the frame on chosen requests', function (): void {
+    add_filter('cap_captcha_isolate_frame', fn (): bool => false);
 
-    expect((new Enqueuer(new Settings))->globals()['CAP_ISOLATE'])->toBeTrue();
+    expect((new Enqueuer(new Settings))->globals())->not->toHaveKey('CAP_ISOLATE');
 });
 
 it('passes the widget its labels for a check the page blocked', function (): void {

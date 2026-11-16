@@ -236,7 +236,7 @@ it('accepts an isolated frame on a key that only reports', function (): void {
 });
 
 it('warns when the key wants a press that the display mode never gives', function (): void {
-    $settings = capConfigureConnection(['display_mode' => Settings::MODE_FLOATING]);
+    $settings = capConfigureConnection(['display_mode' => Settings::MODE_FLOATING, 'isolate_frame' => false]);
     $GLOBALS['__cap_remote_get_responses'] = [
         '/server/keys/' => capKeyResponse(['protocol' => 'hashwx', 'behavior' => 'block', 'requireInteraction' => true]),
     ];
@@ -317,4 +317,16 @@ it('says so when the solver request gets no response at all', function (): void 
 
     expect($result->success)->toBeFalse()
         ->and($result->message)->toContain('does not serve hashwx.wasm (no response)');
+});
+
+it('fails on a key that blocks on behavior while isolation is left at its default', function (): void {
+    $settings = capConfigureConnection([]);
+    $GLOBALS['__cap_remote_get_responses'] = [
+        '/server/keys/' => capKeyResponse(['protocol' => 'hashwx', 'behavior' => 'block']),
+    ];
+
+    $result = capCheck($settings)->run();
+
+    expect($result->success)->toBeFalse()
+        ->and($result->message)->toContain('rejects an isolated check');
 });

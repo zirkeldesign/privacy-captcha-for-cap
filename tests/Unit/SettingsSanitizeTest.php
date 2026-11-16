@@ -82,12 +82,14 @@ it('preserves the WooCommerce master toggle too', function (): void {
     expect($saved['integrations']['woocommerce_checkout'])->toBeTrue();
 });
 
-it('shares the page with the Cap check unless isolation is ticked', function (): void {
+it('isolates the Cap check until the box is unticked and saved', function (): void {
     $settings = Settings::get_instance();
 
-    expect($settings->sanitize([])['isolate_frame'])->toBeFalse()
+    // Nothing stored yet, as on a site that updates from a version without
+    // the setting: the frame stays as closed off as cap-widget 0.1.58 kept it.
+    expect($settings->isFrameIsolated())->toBeTrue()
         ->and($settings->sanitize(['isolate_frame' => '1'])['isolate_frame'])->toBeTrue()
-        ->and($settings->isFrameIsolated())->toBeFalse();
+        ->and($settings->sanitize([])['isolate_frame'])->toBeFalse();
 });
 
 it('previews a submitted form without touching what is saved', function (): void {
