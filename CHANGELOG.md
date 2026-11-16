@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-11-16
+
 ### Added
 
 - Fluent Forms integration, contributed by Bernhard Kaindl. Add the "Privacy CAPTCHA for Cap" field from Advanced Fields to each regular form that should be protected; forms without the field stay untouched. All three display modes work, tokens are verified from Fluent Forms' parsed submission and never stored with the entry, and each form on a page gets its own single-use token that is renewed after every AJAX submission. Conversational forms are not supported. A form is treated as protected whenever its stored fields contain the CAPTCHA, also when the field sits inside a conditionally hidden container, so keep it outside conditional containers.
