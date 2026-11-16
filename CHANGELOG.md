@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Fluent Forms integration, contributed by Bernhard Kaindl. Add the "Privacy CAPTCHA for Cap" field from Advanced Fields to each regular form that should be protected; forms without the field stay untouched. All three display modes work, tokens are verified from Fluent Forms' parsed submission and never stored with the entry, and each form on a page gets its own single-use token that is renewed after every AJAX submission. Conversational forms are not supported. A form is treated as protected whenever its stored fields contain the CAPTCHA, also when the field sits inside a conditionally hidden container, so keep it outside conditional containers.
 
+### Security
+
+- With fail-open enabled, a submission could pass without a valid token when the sender made the verification request itself fail, for example with an oversized token that a proxy in front of the Cap server refused. Such a response looked like an outage. Oversized tokens are now rejected before the request, and a client error without a Cap answer counts as a rejection. Sites with fail-open disabled, the default, were not affected.
+
 ## [1.6.2] - 2026-10-28
 
 ### Fixed
