@@ -4,7 +4,7 @@ Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.6.2
+Stable tag: 1.7.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -116,6 +116,10 @@ Yes. The main ones:
 The full, annotated list with examples is in README.md.
 
 == Changelog ==
+
+= 1.7.0 =
+* Added: Fluent Forms support. Add the "Privacy CAPTCHA for Cap" field to each form you want to protect. Thanks to @bernhardkaindl.
+* Security: with the fail-open option switched on, a manipulated request could get past the CAPTCHA by making the check itself fail. Such requests are now rejected. Sites that left the option off were not affected.
 
 = 1.6.2 =
 * Changed: the plugin page lists the right authors, zirkel.design and Daniel Sturm.

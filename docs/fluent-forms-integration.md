@@ -7,6 +7,7 @@ This guide is for maintaining and debugging the optional Fluent Forms integratio
 - [FluentForms.php](../src/Integration/FluentForms.php) registers the editor field, rendering, verification, and entry cleanup. [Plugin.php](../src/Plugin.php) loads it only when `FLUENTFORM` is defined; [Settings.php](../src/Settings.php) exposes the `fluent_forms` toggle and filter context.
 - [fluent-forms.js](../assets/js/fluent-forms.js) handles per-form programmatic solves and AJAX retries. The shared [programmatic.js](../assets/js/programmatic.js) deliberately skips Fluent Forms fields.
 - Add **one** Privacy CAPTCHA for Cap field to each regular form that needs protection. Forms without it are not protected. Place it on the final step of a multi-step form and do not conditionally hide it or its container. Conversational forms are not supported: Fluent Forms' converter drops every element it does not know, so converting a regular form to a conversational one removes the CAPTCHA field and leaves that form unprotected.
+- Fluent Forms Pro has not been tested. Verification runs on the final submit; Pro features that store data earlier (step-form drafts, save and resume, partial entries) are assumed to bypass it, as they do for Fluent Forms' own CAPTCHAs.
 - Duplicate CAPTCHA fields are not supported: Fluent Forms can rename duplicate input names, while verification uses the fixed `cap-token` name. The field is not registered as a general-purpose conditional field.
 
 ## Host-plugin contracts
