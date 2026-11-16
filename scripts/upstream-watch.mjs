@@ -32,7 +32,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const serverSourceUrl = 'https://raw.githubusercontent.com/tiagozip/cap/main/standalone/src/server.js';
+const serverSourceUrl = 'https://raw.githubusercontent.com/tiagozip/cap/main/capd/src/server.js';
 
 const lock = readFileSync(resolve(projectRoot, 'bun.lock'), 'utf8');
 const lockedVersion = (name) => {
