@@ -4,10 +4,6 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-### Changed
-
-- The display modes are named by what they do: "Visible in the form (inline)", "Opens on submit (floating)" and "Invisible, solved in the background (programmatic)". The settings page and the Gravity Forms field now use the same three labels. The stored values and the filter names are unchanged.
-
 ## [1.8.0] - 2026-11-17
 
 ### Added
@@ -17,6 +13,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Fluent Forms, floating mode: the form's own submit button now opens the check and sends the form once it has passed, as in Gravity Forms. Before, the field added a second button above the submit button, and both sent the form. Step forms, forms with a custom submit button field and forms whose submit button is hidden by a filter keep the separate button, because they render no standard submit button after the field.
+- The display modes are named by what they do: "Visible in the form (inline)", "Opens on submit (floating)" and "Invisible, solved in the background (programmatic)". The settings page and the Gravity Forms field now use the same three labels. The stored values and the filter names are unchanged.
 
 ## [1.7.0] - 2026-11-16
 
