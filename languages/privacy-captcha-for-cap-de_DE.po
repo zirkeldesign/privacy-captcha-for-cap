@@ -36,14 +36,6 @@ msgstr "Geheimer Schlüssel"
 msgid "Display mode"
 msgstr "Darstellung"
 
-#: src/Integration/GravityForms/Field.php:90
-msgid "Inline (always visible)"
-msgstr "Inline (immer sichtbar)"
-
-#: src/Integration/GravityForms/Field.php:91
-msgid "Floating (opens on click)"
-msgstr "Eingeklappt (öffnet sich auf Klick)"
-
 #: src/Settings.php:437
 msgid "Save settings"
 msgstr "Einstellungen speichern"
@@ -62,7 +54,7 @@ msgstr "Bitte löse das CAPTCHA, bevor du das Formular absendest."
 #: src/Integration/Registration.php:87
 #: src/Integration/WooCommerce.php:103
 #: src/Integration/WooCommerce.php:213
-#: src/Integration/WpDiscuz.php:128
+#: src/Integration/WpDiscuz.php:130
 msgid "CAPTCHA verification failed. Please try again."
 msgstr "CAPTCHA-Prüfung fehlgeschlagen. Bitte versuche es erneut."
 
@@ -104,18 +96,14 @@ msgid "Use global setting"
 msgstr "Globale Einstellung verwenden"
 
 #: src/Integration/Comments.php:96
-#: src/Integration/WpDiscuz.php:182
+#: src/Integration/WpDiscuz.php:184
 msgid "CAPTCHA verification failed. Please go back and complete the challenge."
 msgstr "CAPTCHA-Prüfung fehlgeschlagen. Bitte zurück gehen und die Prüfung lösen."
 
 #: src/Integration/Comments.php:97
-#: src/Integration/WpDiscuz.php:183
+#: src/Integration/WpDiscuz.php:185
 msgid "CAPTCHA verification failed"
 msgstr "CAPTCHA-Prüfung fehlgeschlagen"
-
-#: src/Integration/GravityForms/Field.php:92
-msgid "Programmatic (auto-solves silently)"
-msgstr "Programmatisch (löst sich automatisch im Hintergrund)"
 
 #: src/Settings.php:271
 msgid "Cap server"
@@ -132,18 +120,6 @@ msgstr "Darstellung"
 #: src/Settings.php:374
 msgid "Default display mode"
 msgstr "Standard-Darstellung"
-
-#: src/Settings.php:377
-msgid "Inline — widget visible in the form"
-msgstr "Inline — Widget sichtbar im Formular"
-
-#: src/Settings.php:378
-msgid "Floating — opens on click of a trigger button"
-msgstr "Eingeklappt — öffnet sich beim Klick auf einen Button"
-
-#: src/Settings.php:379
-msgid "Programmatic — solves silently in the background (no user interaction)"
-msgstr "Programmatisch — löst sich unbemerkt im Hintergrund (keine Nutzerinteraktion)"
 
 #: src/Settings.php:381
 msgid "Per-form integrations can override this default."
@@ -632,3 +608,18 @@ msgstr ""
 #: src/Settings.php:531
 msgid "Protects wpDiscuz comment and reply forms."
 msgstr "Schützt die Kommentar- und Antwortformulare von wpDiscuz."
+
+#: src/Integration/GravityForms/Field.php:90
+#: src/Settings.php:377
+msgid "Visible in the form (inline)"
+msgstr "Sichtbar im Formular (Inline)"
+
+#: src/Integration/GravityForms/Field.php:91
+#: src/Settings.php:378
+msgid "Opens on submit (floating)"
+msgstr "Öffnet sich beim Absenden (eingeklappt)"
+
+#: src/Integration/GravityForms/Field.php:92
+#: src/Settings.php:379
+msgid "Invisible, solved in the background (programmatic)"
+msgstr "Unsichtbar, im Hintergrund gelöst (programmatisch)"

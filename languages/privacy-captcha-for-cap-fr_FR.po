@@ -116,12 +116,12 @@ msgid "Comments"
 msgstr "Commentaires"
 
 #: src/Integration/Comments.php:96
-#: src/Integration/WpDiscuz.php:182
+#: src/Integration/WpDiscuz.php:184
 msgid "CAPTCHA verification failed. Please go back and complete the challenge."
 msgstr "La vérification CAPTCHA a échoué. Revenez en arrière et résolvez le défi."
 
 #: src/Integration/Comments.php:97
-#: src/Integration/WpDiscuz.php:183
+#: src/Integration/WpDiscuz.php:185
 msgid "CAPTCHA verification failed"
 msgstr "Échec de la vérification CAPTCHA"
 
@@ -158,18 +158,6 @@ msgstr "Mode d’affichage"
 msgid "Use global setting"
 msgstr "Utiliser le réglage global"
 
-#: src/Integration/GravityForms/Field.php:90
-msgid "Inline (always visible)"
-msgstr "Intégré (toujours visible)"
-
-#: src/Integration/GravityForms/Field.php:91
-msgid "Floating (opens on click)"
-msgstr "Flottant (s’ouvre au clic)"
-
-#: src/Integration/GravityForms/Field.php:92
-msgid "Programmatic (auto-solves silently)"
-msgstr "Programmatique (résolution silencieuse automatique)"
-
 #: src/Integration/GravityForms/Field.php:186
 #: src/Settings.php:515
 msgid "Gravity Forms"
@@ -181,7 +169,7 @@ msgstr "Gravity Forms"
 #: src/Integration/Registration.php:87
 #: src/Integration/WooCommerce.php:103
 #: src/Integration/WooCommerce.php:213
-#: src/Integration/WpDiscuz.php:128
+#: src/Integration/WpDiscuz.php:130
 msgid "CAPTCHA verification failed. Please try again."
 msgstr "La vérification CAPTCHA a échoué. Veuillez réessayer."
 
@@ -320,18 +308,6 @@ msgstr "Affichage"
 #: src/Settings.php:374
 msgid "Default display mode"
 msgstr "Mode d’affichage par défaut"
-
-#: src/Settings.php:377
-msgid "Inline — widget visible in the form"
-msgstr "Intégré : widget visible dans le formulaire"
-
-#: src/Settings.php:378
-msgid "Floating — opens on click of a trigger button"
-msgstr "Flottant : s’ouvre au clic sur un bouton déclencheur"
-
-#: src/Settings.php:379
-msgid "Programmatic — solves silently in the background (no user interaction)"
-msgstr "Programmatique : résolution silencieuse en arrière-plan (sans interaction)"
 
 #: src/Settings.php:381
 msgid "Per-form integrations can override this default."
@@ -634,3 +610,18 @@ msgstr ""
 #: src/Settings.php:531
 msgid "Protects wpDiscuz comment and reply forms."
 msgstr "Protège les formulaires de commentaire et de réponse de wpDiscuz."
+
+#: src/Integration/GravityForms/Field.php:90
+#: src/Settings.php:377
+msgid "Visible in the form (inline)"
+msgstr "Visible dans le formulaire (intégré)"
+
+#: src/Integration/GravityForms/Field.php:91
+#: src/Settings.php:378
+msgid "Opens on submit (floating)"
+msgstr "S’ouvre à l’envoi (flottant)"
+
+#: src/Integration/GravityForms/Field.php:92
+#: src/Settings.php:379
+msgid "Invisible, solved in the background (programmatic)"
+msgstr "Invisible, résolu en arrière-plan (programmatique)"
