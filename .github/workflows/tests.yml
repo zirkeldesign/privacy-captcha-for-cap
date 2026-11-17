@@ -66,7 +66,7 @@ jobs:
       - name: Verify vendored cap-widget + WASM are up to date
         run: bun run build:check
 
-      - name: Test the programmatic and Fluent Forms scripts
+      - name: Test the programmatic, Fluent Forms and wpDiscuz scripts
         run: bun run test:js
 
   tests:
@@ -131,3 +131,41 @@ jobs:
       - name: Test real Fluent Forms submissions
         run: composer test:integration -- tests/Integration/FluentFormsFlowTest.php --fail-on-skipped
 
+
+  wpdiscuz:
+    name: wpDiscuz integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CAP_WP_VERSION: '7.1.4'
+      CAP_WPDISCUZ_ONLY: '1'
+      WPDISCUZ_VERSION: '7.6.67'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # The runner context is not available in a job-level env block.
+      - name: Point the fixture at the runner's temp directory
+        run: echo "CAP_WP_ROOT=$RUNNER_TEMP/cap-wpdiscuz-wordpress" >> "$GITHUB_ENV"
+
+      - name: Setup PHP and WP-CLI
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, sqlite3, curl
+          tools: wp-cli
+          ini-values: memory_limit=512M
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Provision WordPress
+        run: composer test:integration:setup
+
+      - name: Install wpDiscuz
+        run: wp plugin install wpdiscuz --version="$WPDISCUZ_VERSION" --activate --path="$CAP_WP_ROOT"
+
+      - name: Test real wpDiscuz comments
+        run: composer test:integration -- tests/Integration/WpDiscuzFlowTest.php --fail-on-skipped
