@@ -2,9 +2,10 @@
  * Cap CAPTCHA — admin glue.
  *
  * "Test connection" button: posts to admin-ajax with the cap_captcha_test_connection
- * action, renders ✅/❌ inline next to the button. Reads config from the running
- * plugin (which respects wp-config constants), not from the form fields — so
- * the test reflects what the plugin will actually send when verifying tokens.
+ * action, renders the outcome inline next to the button, with any warning of a
+ * passed check on a line of its own. The form goes along as it stands, so the
+ * test covers what is on screen before it is saved. Fields locked by a
+ * wp-config constant are disabled, hence not sent, and the constant applies.
  */
 
 (function () {
@@ -37,12 +38,30 @@
                     action: 'cap_captcha_test_connection',
                     _ajax_nonce: cfg.nonce ?? '',
                 });
+                if (btn.form) {
+                    new FormData(btn.form).forEach((value, name) => {
+                        if (name.startsWith(cfg.optionKey + '[') && typeof value === 'string') {
+                            body.append(name, value);
+                        }
+                    });
+                }
                 const res = await fetch(cfg.ajaxUrl, { method: 'POST', credentials: 'same-origin', body });
                 const data = await res.json();
                 if (out) {
                     if (data?.success) {
-                        out.classList.add('cap-captcha-test-connection__result--ok');
+                        const warnings = Array.isArray(data.data?.warnings) ? data.data.warnings : [];
+                        out.classList.add(
+                            warnings.length
+                                ? 'cap-captcha-test-connection__result--warn'
+                                : 'cap-captcha-test-connection__result--ok'
+                        );
                         out.textContent = data.data?.message ?? (cfg.i18n?.ok ?? 'OK');
+                        warnings.forEach((warning) => {
+                            const line = document.createElement('span');
+                            line.className = 'cap-captcha-test-connection__warning';
+                            line.textContent = warning;
+                            out.appendChild(line);
+                        });
                     } else {
                         out.classList.add('cap-captcha-test-connection__result--err');
                         out.textContent = data?.data?.message ?? (cfg.i18n?.error ?? 'Error');

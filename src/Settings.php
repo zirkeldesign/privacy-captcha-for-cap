@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ZirkelDesign\CapCaptcha;
 
 use ZirkelDesign\CapCaptcha\Status\ConnectionCheck;
+use ZirkelDesign\CapCaptcha\Status\SecretProbe;
 use ZirkelDesign\CapCaptcha\Status\SolverProbe;
 use ZirkelDesign\CapCaptcha\Status\StatsClient;
 use ZirkelDesign\CapCaptcha\Status\StatusPanel;
@@ -69,6 +70,8 @@ class Settings
         add_action('admin_init', [$this, 'registerSettings']);
         add_action('admin_enqueue_scripts', [$this, 'enqueueAdminAssets']);
         add_action('wp_ajax_cap_captcha_test_connection', [$this, 'ajaxTestConnection']);
+        // The cached status belongs to the key and endpoint it was read with.
+        add_action('update_option_'.self::OPTION_KEY, [new StatsClient($this), 'flush']);
     }
 
     public function enqueueAdminAssets(string $hookSuffix): void
@@ -97,6 +100,7 @@ class Settings
             'window.capCaptchaAdmin = '.wp_json_encode([
                 'ajaxUrl' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('cap_captcha_test_connection'),
+                'optionKey' => self::OPTION_KEY,
                 'i18n' => [
                     'testing' => __('Testing…', 'privacy-captcha-for-cap'),
                     'ok' => __('Connection OK', 'privacy-captcha-for-cap'),
@@ -107,6 +111,9 @@ class Settings
         );
     }
 
+    /** Set on a preview whose typed endpoint gave way to the saved one. */
+    public bool $typedEndpointSkipped = false;
+
     public function ajaxTestConnection(): void
     {
         check_ajax_referer('cap_captcha_test_connection');
@@ -115,13 +122,22 @@ class Settings
             wp_send_json_error(['message' => __('You do not have permission to run this check.', 'privacy-captcha-for-cap')], 403);
         }
 
-        $result = (new ConnectionCheck($this, new StatsClient($this), new SolverProbe))->run();
+        // Unslashed like options.php does before a save, so a value tests as
+        // it would be stored.
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitize() validates each field.
+        $settings = isset($_POST[self::OPTION_KEY]) ? $this->withSubmitted(wp_unslash($_POST[self::OPTION_KEY])) : $this;
+
+        $result = (new ConnectionCheck($settings, new StatsClient($settings), new SolverProbe, new SecretProbe))->run();
+
+        $skipped = $settings->typedEndpointSkipped
+            ? [__('The endpoint in the form was not tested. While a key is defined in wp-config.php, the test uses the saved endpoint. Save the settings first.', 'privacy-captcha-for-cap')]
+            : [];
 
         if (! $result->success) {
-            wp_send_json_error(['message' => $result->message]);
+            wp_send_json_error(['message' => implode(' ', [$result->message, ...$skipped])]);
         }
 
-        wp_send_json_success(['message' => $result->message]);
+        wp_send_json_success(['message' => $result->message, 'warnings' => [...$skipped, ...$result->warnings]]);
     }
 
     public function registerMenu(): void
@@ -142,6 +158,29 @@ class Settings
             'sanitize_callback' => [$this, 'sanitize'],
             'default' => $this->defaults(),
         ]);
+    }
+
+    /**
+     * These settings as they would read once the submitted form is saved.
+     * Fields a wp-config.php constant defines keep the value of the constant,
+     * and so does the saved endpoint while a secret or API key is a constant.
+     *
+     * @param  mixed  $input
+     */
+    public function withSubmitted($input): self
+    {
+        $preview = clone $this;
+        $preview->cache = array_replace($this->getAll(), $this->sanitize($input));
+
+        // A secret kept in wp-config.php must only travel to the saved
+        // endpoint, or a typed one would receive it without a trace.
+        if (($this->isSecretKeyConstantSet() || $this->isAdminApiKeyConstantSet()) && ! $this->isEndpointConstantSet()) {
+            $saved = (string) ($this->getAll()['endpoint_base'] ?? '');
+            $preview->typedEndpointSkipped = $preview->cache['endpoint_base'] !== $saved;
+            $preview->cache['endpoint_base'] = $saved;
+        }
+
+        return $preview;
     }
 
     /**
@@ -219,6 +258,7 @@ class Settings
             'admin_api_key' => $adminApiKey,
             'display_mode' => $mode,
             'wasm_source' => $wasm,
+            'isolate_frame' => ! empty($input['isolate_frame']),
             'fail_open' => ! empty($input['fail_open']),
             'show_admin_notices' => ! empty($input['show_admin_notices']),
             'integrations' => $integrations,
@@ -338,7 +378,7 @@ class Settings
                     </tr>
                     <?php $apiLocked = $this->isAdminApiKeyConstantSet(); ?>
                     <tr>
-                        <th scope="row"><label for="cap_admin_api_key"><?php echo esc_html__('Admin API key', 'privacy-captcha-for-cap'); ?></label></th>
+                        <th scope="row"><label for="cap_admin_api_key"><?php echo esc_html__('API key', 'privacy-captcha-for-cap'); ?></label></th>
                         <td>
                             <input
                                 type="password"
@@ -353,7 +393,7 @@ class Settings
                                 <?php if ($apiLocked) { ?>
                                     <?php echo esc_html__('Defined via CAP_CAPTCHA_ADMIN_API_KEY in wp-config.php — value here is read-only.', 'privacy-captcha-for-cap'); ?>
                                 <?php } else { ?>
-                                    <?php echo esc_html__('Optional. Issue a dedicated key under Settings → API Keys in your Cap server and paste it here. Used for the Status panel below. Define CAP_CAPTCHA_ADMIN_API_KEY in wp-config.php to override.', 'privacy-captcha-for-cap'); ?>
+                                    <?php echo esc_html__('Optional, for the status panel and the dashboard statistics. Create it under Settings → API keys in the Cap dashboard, read-only and limited to this site key. Define CAP_CAPTCHA_ADMIN_API_KEY in wp-config.php to override.', 'privacy-captcha-for-cap'); ?>
                                 <?php } ?>
                             </p>
                             <p class="cap-captcha-test-connection">
@@ -379,6 +419,7 @@ class Settings
                                 <option value="<?php echo esc_attr(self::MODE_PROGRAMMATIC); ?>" <?php selected($v['display_mode'], self::MODE_PROGRAMMATIC); ?>><?php echo esc_html__('Invisible, solved in the background (programmatic)', 'privacy-captcha-for-cap'); ?></option>
                             </select>
                             <p class="description"><?php echo esc_html__('Per-form integrations can override this default.', 'privacy-captcha-for-cap'); ?></p>
+                            <p class="description"><?php echo esc_html__('Floating and programmatic solve without a press on the widget. A site key that scores behavior and requires an interaction rejects them.', 'privacy-captcha-for-cap'); ?></p>
                         </td>
                     </tr>
                 </table>
@@ -398,6 +439,16 @@ class Settings
                                     <?php echo esc_html__('Cap server: load from your endpoint under /assets/', 'privacy-captcha-for-cap'); ?>
                                 </label>
                             </fieldset>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php echo esc_html__('Cap check', 'privacy-captcha-for-cap'); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="<?php echo esc_attr(self::OPTION_KEY); ?>[isolate_frame]" value="1" <?php checked($v['isolate_frame']); ?>>
+                                <?php echo esc_html__('Isolate the Cap check from the page', 'privacy-captcha-for-cap'); ?>
+                            </label>
+                            <p class="description"><?php echo esc_html__('The widget tells browsers from bots with a script the Cap server sends. With this on, the script runs in a frame that cannot read the page. Site keys that block on behavior or on automated interactions reject an isolated check. Turn it off only for such keys, and only with a Cap server you run yourself: the script then runs with the same rights as the page it is on.', 'privacy-captcha-for-cap'); ?></p>
                         </td>
                     </tr>
                 </table>
@@ -447,13 +498,14 @@ class Settings
         }
 
         $bypass = isset($_GET['cap_captcha_refresh']) && check_admin_referer('cap_captcha_refresh');
-        $stats = (new StatsClient($this))->fetch($bypass);
+        $client = new StatsClient($this);
+        $stats = $client->fetch($bypass);
 
         echo '<h2>'.esc_html__('Status', 'privacy-captcha-for-cap').'</h2>';
 
         if ($stats === null) {
             echo '<div class="notice notice-warning inline"><p>'
-                .esc_html__('Could not fetch status from the Cap server. Check the Endpoint, Site key, and Admin API key.', 'privacy-captcha-for-cap')
+                .esc_html(StatusPanel::unavailable($client->failure()))
                 .'</p></div>';
 
             return;
@@ -973,13 +1025,22 @@ class Settings
     }
 
     /**
-     * Solver for the `hashwx` protocol, which Cap Standalone 3.1+ issues for
-     * new site keys by default. Follows the same WASM source setting as the
+     * Solver for the `hashwx` protocol, which Cap 3.1+ issues for new site
+     * keys by default. Follows the same WASM source setting as the
      * sha256 solver.
      */
     public function getSelfHostedHashwxUrl(): string
     {
         return $this->resolveWasmUrl('hashwx.wasm');
+    }
+
+    /**
+     * Whether the widget runs the Cap server's instrumentation script in a
+     * frame cut off from the page, rather than one that shares its origin.
+     */
+    public function isFrameIsolated(): bool
+    {
+        return (bool) apply_filters('cap_captcha_isolate_frame', ! empty($this->getAll()['isolate_frame']));
     }
 
     /**
@@ -1050,6 +1111,7 @@ class Settings
             'admin_api_key' => '',
             'display_mode' => self::MODE_INLINE,
             'wasm_source' => self::WASM_BUNDLED,
+            'isolate_frame' => true,
             'fail_open' => false,
             'show_admin_notices' => true,
             'integrations' => [

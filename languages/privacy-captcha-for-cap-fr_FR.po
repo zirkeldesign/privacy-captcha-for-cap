@@ -23,9 +23,9 @@ msgstr ""
 #: src/Integration/GravityForms.php:155
 #: src/Integration/GravityForms/Field.php:18
 #: src/Integration/GravityForms/Field.php:103
-#: src/Settings.php:130
-#: src/Settings.php:131
-#: src/Settings.php:257
+#: src/Settings.php:146
+#: src/Settings.php:147
+#: src/Settings.php:297
 msgid "Privacy CAPTCHA for Cap"
 msgstr "Privacy CAPTCHA for Cap"
 
@@ -49,20 +49,11 @@ msgstr "Zirkel Design"
 msgid "https://zirkel.design"
 msgstr "https://zirkel.design"
 
-#: src/Admin/DashboardWidget.php:62
-msgid "Finish setup to see your Cap server stats here: add your endpoint, site key, and admin API key."
-msgstr "Terminez la configuration pour voir ici les statistiques de votre serveur Cap : renseignez le point de terminaison, la clé de site et la clé d’API admin."
-
 #: src/Admin/DashboardWidget.php:64
 msgid "Open settings"
 msgstr "Ouvrir les réglages"
 
-#: src/Admin/DashboardWidget.php:73
-#: src/Settings.php:456
-msgid "Could not fetch status from the Cap server. Check the Endpoint, Site key, and Admin API key."
-msgstr "Impossible de récupérer l’état auprès du serveur Cap. Vérifiez le point de terminaison, la clé de site et la clé d’API admin."
-
-#: src/Admin/DashboardWidget.php:83
+#: src/Admin/DashboardWidget.php:84
 msgid "Settings & full status →"
 msgstr "Réglages et état complet →"
 
@@ -90,7 +81,7 @@ msgid "Verifying…"
 msgstr "Vérification…"
 
 #: src/Asset/Renderer.php:157
-#: src/Status/StatusPanel.php:53
+#: src/Status/StatusPanel.php:75
 msgid "Verified"
 msgstr "Vérifié"
 
@@ -98,20 +89,20 @@ msgstr "Vérifié"
 msgid "Error. Please try again."
 msgstr "Erreur. Veuillez réessayer."
 
-#: src/Asset/Renderer.php:159
+#: src/Asset/Renderer.php:161
 msgid "Start CAPTCHA verification"
 msgstr "Lancer la vérification CAPTCHA"
 
-#: src/Asset/Renderer.php:160
+#: src/Asset/Renderer.php:162
 msgid "Verifying CAPTCHA"
 msgstr "Vérification CAPTCHA en cours"
 
-#: src/Asset/Renderer.php:161
+#: src/Asset/Renderer.php:163
 msgid "CAPTCHA verified"
 msgstr "CAPTCHA vérifié"
 
 #: src/Integration/Comments.php:52
-#: src/Settings.php:535
+#: src/Settings.php:587
 msgid "Comments"
 msgstr "Commentaires"
 
@@ -130,7 +121,7 @@ msgid "Protection"
 msgstr "Protection"
 
 #: src/Integration/GravityForms.php:125
-#: src/Settings.php:678
+#: src/Settings.php:730
 msgid "Default (use the global setting)"
 msgstr "Par défaut (utiliser le réglage global)"
 
@@ -159,7 +150,7 @@ msgid "Use global setting"
 msgstr "Utiliser le réglage global"
 
 #: src/Integration/GravityForms/Field.php:186
-#: src/Settings.php:515
+#: src/Settings.php:567
 msgid "Gravity Forms"
 msgstr "Gravity Forms"
 
@@ -178,12 +169,12 @@ msgid "Please complete the CAPTCHA before submitting."
 msgstr "Veuillez compléter le CAPTCHA avant d’envoyer le formulaire."
 
 #: src/Integration/Login.php:89
-#: src/Settings.php:540
+#: src/Settings.php:592
 msgid "Login"
 msgstr "Connexion"
 
 #: src/Integration/Registration.php:59
-#: src/Settings.php:545
+#: src/Settings.php:597
 msgid "Registration"
 msgstr "Inscription"
 
@@ -207,385 +198,363 @@ msgstr "Inscription WooCommerce"
 msgid "WooCommerce lost password"
 msgstr "Mot de passe perdu WooCommerce"
 
-#: src/Settings.php:101
+#: src/Settings.php:105
 msgid "Testing…"
 msgstr "Test en cours…"
 
-#: src/Settings.php:102
+#: src/Settings.php:106
 msgid "Connection OK"
 msgstr "Connexion établie"
 
-#: src/Settings.php:103
+#: src/Settings.php:107
 msgid "Connection failed"
 msgstr "Échec de la connexion"
 
-#: src/Settings.php:115
+#: src/Settings.php:122
 msgid "You do not have permission to run this check."
 msgstr "Vous n’avez pas l’autorisation d’effectuer cette vérification."
 
-#: src/Status/ConnectionCheck.php:31
+#: src/Status/ConnectionCheck.php:38
 msgid "Endpoint / Site key / Secret key not yet configured."
 msgstr "Point de terminaison, clé de site ou clé secrète pas encore configurés."
 
-#: src/Status/ConnectionCheck.php:35
-msgid "Admin API key is empty — connection test needs it."
-msgstr "La clé d’API admin est vide, le test de connexion en a besoin."
-
-#: src/Status/ConnectionCheck.php:41
-msgid "Cap server did not return a valid response. Verify endpoint and admin API key."
-msgstr "Le serveur Cap n’a pas renvoyé de réponse valide. Vérifiez le point de terminaison et la clé d’API admin."
-
-#: src/Settings.php:251
+#: src/Settings.php:291
 msgid "You do not have permission to access this page."
 msgstr "Vous n’avez pas l’autorisation d’accéder à cette page."
 
 #. translators: %s is a link to trycap.dev
-#: src/Settings.php:262
+#: src/Settings.php:302
 #, php-format
 msgid "Connect WordPress to your self-hosted Cap server and choose which forms to protect. See %s for server setup."
 msgstr "Connectez WordPress à votre serveur Cap auto-hébergé et choisissez les formulaires à protéger. Voir %s pour l’installation du serveur."
 
-#: src/Settings.php:271
+#: src/Settings.php:311
 msgid "Cap server"
 msgstr "Serveur Cap"
 
-#: src/Settings.php:275
+#: src/Settings.php:315
 msgid "Endpoint base URL"
 msgstr "URL de base du point de terminaison"
 
-#: src/Settings.php:288
+#: src/Settings.php:328
 msgid "Defined via CAP_CAPTCHA_ENDPOINT in wp-config.php — value here is read-only."
 msgstr "Définie via CAP_CAPTCHA_ENDPOINT dans wp-config.php, la valeur est ici en lecture seule."
 
-#: src/Settings.php:290
+#: src/Settings.php:330
 msgid "Public URL of your Cap server, e.g. https://cap.example.com/"
 msgstr "URL publique de votre serveur Cap, par exemple https://cap.example.com/"
 
-#: src/Settings.php:297
+#: src/Settings.php:337
 msgid "Site key"
 msgstr "Clé de site"
 
-#: src/Settings.php:310
+#: src/Settings.php:350
 msgid "Defined via CAP_CAPTCHA_SITE_KEY in wp-config.php — value here is read-only."
 msgstr "Définie via CAP_CAPTCHA_SITE_KEY dans wp-config.php, la valeur est ici en lecture seule."
 
-#: src/Settings.php:312
+#: src/Settings.php:352
 msgid "Public site key issued by your Cap server."
 msgstr "Clé de site publique délivrée par votre serveur Cap."
 
-#: src/Settings.php:319
+#: src/Settings.php:359
 msgid "Secret key"
 msgstr "Clé secrète"
 
-#: src/Settings.php:332
+#: src/Settings.php:372
 msgid "Defined via CAP_CAPTCHA_SECRET_KEY in wp-config.php — value here is read-only."
 msgstr "Définie via CAP_CAPTCHA_SECRET_KEY dans wp-config.php, la valeur est ici en lecture seule."
 
-#: src/Settings.php:334
+#: src/Settings.php:374
 msgid "Secret key used to call /siteverify. Define CAP_CAPTCHA_SECRET_KEY in wp-config.php to override."
 msgstr "Clé secrète utilisée pour appeler /siteverify. Définissez CAP_CAPTCHA_SECRET_KEY dans wp-config.php pour la remplacer."
 
-#: src/Settings.php:341
-msgid "Admin API key"
-msgstr "Clé d’API admin"
-
-#: src/Settings.php:354
+#: src/Settings.php:394
 msgid "Defined via CAP_CAPTCHA_ADMIN_API_KEY in wp-config.php — value here is read-only."
 msgstr "Définie via CAP_CAPTCHA_ADMIN_API_KEY dans wp-config.php, la valeur est ici en lecture seule."
 
-#: src/Settings.php:356
-msgid "Optional. Issue a dedicated key under Settings → API Keys in your Cap server and paste it here. Used for the Status panel below. Define CAP_CAPTCHA_ADMIN_API_KEY in wp-config.php to override."
-msgstr "Facultatif. Créez une clé dédiée dans Settings → API Keys sur votre serveur Cap et collez-la ici. Elle alimente le panneau État ci-dessous. Définissez CAP_CAPTCHA_ADMIN_API_KEY dans wp-config.php pour la remplacer."
-
-#: src/Settings.php:361
+#: src/Settings.php:401
 msgid "Test connection"
 msgstr "Tester la connexion"
 
-#: src/Settings.php:371
+#: src/Settings.php:411
 msgid "Display"
 msgstr "Affichage"
 
-#: src/Settings.php:374
+#: src/Settings.php:414
 msgid "Default display mode"
 msgstr "Mode d’affichage par défaut"
 
-#: src/Settings.php:381
+#: src/Settings.php:421
 msgid "Per-form integrations can override this default."
 msgstr "Les intégrations peuvent remplacer ce réglage formulaire par formulaire."
 
-#: src/Settings.php:386
+#: src/Settings.php:427
 msgid "Privacy"
 msgstr "Confidentialité"
 
-#: src/Settings.php:389
+#: src/Settings.php:430
 msgid "WASM source"
 msgstr "Source du WASM"
 
-#: src/Settings.php:394
+#: src/Settings.php:435
 msgid "Bundled — load from this plugin (recommended, DSGVO-clean)"
 msgstr "Embarqué : chargé depuis cette extension (recommandé, conforme au RGPD)"
 
-#: src/Settings.php:405
+#: src/Settings.php:456
 msgid "Integrations"
 msgstr "Intégrations"
 
-#: src/Settings.php:412
+#: src/Settings.php:463
 msgid "Behavior"
 msgstr "Comportement"
 
-#: src/Settings.php:415
+#: src/Settings.php:466
 msgid "Fail-open mode"
 msgstr "Mode tolérant (fail-open)"
 
-#: src/Settings.php:419
+#: src/Settings.php:470
 msgid "Let submissions through when the Cap server is unreachable"
 msgstr "Laisser passer les envois quand le serveur Cap est injoignable"
 
-#: src/Settings.php:421
+#: src/Settings.php:472
 msgid "Off by default. Enable only if temporary Cap outages must not block legitimate users (logins, checkouts)."
 msgstr "Désactivé par défaut. À activer seulement si une indisponibilité passagère de Cap ne doit pas bloquer les utilisateurs légitimes (connexions, commandes)."
 
-#: src/Settings.php:426
+#: src/Settings.php:477
 msgid "Admin notices"
 msgstr "Avertissements d’administration"
 
-#: src/Settings.php:430
+#: src/Settings.php:481
 msgid "Warn site admins inline when an enabled integration is not configured"
 msgstr "Avertir les administrateurs du site, directement dans la page, quand une intégration activée n’est pas configurée"
 
-#: src/Settings.php:432
+#: src/Settings.php:483
 msgid "Only users with manage_options ever see these notices — anonymous visitors get nothing rendered."
 msgstr "Seuls les utilisateurs disposant de manage_options voient ces avertissements, rien n’est affiché aux visiteurs anonymes."
 
-#: src/Settings.php:437
+#: src/Settings.php:488
 msgid "Save settings"
 msgstr "Enregistrer les réglages"
 
-#: src/Settings.php:452
+#: src/Settings.php:504
 msgid "Status"
 msgstr "État"
 
-#: src/Settings.php:471
+#: src/Settings.php:523
 msgid "Refresh now"
 msgstr "Actualiser maintenant"
 
-#: src/Settings.php:472
+#: src/Settings.php:524
 msgid "Status is cached for 5 minutes."
 msgstr "L’état est mis en cache pendant 5 minutes."
 
-#: src/Settings.php:489
+#: src/Settings.php:541
 msgid "WordPress"
 msgstr "WordPress"
 
-#: src/Settings.php:490
+#: src/Settings.php:542
 msgid "Protect WordPress core forms."
 msgstr "Protéger les formulaires natifs de WordPress."
 
-#: src/Settings.php:494
+#: src/Settings.php:546
 msgid "Form plugins"
 msgstr "Extensions de formulaires"
 
-#: src/Settings.php:495
+#: src/Settings.php:547
 msgid "Protect form-builder plugin submissions."
 msgstr "Protéger les envois des extensions de création de formulaires."
 
-#: src/Settings.php:499
-#: src/Settings.php:550
+#: src/Settings.php:551
+#: src/Settings.php:602
 msgid "WooCommerce"
 msgstr "WooCommerce"
 
-#: src/Settings.php:500
+#: src/Settings.php:552
 msgid "Protect WooCommerce checkout and My Account forms."
 msgstr "Protéger la commande WooCommerce et les formulaires Mon compte."
 
-#: src/Settings.php:516
+#: src/Settings.php:568
 msgid "Adds a \"Privacy CAPTCHA for Cap\" field to the form editor under Advanced Fields."
 msgstr "Ajoute un champ « Privacy CAPTCHA for Cap » dans l’éditeur de formulaire, sous Champs avancés."
 
-#: src/Settings.php:520
+#: src/Settings.php:572
 msgid "Contact Form 7"
 msgstr "Contact Form 7"
 
-#: src/Settings.php:521
+#: src/Settings.php:573
 msgid "Protects every Contact Form 7 form submission."
 msgstr "Protège tous les envois de formulaires Contact Form 7."
 
-#: src/Settings.php:536
+#: src/Settings.php:588
 msgid "Protects the default WordPress comment form."
 msgstr "Protège le formulaire de commentaire par défaut de WordPress."
 
-#: src/Settings.php:541
+#: src/Settings.php:593
 msgid "Protects wp-login.php and any front-end login form using login_form."
 msgstr "Protège wp-login.php et tout formulaire de connexion public utilisant login_form."
 
-#: src/Settings.php:546
+#: src/Settings.php:598
 msgid "Protects the WordPress user registration form."
 msgstr "Protège le formulaire d’inscription de WordPress."
 
-#: src/Settings.php:551
+#: src/Settings.php:603
 msgid "Enable WooCommerce protection, then choose which forms below."
 msgstr "Activez la protection WooCommerce, puis choisissez les formulaires ci-dessous."
 
-#: src/Settings.php:555
+#: src/Settings.php:607
 msgid "Checkout"
 msgstr "Commande"
 
-#: src/Settings.php:556
+#: src/Settings.php:608
 msgid "Protects the WooCommerce checkout form."
 msgstr "Protège le formulaire de commande WooCommerce."
 
-#: src/Settings.php:560
+#: src/Settings.php:612
 msgid "Account login"
 msgstr "Connexion au compte"
 
-#: src/Settings.php:561
+#: src/Settings.php:613
 msgid "Protects the My Account login form."
 msgstr "Protège le formulaire de connexion de Mon compte."
 
-#: src/Settings.php:565
+#: src/Settings.php:617
 msgid "Account registration"
 msgstr "Création de compte"
 
-#: src/Settings.php:566
+#: src/Settings.php:618
 msgid "Protects the My Account registration form."
 msgstr "Protège le formulaire d’inscription de Mon compte."
 
-#: src/Settings.php:570
+#: src/Settings.php:622
 msgid "Lost password"
 msgstr "Mot de passe perdu"
 
-#: src/Settings.php:571
+#: src/Settings.php:623
 msgid "Protects the My Account lost-password form."
 msgstr "Protège le formulaire de mot de passe perdu de Mon compte."
 
-#: src/Settings.php:601
+#: src/Settings.php:653
 msgid "Plugin not active"
 msgstr "Extension non active"
 
-#: src/Settings.php:604
+#: src/Settings.php:656
 msgid "Options"
 msgstr "Options"
 
 #. translators: %s is the integration name, e.g. "Gravity Forms".
-#: src/Settings.php:634
+#: src/Settings.php:686
 #, php-format
 msgid "%s options"
 msgstr "Options de %s"
 
-#: src/Settings.php:670
+#: src/Settings.php:722
 msgid "Override fail-open per form"
 msgstr "Remplacer le mode tolérant par formulaire"
 
-#: src/Settings.php:679
+#: src/Settings.php:731
 msgid "Fail-open (let through if Cap is unreachable)"
 msgstr "Tolérant (laisser passer si Cap est injoignable)"
 
-#: src/Settings.php:680
+#: src/Settings.php:732
 msgid "Fail-closed (always require a valid proof)"
 msgstr "Strict (toujours exiger une preuve valide)"
 
-#: src/Settings.php:686
+#: src/Settings.php:738
 msgid "For example, let logins through during a Cap outage but always require a valid proof on contact forms."
 msgstr "Par exemple, laisser passer les connexions pendant une indisponibilité de Cap, mais toujours exiger une preuve valide sur les formulaires de contact."
 
-#: src/Settings.php:713
+#: src/Settings.php:765
 msgid "Automatic — protect every form (add the [cap_captcha] tag to a form for custom placement, or “cap_captcha: off” in its Additional Settings to skip it)"
 msgstr "Automatique : protéger tous les formulaires (ajoutez la balise [cap_captcha] à un formulaire pour un placement personnalisé, ou « cap_captcha: off » dans ses Réglages additionnels pour l’exclure)"
 
-#: src/Settings.php:717
+#: src/Settings.php:769
 msgid "Manual — only protect forms that contain the [cap_captcha] tag"
 msgstr "Manuel : ne protéger que les formulaires contenant la balise [cap_captcha]"
 
-#: src/Settings.php:720
+#: src/Settings.php:772
 msgid "Use Manual to keep the CAPTCHA off legally required or accessibility-sensitive forms."
 msgstr "Utilisez le mode Manuel pour laisser le CAPTCHA à l’écart des formulaires légalement obligatoires ou sensibles en matière d’accessibilité."
 
-#: src/Settings.php:729
+#: src/Settings.php:781
 msgid "Automatically protect every Gravity Form"
 msgstr "Protéger automatiquement tous les formulaires Gravity Forms"
 
-#: src/Settings.php:731
+#: src/Settings.php:783
 msgid "Otherwise add the “Privacy CAPTCHA for Cap” field to a form. Each form can override this under its own settings (Default / Always / Never)."
 msgstr "Sinon, ajoutez le champ « Privacy CAPTCHA for Cap » à un formulaire. Chaque formulaire peut remplacer ce réglage dans ses propres options (Par défaut / Toujours / Jamais)."
 
-#: src/Status/StatusPanel.php:39
+#: src/Status/StatusPanel.php:61
 msgid "Site"
 msgstr "Site"
 
-#: src/Status/StatusPanel.php:47
+#: src/Status/StatusPanel.php:69
 msgid "Challenges"
 msgstr "Défis"
 
-#: src/Status/StatusPanel.php:59
+#: src/Status/StatusPanel.php:81
 msgid "Failed"
 msgstr "Échecs"
 
-#: src/Status/StatusPanel.php:65
+#: src/Status/StatusPanel.php:87
 msgid "Avg. duration"
 msgstr "Durée moy."
 
 #. translators: %s is the latency in seconds with one decimal, e.g. "3.4 s"
-#: src/Status/StatusPanel.php:67
+#: src/Status/StatusPanel.php:89
 #, php-format
 msgid "%s s"
 msgstr "%s s"
 
-#: src/Status/StatusPanel.php:73
+#: src/Status/StatusPanel.php:95
 msgid "Difficulty"
 msgstr "Difficulté"
 
-#: src/Status/StatusPanel.php:152
+#: src/Status/StatusPanel.php:174
 msgid "Hourly solves chart"
 msgstr "Graphique des résolutions par heure"
 
 #. translators: 1: localized hour label, 2: verified-solve count
-#: src/Status/StatusPanel.php:162
+#: src/Status/StatusPanel.php:184
 #, php-format
 msgid "%1$s — %2$d verified"
 msgstr "%1$s : %2$d vérifiés"
 
-#: src/Settings.php:398
+#: src/Settings.php:439
 msgid "Cap server: load from your endpoint under /assets/"
 msgstr "Serveur Cap : chargé depuis votre point de terminaison, sous /assets/"
 
 #. translators: 1: site name, 2: site key, 3: challenge protocol, e.g. "hashwx"
-#: src/Status/ConnectionCheck.php:51
+#: src/Status/ConnectionCheck.php:148
 #, php-format
 msgid "Connected — site \"%1$s\" (%2$s), %3$s key"
 msgstr "Connecté au site « %1$s » (%2$s), clé %3$s"
 
 #. translators: 1: the connection message, 2: solver file name, e.g. "hashwx.wasm"
-#: src/Status/ConnectionCheck.php:70
+#: src/Status/ConnectionCheck.php:171
 #, php-format
 msgid "%1$s · %2$s served by the Cap server"
 msgstr "%1$s · %2$s servi par le serveur Cap"
 
-#. translators: 1: the connection message, 2: solver file name, 3: "HTTP 503" or "no response", 4: challenge protocol
-#: src/Status/ConnectionCheck.php:78
-#, php-format
-msgid "%1$s, but the Cap server does not serve %2$s (%3$s). The widget cannot solve a %4$s challenge without it: enable the asset server on the Cap server with a WASM_VERSION that ships the file, or switch the WASM source to Bundled."
-msgstr "%1$s, mais le serveur Cap ne sert pas %2$s (%3$s). Sans ce fichier, le widget ne peut pas résoudre un défi %4$s : activez le serveur d’assets du serveur Cap avec une WASM_VERSION qui contient le fichier, ou passez la source du WASM sur Embarqué."
-
-#: src/Status/ConnectionCheck.php:82
+#: src/Status/RequestFailure.php:42
 msgid "no response"
 msgstr "aucune réponse"
 
 #. translators: %d: HTTP status code
-#: src/Status/ConnectionCheck.php:84
+#: src/Status/RequestFailure.php:46
 #, php-format
 msgid "HTTP %d"
 msgstr "HTTP %d"
 
-#: src/Status/StatusPanel.php:93
+#: src/Status/StatusPanel.php:115
 msgid "hashwx · expected hashes per solve"
 msgstr "hashwx · hachages attendus par résolution"
 
-#: src/Status/StatusPanel.php:94
+#: src/Status/StatusPanel.php:116
 msgid "rsw · time-lock squarings"
 msgstr "rsw · itérations du verrou temporel"
 
 #. translators: 1: challenge count, 2: salt size in bytes
-#: src/Status/StatusPanel.php:97
+#: src/Status/StatusPanel.php:119
 #, php-format
 msgid "sha256-pow · %1$d challenges · %2$d-byte salt"
 msgstr "sha256-pow · %1$d défis · sel de %2$d octets"
@@ -595,33 +564,145 @@ msgstr "sha256-pow · %1$d défis · sel de %2$d octets"
 msgid "CAPTCHA could not be started. Please try again."
 msgstr "Le CAPTCHA n’a pas pu démarrer. Veuillez réessayer."
 
-#: src/Settings.php:525
+#: src/Settings.php:577
 msgid "Fluent Forms"
 msgstr "Fluent Forms"
 
-#: src/Settings.php:526
+#: src/Settings.php:578
 msgid "Adds a \"Privacy CAPTCHA for Cap\" field to the form editor."
 msgstr "Ajoute un champ « Privacy CAPTCHA for Cap » dans l’éditeur de formulaire."
 
-#: src/Settings.php:530
+#: src/Settings.php:582
 msgid "wpDiscuz"
 msgstr ""
 
-#: src/Settings.php:531
+#: src/Settings.php:583
 msgid "Protects wpDiscuz comment and reply forms."
 msgstr "Protège les formulaires de commentaire et de réponse de wpDiscuz."
 
 #: src/Integration/GravityForms/Field.php:90
-#: src/Settings.php:377
+#: src/Settings.php:417
 msgid "Visible in the form (inline)"
 msgstr "Visible dans le formulaire (intégré)"
 
 #: src/Integration/GravityForms/Field.php:91
-#: src/Settings.php:378
+#: src/Settings.php:418
 msgid "Opens on submit (floating)"
 msgstr "S’ouvre à l’envoi (flottant)"
 
 #: src/Integration/GravityForms/Field.php:92
-#: src/Settings.php:379
+#: src/Settings.php:419
 msgid "Invisible, solved in the background (programmatic)"
 msgstr "Invisible, résolu en arrière-plan (programmatique)"
+
+#: src/Admin/DashboardWidget.php:62
+msgid "Finish setup to see your Cap server stats here: add your endpoint, site key, secret key and API key."
+msgstr "Terminez la configuration pour voir ici les statistiques de votre serveur Cap : renseignez le point de terminaison, la clé de site, la clé secrète et la clé d’API."
+
+#: src/Asset/Renderer.php:159
+msgid "Blocked by this page"
+msgstr "Bloqué par cette page"
+
+#: src/Asset/Renderer.php:160
+msgid "Troubleshoot"
+msgstr "Dépannage"
+
+#: src/Settings.php:381
+msgid "API key"
+msgstr "Clé d’API"
+
+#: src/Settings.php:396
+msgid "Optional, for the status panel and the dashboard statistics. Create it under Settings → API keys in the Cap dashboard, read-only and limited to this site key. Define CAP_CAPTCHA_ADMIN_API_KEY in wp-config.php to override."
+msgstr "Facultatif, pour le panneau d’état et les statistiques du tableau de bord. Créez-la dans Settings → API keys du tableau de bord Cap, en lecture seule et limitée à cette clé de site. Définissez CAP_CAPTCHA_ADMIN_API_KEY dans wp-config.php pour la remplacer."
+
+#: src/Settings.php:422
+msgid "Floating and programmatic solve without a press on the widget. A site key that scores behavior and requires an interaction rejects them."
+msgstr "Les modes flottant et programmatique résolvent le défi sans appui sur le widget. Une clé de site qui évalue le comportement et exige une interaction les refuse."
+
+#: src/Settings.php:445
+msgid "Cap check"
+msgstr "Vérification Cap"
+
+#: src/Settings.php:449
+msgid "Isolate the Cap check from the page"
+msgstr "Isoler la vérification Cap de la page"
+
+#: src/Settings.php:451
+msgid "The widget tells browsers from bots with a script the Cap server sends. With this on, the script runs in a frame that cannot read the page. Site keys that block on behavior or on automated interactions reject an isolated check. Turn it off only for such keys, and only with a Cap server you run yourself: the script then runs with the same rights as the page it is on."
+msgstr "Le widget distingue les navigateurs des robots grâce à un script envoyé par le serveur Cap. Lorsque cette option est active, le script s'exécute dans un cadre qui ne peut pas lire la page. Les clés de site qui bloquent sur le comportement ou sur les interactions automatisées refusent une vérification isolée. Ne désactivez l'option que pour ces clés, et uniquement avec un serveur Cap que vous exploitez vous-même : le script s'exécute alors avec les mêmes droits que la page sur laquelle il se trouve."
+
+#: src/Status/ConnectionCheck.php:59
+msgid "The Cap server did not answer. Check the endpoint URL."
+msgstr "Le serveur Cap n’a pas répondu. Vérifiez l’URL du point de terminaison."
+
+#. translators: %s: "HTTP 200"
+#: src/Status/ConnectionCheck.php:80
+#, php-format
+msgid "The endpoint did not answer like a Cap server (%s). Check the endpoint URL."
+msgstr "Le point de terminaison n’a pas répondu comme un serveur Cap (%s). Vérifiez son URL."
+
+#. translators: %s: what the Cap server answered, e.g. "HTTP 403: Invalid site key or secret"
+#: src/Status/ConnectionCheck.php:68
+#, php-format
+msgid "The Cap server refused the site key or secret key (%s)."
+msgstr "Le serveur Cap a refusé la clé de site ou la clé secrète (%s)."
+
+#: src/Status/ConnectionCheck.php:87
+msgid "Connected — the Cap server accepts the site key and secret key"
+msgstr "Connecté, le serveur Cap accepte la clé de site et la clé secrète"
+
+#: src/Status/ConnectionCheck.php:88
+msgid "No API key: the status panel and the dashboard statistics stay off."
+msgstr "Pas de clé d’API : le panneau d’état et les statistiques du tableau de bord restent désactivés."
+
+#. translators: 1: solver file name, 2: "HTTP 503" or "no response", 3: challenge protocol
+#: src/Status/ConnectionCheck.php:112
+#, php-format
+msgid "The Cap server does not serve %1$s (%2$s). Forms fail if the site key uses the %3$s protocol."
+msgstr "Le serveur Cap ne sert pas %1$s (%2$s). Les formulaires échouent si la clé de site utilise le protocole %3$s."
+
+#. translators: %s: what the Cap server answered, e.g. "HTTP 401: Unauthorized. Invalid bot token."
+#: src/Status/ConnectionCheck.php:135
+#, php-format
+msgid "The Cap server accepts the site key and secret key, but not the API key (%s)."
+msgstr "Le serveur Cap accepte la clé de site et la clé secrète, mais pas la clé d’API (%s)."
+
+#. translators: %s: the connection message
+#: src/Status/ConnectionCheck.php:157
+#, php-format
+msgid "%s, but the key rejects an isolated check: it blocks on behavior or on automated interactions. Turn \"Isolate the Cap check from the page\" off, or relax the key in the Cap dashboard."
+msgstr "%s, mais la clé refuse une vérification isolée : elle bloque sur le comportement ou sur les interactions automatisées. Désactivez « Isoler la vérification Cap de la page », ou assouplissez la clé dans le tableau de bord Cap."
+
+#: src/Status/ConnectionCheck.php:180
+msgid "The key requires a press on the widget, which the floating and programmatic display modes never give: forms in those modes fail. Use the inline mode."
+msgstr "La clé exige un appui sur le widget, que les modes d’affichage flottant et programmatique ne donnent jamais : les formulaires dans ces modes échouent. Utilisez le mode intégré."
+
+#. translators: %d: number of site keys
+#: src/Status/ConnectionCheck.php:187
+#, php-format
+msgid "The API key can read %d site keys. Create one that is read-only and limited to this site key."
+msgstr "La clé d’API peut lire %d clés de site. Créez-en une en lecture seule et limitée à cette clé de site."
+
+#. translators: 1: the connection message, 2: solver file name, 3: "HTTP 503" or "no response", 4: challenge protocol
+#: src/Status/ConnectionCheck.php:206
+#, php-format
+msgid "%1$s, but the Cap server does not serve %2$s (%3$s). The widget cannot solve a %4$s challenge without it: turn on Widget files in the Cap dashboard (ENABLE_ASSETS_SERVER before Cap 4) with a WASM version that ships the file, or switch the WASM source to Bundled."
+msgstr "%1$s, mais le serveur Cap ne sert pas %2$s (%3$s). Sans ce fichier, le widget ne peut pas résoudre un défi %4$s : activez Widget files dans le tableau de bord Cap (ENABLE_ASSETS_SERVER avant Cap 4) avec une version WASM qui fournit le fichier, ou passez la source du WASM sur Embarqué."
+
+#: src/Status/StatusPanel.php:20
+msgid "Could not fetch status from the Cap server. Check the endpoint, site key and API key."
+msgstr "Impossible de récupérer l’état depuis le serveur Cap. Vérifiez le point de terminaison, la clé de site et la clé d’API."
+
+#. translators: %s: what the Cap server answered, e.g. "HTTP 401: Unauthorized. Invalid bot token."
+#: src/Status/StatusPanel.php:25
+#, php-format
+msgid "Could not fetch status from the Cap server (%s). Check the endpoint, site key and API key."
+msgstr "Impossible de récupérer l’état depuis le serveur Cap (%s). Vérifiez le point de terminaison, la clé de site et la clé d’API."
+
+#: src/Status/StatusPanel.php:54
+msgid "The Cap server no longer accepts the secret of this site key, so every protected form is refused. Reset the secret in the Cap dashboard and save the new one here."
+msgstr "Le serveur Cap n’accepte plus le secret de cette clé de site, tous les formulaires protégés sont donc refusés. Réinitialisez le secret dans le tableau de bord Cap et enregistrez le nouveau ici."
+
+#: src/Settings.php:133
+msgid "The endpoint in the form was not tested. While a key is defined in wp-config.php, the test uses the saved endpoint. Save the settings first."
+msgstr "Le point de terminaison du formulaire n'a pas été testé. Tant qu'une clé est définie dans wp-config.php, le test utilise le point de terminaison enregistré. Enregistrez d'abord les réglages."

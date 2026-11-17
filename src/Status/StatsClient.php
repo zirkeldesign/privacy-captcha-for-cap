@@ -7,14 +7,18 @@ namespace ZirkelDesign\CapCaptcha\Status;
 use ZirkelDesign\CapCaptcha\Settings;
 
 /**
- * Fetches the Cap server's `/server/keys/<siteKey>` payload and caches it via
- * a 5-minute transient so the settings page doesn't hit the API on every load.
+ * Reads the Cap server's key API with the API key from the settings.
+ *
+ * The `/server/keys/<siteKey>` payload is cached in a 5-minute transient so
+ * the settings page doesn't hit the API on every load.
  */
 final class StatsClient
 {
     public const CACHE_KEY = 'cap_captcha_stats';
 
     public const CACHE_TTL = 300;
+
+    private ?RequestFailure $failure = null;
 
     public function __construct(private readonly Settings $settings) {}
 
@@ -30,17 +34,71 @@ final class StatsClient
             }
         }
 
-        $endpoint = $this->settings->getEndpointBase();
-        $siteKey = $this->settings->getSiteKey();
-        $apiKey = $this->settings->getAdminApiKey();
+        $body = $this->read();
+        if ($body !== null) {
+            set_transient(self::CACHE_KEY, $body, self::CACHE_TTL);
+        }
 
-        if ($endpoint === '' || $siteKey === '' || $apiKey === '') {
+        return $body;
+    }
+
+    /**
+     * The payload straight from the Cap server, leaving the cache as it is.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function read(): ?array
+    {
+        $siteKey = $this->settings->getSiteKey();
+        if ($siteKey === '') {
             return null;
         }
 
-        $url = rtrim($endpoint, '/').'/server/keys/'.rawurlencode($siteKey).'?chartDuration=today';
+        return $this->get('server/keys/'.rawurlencode($siteKey).'?chartDuration=today');
+    }
 
-        $response = wp_remote_get($url, [
+    /**
+     * How many site keys the API key can read. An API key that Cap limits to
+     * chosen site keys lists only those; an unrestricted one lists them all.
+     *
+     * @return int|null Null when the Cap server did not answer with a list.
+     */
+    public function siteKeyCount(): ?int
+    {
+        $keys = $this->get('server/keys');
+
+        return $keys !== null && array_is_list($keys) ? count($keys) : null;
+    }
+
+    /**
+     * Why the last request failed, or null when it went through or was never
+     * sent for lack of an endpoint or API key.
+     */
+    public function failure(): ?RequestFailure
+    {
+        return $this->failure;
+    }
+
+    public function flush(): void
+    {
+        delete_transient(self::CACHE_KEY);
+    }
+
+    /**
+     * @return array<mixed>|null
+     */
+    private function get(string $path): ?array
+    {
+        $this->failure = null;
+
+        $endpoint = $this->settings->getEndpointBase();
+        $apiKey = $this->settings->getAdminApiKey();
+
+        if ($endpoint === '' || $apiKey === '') {
+            return null;
+        }
+
+        $response = wp_remote_get($endpoint.$path, [
             'timeout' => 5,
             'headers' => [
                 'Authorization' => 'Bot '.$apiKey,
@@ -48,27 +106,20 @@ final class StatsClient
             ],
         ]);
 
-        if (is_wp_error($response)) {
-            return null;
-        }
+        $failure = RequestFailure::fromResponse($response);
+        if ($failure->status === null || $failure->status < 200 || $failure->status >= 300) {
+            $this->failure = $failure;
 
-        $status = wp_remote_retrieve_response_code($response);
-        if ($status < 200 || $status >= 300) {
             return null;
         }
 
         $body = json_decode((string) wp_remote_retrieve_body($response), true);
         if (! is_array($body)) {
+            $this->failure = $failure;
+
             return null;
         }
 
-        set_transient(self::CACHE_KEY, $body, self::CACHE_TTL);
-
         return $body;
-    }
-
-    public function flush(): void
-    {
-        delete_transient(self::CACHE_KEY);
     }
 }

@@ -59,7 +59,7 @@ final class DashboardWidget
         if (! $this->settings->isConfigured() || $this->settings->getAdminApiKey() === '') {
             printf(
                 '<p>%s</p><p><a class="button button-primary" href="%s">%s</a></p>',
-                esc_html__('Finish setup to see your Cap server stats here: add your endpoint, site key, and admin API key.', 'privacy-captcha-for-cap'),
+                esc_html__('Finish setup to see your Cap server stats here: add your endpoint, site key, secret key and API key.', 'privacy-captcha-for-cap'),
                 esc_url($settingsUrl),
                 esc_html__('Open settings', 'privacy-captcha-for-cap')
             );
@@ -67,10 +67,11 @@ final class DashboardWidget
             return;
         }
 
-        $stats = (new StatsClient($this->settings))->fetch();
+        $client = new StatsClient($this->settings);
+        $stats = $client->fetch();
 
         if ($stats === null) {
-            echo '<p>'.esc_html__('Could not fetch status from the Cap server. Check the Endpoint, Site key, and Admin API key.', 'privacy-captcha-for-cap').'</p>';
+            echo '<p>'.esc_html(StatusPanel::unavailable($client->failure())).'</p>';
         } else {
             echo '<div class="cap-captcha-status cap-captcha-status--dashboard">';
             (new StatusPanel)->render($stats);

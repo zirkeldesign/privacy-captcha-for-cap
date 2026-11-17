@@ -43,7 +43,7 @@ every WordPress core release, confirm the widget still renders on:
 | Contact Form 7 | a form with the automatic mode on | |
 | Fluent Forms | a form containing the "Privacy CAPTCHA for Cap" field | CI runs the real-plugin suite. Check inline, floating and programmatic mode, and two forms on one page: tokens are single-use and per form. Hook contracts and setup: `docs/fluent-forms-integration.md` |
 | wpDiscuz | any single post with wpDiscuz active, main form and a reply form | CI runs the real-plugin suite (`tests/Integration/WpDiscuzFlowTest.php`, posts through PHP's built-in server). Check all three modes, a reply form opened after load, and two comments in a row from one page: the token is spent after each post. |
-| Settings | Settings → Privacy CAPTCHA, incl. "Test connection" | reads the running config, not the form fields |
+| Settings | Settings → Privacy CAPTCHA, incl. "Test connection" | tests the form as it stands, saved or not; a wp-config constant wins over its field |
 
 Minimum config that makes the widget render — `isConfigured()` requires all three:
 

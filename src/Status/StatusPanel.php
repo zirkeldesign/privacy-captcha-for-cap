@@ -12,6 +12,22 @@ namespace ZirkelDesign\CapCaptcha\Status;
 final class StatusPanel
 {
     /**
+     * The line shown in place of the panel when the Cap server gave no stats.
+     */
+    public static function unavailable(?RequestFailure $failure): string
+    {
+        if ($failure === null) {
+            return __('Could not fetch status from the Cap server. Check the endpoint, site key and API key.', 'privacy-captcha-for-cap');
+        }
+
+        return sprintf(
+            /* translators: %s: what the Cap server answered, e.g. "HTTP 401: Unauthorized. Invalid bot token." */
+            __('Could not fetch status from the Cap server (%s). Check the endpoint, site key and API key.', 'privacy-captcha-for-cap'),
+            $failure->describe()
+        );
+    }
+
+    /**
      * Render the stat-card grid + sparkline for a decoded stats payload.
      *
      * @param  array<string, mixed>  $stats
@@ -32,6 +48,12 @@ final class StatusPanel
         $avgLatencyMs = (int) ($current['avgLatency'] ?? 0);
 
         $buckets = is_array($stats['chartData']['data'] ?? null) ? $stats['chartData']['data'] : [];
+
+        if (! empty($stats['key']['secretOutdated'])) {
+            echo '<div class="notice notice-error inline"><p>'
+                .esc_html__('The Cap server no longer accepts the secret of this site key, so every protected form is refused. Reset the secret in the Cap dashboard and save the new one here.', 'privacy-captcha-for-cap')
+                .'</p></div>';
+        }
 
         ?>
         <div class="cap-captcha-status__grid">

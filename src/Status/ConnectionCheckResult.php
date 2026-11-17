@@ -6,14 +6,21 @@ namespace ZirkelDesign\CapCaptcha\Status;
 
 final readonly class ConnectionCheckResult
 {
+    /**
+     * @param  list<string>  $warnings  Things that work less well than they could, on a check that passed.
+     */
     private function __construct(
         public bool $success,
         public string $message,
+        public array $warnings = [],
     ) {}
 
-    public static function ok(string $message): self
+    /**
+     * @param  list<string>  $warnings
+     */
+    public static function ok(string $message, array $warnings = []): self
     {
-        return new self(true, $message);
+        return new self(true, $message, $warnings);
     }
 
     public static function failed(string $message): self

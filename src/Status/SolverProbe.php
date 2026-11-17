@@ -7,11 +7,13 @@ namespace ZirkelDesign\CapCaptcha\Status;
 /**
  * Asks a URL for a solver file and reports the HTTP status it answers with.
  *
- * Cap Standalone serves the widget's WebAssembly modules under /assets/ only
- * when ENABLE_ASSETS_SERVER is on (404 otherwise), and answers 503 for a file
- * its pinned WASM_VERSION does not contain, which is the case of hashwx.wasm
- * below @cap.js/wasm 0.0.8. A GET rather than a HEAD, since the asset routes
- * are plain GET handlers and the files are a few dozen kilobytes.
+ * The Cap server serves the widget's WebAssembly modules under /assets/ only
+ * when its asset server is on (404 otherwise): the Widget files setting of
+ * the Cap 4 dashboard, ENABLE_ASSETS_SERVER before. It answers 503 for a file
+ * it has not downloaded or that its WASM version does not contain, which is
+ * the case of hashwx.wasm below @cap.js/wasm 0.0.8. A GET rather than a HEAD,
+ * since the asset routes are plain GET handlers and the files are a few dozen
+ * kilobytes.
  */
 final class SolverProbe
 {
@@ -22,10 +24,7 @@ final class SolverProbe
      */
     public function status(string $url): ?int
     {
-        $response = wp_remote_get($url, [
-            'timeout' => $this->timeout,
-            'headers' => ['Accept' => 'application/wasm'],
-        ]);
+        $response = wp_remote_get($url, ['timeout' => $this->timeout]);
 
         if (is_wp_error($response)) {
             return null;

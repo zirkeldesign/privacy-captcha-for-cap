@@ -156,6 +156,8 @@ final class Renderer
             'verifying-label' => __('Verifying…', 'privacy-captcha-for-cap'),
             'solved-label' => __('Verified', 'privacy-captcha-for-cap'),
             'error-label' => __('Error. Please try again.', 'privacy-captcha-for-cap'),
+            'csp-error-label' => __('Blocked by this page', 'privacy-captcha-for-cap'),
+            'troubleshooting-label' => __('Troubleshoot', 'privacy-captcha-for-cap'),
             'verify-aria-label' => __('Start CAPTCHA verification', 'privacy-captcha-for-cap'),
             'verifying-aria-label' => __('Verifying CAPTCHA', 'privacy-captcha-for-cap'),
             'verified-aria-label' => __('CAPTCHA verified', 'privacy-captcha-for-cap'),

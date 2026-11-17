@@ -118,6 +118,28 @@ final class Enqueuer
         }
         $this->globalsPrinted = true;
 
+        $globals = $this->globals();
+        if ($globals === []) {
+            return;
+        }
+
+        $lines = [];
+        foreach ($globals as $name => $value) {
+            $lines[] = sprintf('window.%s=%s;', $name, wp_json_encode($value));
+        }
+
+        // wp_print_inline_script_tag is the WordPress 5.7+ helper for safely
+        // emitting an inline <script>, including CSP nonces when configured.
+        wp_print_inline_script_tag(implode('', $lines));
+    }
+
+    /**
+     * The window globals the widget reads when it loads, by name.
+     *
+     * @return array<string, mixed>
+     */
+    public function globals(): array
+    {
         $wasmDefault = $this->settings->getSelfHostedWasmUrl();
         $wasmUrl = (string) apply_filters('cap_captcha_wasm_url', $wasmDefault);
 
@@ -137,6 +159,13 @@ final class Enqueuer
         if ($pakoUrl !== '') {
             $globals['CAP_PAKO_URL'] = $pakoUrl;
         }
+
+        // Without it the instrumentation frame shares the page's origin, and
+        // the script the Cap server sends for it can read the page.
+        if ($this->settings->isFrameIsolated()) {
+            $globals['CAP_ISOLATE'] = true;
+        }
+
         if ($this->settings->isProgrammatic()) {
             $endpoint = $this->settings->getWidgetEndpoint();
             if ($endpoint !== '') {
@@ -147,17 +176,6 @@ final class Enqueuer
             }
         }
 
-        if ($globals === []) {
-            return;
-        }
-
-        $lines = [];
-        foreach ($globals as $name => $value) {
-            $lines[] = sprintf('window.%s=%s;', $name, wp_json_encode($value));
-        }
-
-        // wp_print_inline_script_tag is the WordPress 5.7+ helper for safely
-        // emitting an inline <script>, including CSP nonces when configured.
-        wp_print_inline_script_tag(implode('', $lines));
+        return $globals;
     }
 }

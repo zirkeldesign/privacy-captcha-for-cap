@@ -163,6 +163,8 @@
 }
 .cap-captcha-test-connection__result--ok { background: #edfaef; color: #00450c; border: 1px solid #b8e6bf; }
 .cap-captcha-test-connection__result--err { background: #fcf0f1; color: #8a1f11; border: 1px solid #f3c5cf; }
+.cap-captcha-test-connection__result--warn { background: #fcf9e8; color: #614200; border: 1px solid #f0d98c; }
+.cap-captcha-test-connection__warning { display: block; margin-top: 0.25em; }
 
 /* ---------- Dashboard widget variant ---------- */
 

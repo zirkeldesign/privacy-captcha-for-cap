@@ -6,7 +6,7 @@
  * Run weekly by .github/workflows/upstream-watch.yml, which turns the report
  * into a GitHub issue. Run locally with `bun run upstream:watch`.
  *
- * Why this exists: Cap Standalone 3.1 switched new site keys to the `hashwx`
+ * Why this exists: Cap 3.1 switched new site keys to the `hashwx`
  * protocol. The vendored widget did not know it, and every form on such a key
  * failed with "unsupported format-2 protocol 'hashwx'". Nothing in CI noticed,
  * because the plugin itself had not changed. The checks below look for that
@@ -17,6 +17,8 @@
  * - breaking: the latest widget fetches an asset from jsdelivr that the
  *   vendored one did not. The build strips those URLs, so an unvendored asset
  *   simply fails to load.
+ * - breaking: /siteverify no longer answers an unknown token with the text
+ *   "Test connection" takes for an accepted secret.
  * - notice: a new widget or WASM release, new `window.CAP_*` globals, or new
  *   files in the WASM package.
  *
@@ -33,6 +35,9 @@ import { fileURLToPath } from 'node:url';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const serverSourceUrl = 'https://raw.githubusercontent.com/tiagozip/cap/main/capd/src/server.js';
+const siteverifySourceUrl = 'https://raw.githubusercontent.com/tiagozip/cap/main/capd/src/siteverify.js';
+// The answer src/Status/SecretProbe.php takes for an accepted secret.
+const unknownTokenError = 'Token not found';
 
 const lock = readFileSync(resolve(projectRoot, 'bun.lock'), 'utf8');
 const lockedVersion = (name) => {
@@ -79,6 +84,12 @@ try {
         breaking.push(
             `The Cap server accepts protocol \`${protocol}\` for site keys, which the vendored cap-widget ${vendored.widget} cannot solve.`
             + fixHint(protocol, supportedByLatest),
+        );
+    }
+
+    if (!(await siteverifySource()).includes(`error: "${unknownTokenError}"`)) {
+        breaking.push(
+            `The Cap server no longer answers an unknown token with "${unknownTokenError}" in ${siteverifySourceUrl}. \`Status\\SecretProbe\` reads that text as an accepted secret, so "Test connection" fails on every site.`,
         );
     }
 
@@ -168,6 +179,15 @@ async function serverProtocols() {
     }
 
     return { default: defaults.match(/protocol:\s*"([^"]+)"/)?.[1] ?? null, accepted };
+}
+
+async function siteverifySource() {
+    const response = await fetch(siteverifySourceUrl);
+    if (!response.ok) {
+        throw new Error(`GitHub answered ${response.status} for ${siteverifySourceUrl}`);
+    }
+
+    return response.text();
 }
 
 function cdnAssets(pkg) {

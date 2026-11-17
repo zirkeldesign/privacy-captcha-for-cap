@@ -6,7 +6,7 @@
       "name": "@zirkeldesign/privacy-captcha-for-cap",
       "devDependencies": {
         "@cap.js/wasm": "^0.0.8",
-        "cap-widget": "^0.1.58",
+        "cap-widget": "^0.1.63",
         "pako": "^2.2.0",
       },
     },
@@ -14,7 +14,7 @@
   "packages": {
     "@cap.js/wasm": ["@cap.js/wasm@0.0.8", "", {}, "sha512-rX+4/v2sz4GKLnygXHOS89O7c4GM2qNQcDJP6Y2cyGwoKjg83bsfWHt1TWr9GBzHpFADvju5fvLWYds21nS8sA=="],
 
-    "cap-widget": ["cap-widget@0.1.58", "", {}, "sha512-7iS/Q++AaiVvWR8xvMSxRwGWY+fV1ZADJNwPzLk4P1gibCmCbS5G6MGOtoUjsj9OxI9+0nkewW6gRsOGDCOZZA=="],
+    "cap-widget": ["cap-widget@0.1.63", "", {}, "sha512-8NvncyO7F0OSzpsBuO5pV54eAV7IVLi0P9Ai8WIzxoldCnq4a8O3e6zc433IBZb9tDwqZuwQSzZEKj9katxxuA=="],
 
     "pako": ["pako@2.2.0", "", {}, "sha512-zJq6RP/5q+TO2OpFV3FHzlPnFjmkb7Nc99a5SNjJE+uu/PkpChs+NIZSSzbBoD+6kjiISXjfYdwj1ZRQ81dz/w=="],
   }
