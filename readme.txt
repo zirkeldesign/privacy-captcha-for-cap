@@ -121,6 +121,7 @@ The full, annotated list with examples is in README.md.
 = 1.8.0 =
 * Added: wpDiscuz support. Switch on the wpDiscuz integration to protect the comment form and all reply forms.
 * Improved: in floating mode, Fluent Forms now uses the form's own submit button for the check instead of showing a second button.
+* Changed: the display modes are named by what they do, for example "Opens on submit (floating)". Your saved setting stays as it is.
 
 = 1.7.0 =
 * Added: Fluent Forms support. Add the "Privacy CAPTCHA for Cap" field to each form you want to protect. Thanks to @bernhardkaindl.
