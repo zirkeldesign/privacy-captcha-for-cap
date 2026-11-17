@@ -4,7 +4,7 @@ Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.7.0
+Stable tag: 1.8.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -118,8 +118,9 @@ The full, annotated list with examples is in README.md.
 
 == Changelog ==
 
-= Unreleased =
+= 1.8.0 =
 * Added: wpDiscuz support. Switch on the wpDiscuz integration to protect the comment form and all reply forms.
+* Improved: in floating mode, Fluent Forms now uses the form's own submit button for the check instead of showing a second button.
 
 = 1.7.0 =
 * Added: Fluent Forms support. Add the "Privacy CAPTCHA for Cap" field to each form you want to protect. Thanks to @bernhardkaindl.

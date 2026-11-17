@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-11-17
+
 ### Added
 
 - wpDiscuz integration (`wpdiscuz` context). The widget renders on the `wpdiscuz_submit_button_before` hook inside the main form and the hidden reply template, with the form's unique id in the widget id, so every reply form wpDiscuz clones gets its own widget. The token is verified on `wpdiscuz_before_wp_new_comment`; a failure answers wpDiscuz' AJAX call with its own phrase key, which the integration adds to `wpdiscuz_js_options`, so the visitor sees a translated message. Fail-open passes are marked with the `cap_captcha_fail_open` comment meta, as for core comments. In floating mode the wpDiscuz submit button becomes the trigger; in programmatic mode `assets/js/wpdiscuz.js` solves a token per form and holds an early click until it is ready. After every post, successful or not, the widget is reset or a new token is solved, since the token is spent. Direct posts to `wp-comments-post.php` on posts that use a wpDiscuz form are verified too unless the Comments integration already does it, the same path wpDiscuz' own CAPTCHA guards. wpDiscuz' inline feedback forms are not covered.
