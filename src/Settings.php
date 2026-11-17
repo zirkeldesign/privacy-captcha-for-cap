@@ -39,6 +39,7 @@ class Settings
         'gravity_forms',
         'contact_form_7',
         'fluent_forms',
+        'wpdiscuz',
         'comments',
         'login',
         'registration',
@@ -492,7 +493,7 @@ class Settings
             [
                 'label' => __('Form plugins', 'privacy-captcha-for-cap'),
                 'description' => __('Protect form-builder plugin submissions.', 'privacy-captcha-for-cap'),
-                'items' => array_intersect_key($all, array_flip(['gravity_forms', 'contact_form_7', 'fluent_forms'])),
+                'items' => array_intersect_key($all, array_flip(['gravity_forms', 'contact_form_7', 'fluent_forms', 'wpdiscuz'])),
             ],
             [
                 'label' => __('WooCommerce', 'privacy-captcha-for-cap'),
@@ -524,6 +525,11 @@ class Settings
                 'label' => __('Fluent Forms', 'privacy-captcha-for-cap'),
                 'description' => __('Adds a "Privacy CAPTCHA for Cap" field to the form editor.', 'privacy-captcha-for-cap'),
                 'available' => defined('FLUENTFORM'),
+            ],
+            'wpdiscuz' => [
+                'label' => __('wpDiscuz', 'privacy-captcha-for-cap'),
+                'description' => __('Protects wpDiscuz comment and reply forms.', 'privacy-captcha-for-cap'),
+                'available' => defined('WPDISCUZ_DIR_PATH'),
             ],
             'comments' => [
                 'label' => __('Comments', 'privacy-captcha-for-cap'),
@@ -1053,6 +1059,7 @@ class Settings
                 'gravity_forms' => false,
                 'contact_form_7' => false,
                 'fluent_forms' => false,
+                'wpdiscuz' => false,
                 'comments' => false,
                 'login' => false,
                 'registration' => false,

@@ -23,6 +23,7 @@ Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof
 * **First-class Gravity Forms field** — drag a "Privacy CAPTCHA for Cap" into any form from the Advanced Fields group. Per-field display-mode override.
 * **Contact Form 7** integration — protects every CF7 form automatically.
 * **Fluent Forms** integration — add a "Privacy CAPTCHA for Cap" field to each regular form you want to protect.
+* **wpDiscuz** integration: protects the wpDiscuz comment form and every reply form.
 * **WordPress comments, wp-login, registration** integrations — togglable from one settings page.
 * **WooCommerce** integration — checkout plus the My Account login, registration, and lost-password forms, each its own toggle. Only loads when WooCommerce is active.
 * **Dashboard widget** — at-a-glance Cap server stats (challenges, verified, failed, hourly chart) right on the WordPress dashboard.
@@ -87,7 +88,7 @@ No third-party CDN requests. All widget assets are bundled and served from this 
 
 = Can I turn protection on or off per form in code? =
 
-Yes. Every surface passes through the `cap_captcha_protect` filter — `($enabled, $context)` returning a boolean — before the widget renders and before a submission is verified. For example, to skip the CAPTCHA for logged-in users everywhere: `add_filter('cap_captcha_protect', fn($on, $ctx) => is_user_logged_in() ? false : $on, 10, 2);`. There is also a per-surface filter, e.g. `cap_captcha_protect_woocommerce_login`. Context ids: gravity_forms, contact_form_7, comments, login, registration, woocommerce_checkout, woocommerce_login, woocommerce_registration, woocommerce_lost_password.
+Yes. Every surface passes through the `cap_captcha_protect` filter — `($enabled, $context)` returning a boolean — before the widget renders and before a submission is verified. For example, to skip the CAPTCHA for logged-in users everywhere: `add_filter('cap_captcha_protect', fn($on, $ctx) => is_user_logged_in() ? false : $on, 10, 2);`. There is also a per-surface filter, e.g. `cap_captcha_protect_woocommerce_login`. Context ids: gravity_forms, contact_form_7, fluent_forms, wpdiscuz, comments, login, registration, woocommerce_checkout, woocommerce_login, woocommerce_registration, woocommerce_lost_password.
 
 = Can I keep the CAPTCHA off a specific Contact Form 7 or Gravity Forms form? =
 
@@ -116,6 +117,9 @@ Yes. The main ones:
 The full, annotated list with examples is in README.md.
 
 == Changelog ==
+
+= Unreleased =
+* Added: wpDiscuz support. Switch on the wpDiscuz integration to protect the comment form and all reply forms.
 
 = 1.7.0 =
 * Added: Fluent Forms support. Add the "Privacy CAPTCHA for Cap" field to each form you want to protect. Thanks to @bernhardkaindl.

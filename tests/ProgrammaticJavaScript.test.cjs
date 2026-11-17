@@ -8,13 +8,13 @@ const source = fs.readFileSync(path.join(__dirname, '../assets/js/programmatic.j
 
 // The shared programmatic helper solves once and writes that token into every
 // cap-token field on the page. Fluent Forms fields are owned by
-// fluent-forms.js, which needs one single-use token per form.
+// fluent-forms.js and wpdiscuz.js, which need one single-use token per form.
 function fixture() {
     const handlers = {};
 
     class Form {
-        constructor(fluent) {
-            this.field = { value: '', closest: (selector) => (fluent && selector === '.cap-captcha--fluent' ? {} : null) };
+        constructor(owner) {
+            this.field = { value: '', closest: (selector) => (owner && selector.split(', ').includes(owner) ? {} : null) };
             this.submissions = 0;
         }
 
@@ -22,11 +22,12 @@ function fixture() {
         requestSubmit() { this.submissions++; }
     }
 
-    const plain = new Form(false);
-    const fluent = new Form(true);
+    const plain = new Form(null);
+    const fluent = new Form('.cap-captcha--fluent');
+    const wpdiscuz = new Form('.cap-captcha--wpdiscuz');
     const document = {
         readyState: 'complete',
-        querySelectorAll: () => [plain.field, fluent.field],
+        querySelectorAll: () => [plain.field, fluent.field, wpdiscuz.field],
         addEventListener: (name, handler) => { handlers[name] = handler; },
     };
     const window = {
@@ -35,18 +36,19 @@ function fixture() {
     };
     vm.runInNewContext(source, { window, document, HTMLFormElement: Form, setTimeout });
 
-    return { plain, fluent, handlers };
+    return { plain, fluent, wpdiscuz, handlers };
 }
 
 async function settle() {
     await new Promise((resolve) => setImmediate(resolve));
 }
 
-test('the shared token is written to ordinary forms but not to Fluent Forms fields', async () => {
+test('the shared token is written to ordinary forms but not to Fluent Forms or wpDiscuz fields', async () => {
     const context = fixture();
     await settle();
     assert.equal(context.plain.field.value, 'shared-token');
     assert.equal(context.fluent.field.value, '');
+    assert.equal(context.wpdiscuz.field.value, '');
 });
 
 test('an early submit is held for ordinary forms and left alone for Fluent Forms', async () => {

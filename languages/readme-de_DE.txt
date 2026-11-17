@@ -31,6 +31,7 @@ Infrastruktur.
   überschreibbar.
 * **Contact Form 7** – schützt automatisch jedes CF7-Formular.
 * **Fluent Forms** – füge jedem regulären Formular, das geschützt werden soll, ein „Privacy CAPTCHA for Cap“-Feld hinzu.
+* **wpDiscuz**: schützt das Kommentarformular von wpDiscuz und jedes Antwortformular.
 * **WordPress-Kommentare, wp-login, Registrierung** – über eine zentrale
   Einstellungsseite aktivierbar.
 * **WooCommerce** – Kasse sowie die Formulare „Mein Konto“ für Anmeldung,

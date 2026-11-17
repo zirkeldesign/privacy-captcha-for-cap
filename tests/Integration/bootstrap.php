@@ -63,7 +63,12 @@ if (getenv('CAP_FLUENT_ONLY') === '1' && ! defined('FLUENTFORM')) {
     exit(1);
 }
 
-if (! class_exists('GFAPI') && getenv('CAP_FLUENT_ONLY') !== '1') {
+if (getenv('CAP_WPDISCUZ_ONLY') === '1' && ! defined('WPDISCUZ_DIR_PATH')) {
+    fwrite(STDERR, "wpDiscuz is not active in {$root}. Install and activate it before running the wpDiscuz integration tests.\n");
+    exit(1);
+}
+
+if (! class_exists('GFAPI') && getenv('CAP_FLUENT_ONLY') !== '1' && getenv('CAP_WPDISCUZ_ONLY') !== '1') {
     fwrite(STDERR, <<<TXT
 
         Gravity Forms is not active in {$root}.
