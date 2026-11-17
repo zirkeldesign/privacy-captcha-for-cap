@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Fluent Forms, floating mode: the form's own submit button now opens the check and sends the form once it has passed, as in Gravity Forms. Before, the field added a second button above the submit button, and both sent the form. Step forms, forms with a custom submit button field and forms whose submit button is hidden by a filter keep the separate button, because they render no standard submit button after the field.
+
 ## [1.7.0] - 2026-11-16
 
 ### Added
