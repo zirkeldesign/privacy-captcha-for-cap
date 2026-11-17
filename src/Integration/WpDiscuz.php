@@ -107,13 +107,15 @@ final class WpDiscuz implements Integration
         $this->buffering = false;
         $html = (string) ob_get_clean();
 
-        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wpDiscuz' own form markup, already escaped by wpDiscuz; only data attributes escaped via esc_attr() are added.
-        echo (string) preg_replace_callback(
+        $wired = (string) preg_replace_callback(
             '/<input\b[^>]*\bwc_comm_submit\b[^>]*>/',
             fn (array $match): string => Renderer::addFloatingAttrsToSubmit($match[0], $this->floatingWidgetId),
             $html,
             1
         );
+
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wpDiscuz' own form markup, already escaped by wpDiscuz; only data attributes escaped via esc_attr() are added.
+        echo $wired;
     }
 
     /**
