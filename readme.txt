@@ -130,6 +130,13 @@ Please do not post it in an issue or the support forum. Report it privately thro
 
 Please open an issue on [GitHub](https://github.com/zirkeldesign/privacy-captcha-for-cap/issues) or ask in the [support forum](https://wordpress.org/support/plugin/privacy-captcha-for-cap/).
 
+== Screenshots ==
+
+1. The widget on the WordPress login form, in the "Visible in the form" mode.
+2. The status panel on the settings page: challenges, verified and failed checks, solve time, difficulty and today's checks per hour, read from your own Cap server.
+3. The same statistics as a dashboard widget.
+4. Each form you can protect has its own switch. Integrations for plugins that are not active are shown but cannot be switched on.
+
 == Changelog ==
 
 = 1.8.1 =
