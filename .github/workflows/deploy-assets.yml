@@ -45,13 +45,14 @@ jobs:
             svn delete --force svn-assets/assets
           fi
 
-          # Copy only the files WordPress.org uses (icon + banners). The .svg
-          # banner source stays in the repo but is not deployed.
+          # Copy only the files WordPress.org uses (icon, banners, screenshots).
+          # The .svg banner source stays in the repo but is not deployed.
           cp .wordpress-org/assets/icon.svg \
              .wordpress-org/assets/icon-256x256.png \
              .wordpress-org/assets/icon-128x128.png \
              .wordpress-org/assets/banner-772x250.png \
              .wordpress-org/assets/banner-1544x500.png \
+             .wordpress-org/assets/screenshot-*.png \
              svn-assets/
 
           cd svn-assets
@@ -67,7 +68,7 @@ jobs:
 
           if svn status -q | grep -q .; then
             svn commit \
-              -m "Update plugin directory assets (icon + banner)" \
+              -m "Update plugin directory assets (icon, banner, screenshots)" \
               --username "$SVN_USERNAME" --password "$SVN_PASSWORD" \
               --non-interactive --no-auth-cache \
               --config-option servers:global:store-plaintext-passwords=no
