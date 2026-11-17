@@ -1,6 +1,6 @@
 # Privacy CAPTCHA for Cap
 
-WordPress plugin that integrates the self-hosted [Cap](https://trycap.dev/) proof-of-work CAPTCHA into WordPress comments, login, registration, WooCommerce, Gravity Forms, Contact Form 7, and Fluent Forms — with server-side verification.
+WordPress plugin that integrates the self-hosted [Cap](https://trycap.dev/) proof-of-work CAPTCHA into WordPress comments, login, registration, WooCommerce, Gravity Forms, Contact Form 7, Fluent Forms, and wpDiscuz — with server-side verification.
 
 ## Requirements
 
@@ -31,11 +31,11 @@ The `assets/js/vendor/cap-widget.*`, `assets/wasm/cap_wasm_bg.wasm` and `assets/
 
 ## Display modes
 
-| Mode | Behaviour |
-| --- | --- |
-| **Inline** | The widget is rendered visibly inside the form. |
-| **Floating** | A trigger button is shown; clicking it opens the widget as a popover. |
-| **Programmatic** | A hidden `cap-token` input is rendered. A background script solves the proof-of-work on page load and writes the token before submit. No user interaction needed. |
+| Mode | In the settings | Behaviour |
+| --- | --- | --- |
+| **Inline** | Visible in the form | The widget is rendered visibly inside the form. |
+| **Floating** | Opens on submit | The widget is hidden and opens as a popover when the submit button is pressed. Once the check has passed, the form is sent. |
+| **Programmatic** | Invisible, solved in the background | A hidden `cap-token` input is rendered. A background script solves the proof-of-work on page load and writes the token before submit. No user interaction needed. |
 
 The Gravity Forms field has a *Display mode* setting that overrides the global default per field.
 
@@ -48,6 +48,7 @@ Each surface is an independent on/off toggle in **Settings → Privacy CAPTCHA f
 | `gravity_forms` | Gravity Forms field |
 | `contact_form_7` | Contact Form 7 forms |
 | `fluent_forms` | Fluent Forms field |
+| `wpdiscuz` | wpDiscuz comment and reply forms |
 | `comments` | WordPress comment form |
 | `login` | wp-login.php / `login_form` |
 | `registration` | WordPress registration |
@@ -63,6 +64,7 @@ Beyond the on/off surface toggle, form placement controls let you keep a CAPTCHA
 - **Contact Form 7** — *Automatic* protects every form (add the `[cap_captcha]` form-tag for custom placement, or `cap_captcha: off` in a form's Additional Settings to skip it); *Manual* protects only forms containing the `[cap_captcha]` tag. Verification is scoped to the same set, so an unprotected form is never blocked.
 - **Gravity Forms** — add the "Privacy CAPTCHA for Cap" field for precise placement, and/or enable "protect all Gravity Forms" globally. Each form has a **Default / Always / Never** override in its settings; an auto-protected form without the field gets a synthetic `cap_captcha` field injected at runtime.
 - **Fluent Forms** — enable the integration, then add one "Privacy CAPTCHA for Cap" field from Advanced Fields to each regular form you want to protect. Forms without the field are not protected. On multi-step forms place the field on the final step, and do not hide it with conditional logic. Conversational forms are not supported. Failed AJAX submissions reset the widget or start a new programmatic challenge.
+- **wpDiscuz**: enable the integration; the main comment form and every reply form are protected. wpDiscuz posts comments by AJAX, so the widget is reset (or a new programmatic token solved) after each post. Direct posts to `wp-comments-post.php` on posts that use a wpDiscuz form are checked as well. wpDiscuz' inline feedback forms are not covered.
 
 For maintenance, hook contracts, test setup, and version updates, see the [Fluent Forms integration guide](docs/fluent-forms-integration.md).
 
@@ -104,7 +106,7 @@ Setting it on `:root` does not reach Gravity Forms forms, because the presets si
 | Command | What it does |
 | --- | --- |
 | `composer test` | Run Pest unit tests (no WordPress needed) |
-| `bun run test:js` | Node tests for the programmatic and Fluent Forms scripts |
+| `bun run test:js` | Node tests for the programmatic, Fluent Forms and wpDiscuz scripts |
 | `composer test:integration:setup` | Provision a disposable WordPress fixture for integration tests |
 | `composer test:integration` | Run the integration suite against installed form plugins |
 | `composer phpstan` | Static analysis (level 6) |
@@ -135,6 +137,8 @@ The preview-step form is a plain two-page Gravity Form (page break plus an HTML 
 CI does not run the Gravity Forms suite: Gravity Forms is commercial and would need its licence credentials as repository secrets. To wire it up, add a job that installs GF from the `gravity.io` Composer repo using a `COMPOSER_AUTH` secret and `if: github.event.pull_request.head.repo.full_name == github.repository` so it skips on forks.
 
 The Fluent Forms flow runs separately without Gravity Forms. CI provisions WordPress and installs a pinned, built Fluent Forms release from WordPress.org; it also runs the JavaScript retry tests. For the exact local setup, version pins, and coverage limitations, see the [Fluent Forms integration guide](docs/fluent-forms-integration.md#tests).
+
+The wpDiscuz flow runs the same way: install wpDiscuz into the fixture (`wp plugin install wpdiscuz --activate --path="$CAP_WP_ROOT"`), then `CAP_WPDISCUZ_ONLY=1 composer test:integration -- tests/Integration/WpDiscuzFlowTest.php`. wpDiscuz reads the posted id with `filter_input()`, which only sees a real HTTP request, so the suite starts PHP's built-in server on port 8899 against the fixture and posts to `admin-ajax.php`; a must-use plugin it writes for the run fakes Cap's `/siteverify`.
 
 ## Architecture
 

@@ -99,6 +99,18 @@ if (! function_exists('add_filter')) {
     }
 }
 
+if (! function_exists('remove_filter')) {
+    function remove_filter(string $hook_name, callable $callback, int $priority = 10): bool
+    {
+        $GLOBALS['__cap_filters'][$hook_name] = array_values(array_filter(
+            $GLOBALS['__cap_filters'][$hook_name] ?? [],
+            static fn (array $entry): bool => $entry['cb'] !== $callback,
+        ));
+
+        return true;
+    }
+}
+
 if (! function_exists('apply_filters')) {
     function apply_filters(string $hook_name, mixed $value, mixed ...$args): mixed
     {
@@ -398,5 +410,44 @@ if (! function_exists('wp_print_inline_script_tag')) {
     function wp_print_inline_script_tag(string $data, array $attributes = []): void
     {
         echo '<script>'.$data.'</script>';
+    }
+}
+
+/** Stands in for the exit in wp_die() and wp_send_json_error(), so a test can assert on it. */
+final class CapTestHalt extends RuntimeException
+{
+    public function __construct(public readonly mixed $data, string $message = '')
+    {
+        parent::__construct($message);
+    }
+}
+
+if (! function_exists('wp_die')) {
+    function wp_die(mixed $message = '', mixed $title = '', mixed $args = []): never
+    {
+        throw new CapTestHalt($args, (string) $message);
+    }
+}
+
+if (! function_exists('wp_send_json_error')) {
+    function wp_send_json_error(mixed $data = null, ?int $status_code = null, int $flags = 0): never
+    {
+        throw new CapTestHalt($data, 'wp_send_json_error');
+    }
+}
+
+if (! function_exists('add_comment_meta')) {
+    function add_comment_meta(int $comment_id, string $meta_key, mixed $meta_value, bool $unique = false): int
+    {
+        $GLOBALS['__cap_comment_meta'][$comment_id][$meta_key] = $meta_value;
+
+        return 1;
+    }
+}
+
+if (! function_exists('wp_kses')) {
+    function wp_kses(string $content, mixed $allowed_html): string
+    {
+        return $content;
     }
 }

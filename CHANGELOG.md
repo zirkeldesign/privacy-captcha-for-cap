@@ -24,6 +24,17 @@ All notable changes to this project will be documented in this file.
 
 - The status panel kept showing the previous site key for up to five minutes after the settings were saved.
 
+## [1.8.0] - 2026-11-17
+
+### Added
+
+- wpDiscuz integration (`wpdiscuz` context). The widget renders on the `wpdiscuz_submit_button_before` hook inside the main form and the hidden reply template, with the form's unique id in the widget id, so every reply form wpDiscuz clones gets its own widget. The token is verified on `wpdiscuz_before_wp_new_comment`; a failure answers wpDiscuz' AJAX call with its own phrase key, which the integration adds to `wpdiscuz_js_options`, so the visitor sees a translated message. Fail-open passes are marked with the `cap_captcha_fail_open` comment meta, as for core comments. In floating mode the wpDiscuz submit button becomes the trigger; in programmatic mode `assets/js/wpdiscuz.js` solves a token per form and holds an early click until it is ready. After every post, successful or not, the widget is reset or a new token is solved, since the token is spent. Direct posts to `wp-comments-post.php` on posts that use a wpDiscuz form are verified too unless the Comments integration already does it, the same path wpDiscuz' own CAPTCHA guards. wpDiscuz' inline feedback forms are not covered.
+
+### Changed
+
+- Fluent Forms, floating mode: the form's own submit button now opens the check and sends the form once it has passed, as in Gravity Forms. Before, the field added a second button above the submit button, and both sent the form. Step forms, forms with a custom submit button field and forms whose submit button is hidden by a filter keep the separate button, because they render no standard submit button after the field.
+- The display modes are named by what they do: "Visible in the form (inline)", "Opens on submit (floating)" and "Invisible, solved in the background (programmatic)". The settings page and the Gravity Forms field now use the same three labels. The stored values and the filter names are unchanged.
+
 ## [1.7.0] - 2026-11-16
 
 ### Added
