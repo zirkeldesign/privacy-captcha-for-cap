@@ -24,6 +24,12 @@ All notable changes to this project will be documented in this file.
 
 - The status panel kept showing the previous site key for up to five minutes after the settings were saved.
 
+## [1.8.1] - 2026-11-17
+
+### Added
+- readme FAQ entries: private security reporting via GitHub Security Advisories, and where to report bugs and ideas.
+- The description lists the other zirkel.design plugins on wordpress.org.
+
 ## [1.8.0] - 2026-11-17
 
 ### Added

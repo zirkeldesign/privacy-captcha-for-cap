@@ -4,7 +4,7 @@ Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.8.0
+Stable tag: 1.8.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,11 @@ Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof
 * A reachable Cap server (see https://trycap.dev/)
 * Gravity Forms 2.5+ (only if you enable the Gravity Forms integration)
 * WooCommerce (only if you enable the WooCommerce integration)
+
+= More from zirkel.design =
+
+* [Regex Validation for Gravity Forms](https://wordpress.org/plugins/regex-validation-for-gravity-forms/): regular expression validation for Gravity Forms fields, with Unicode support and ready-made presets.
+* [Zirkel Virtual IBAN for WooCommerce](https://wordpress.org/plugins/zirkel-iban-for-woocommerce/): unique virtual bank details per order for bank transfers in WooCommerce, reconciled automatically via Stripe.
 
 == Installation ==
 
@@ -117,7 +122,18 @@ Yes. The main ones:
 
 The full, annotated list with examples is in README.md.
 
+= Where do I report a security issue? =
+
+Please do not post it in an issue or the support forum. Report it privately through [GitHub security advisories](https://github.com/zirkeldesign/privacy-captcha-for-cap/security/advisories/new). We confirm receipt, fix it, and credit you in the changelog unless you prefer not to be named.
+
+= Found a bug or have an idea? =
+
+Please open an issue on [GitHub](https://github.com/zirkeldesign/privacy-captcha-for-cap/issues) or ask in the [support forum](https://wordpress.org/support/plugin/privacy-captcha-for-cap/).
+
 == Changelog ==
+
+= 1.8.1 =
+* Added: FAQ entries on how to report a security issue privately and where to send bugs and ideas.
 
 = 1.8.0 =
 * Added: wpDiscuz support. Switch on the wpDiscuz integration to protect the comment form and all reply forms.
