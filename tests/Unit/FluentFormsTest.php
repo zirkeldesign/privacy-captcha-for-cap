@@ -210,9 +210,22 @@ it('makes the submit button the floating trigger', function (): void {
         ->and($GLOBALS['__cap_modules'])->toContain(Enqueuer::FLOATING_MODULE_ID);
 
     // One widget, one button: a later form's button on the same page stays untouched.
+    $integration->releaseSubmitButton();
     $integration->wireSubmitButton($button, (object) ['id' => 1]);
     expect(apply_filters('fluentform/rendering_field_html_button', '<button type="submit">Other</button>'))
         ->toBe('<button type="submit">Other</button>');
+});
+
+it('leaves no filter behind when the button was rendered without it', function (): void {
+    $integration = capFluentForms(mode: Settings::MODE_FLOATING);
+    $button = ['element' => 'button'];
+    capFluentRender($integration, ['fields' => [], 'submitButton' => $button]);
+
+    $integration->wireSubmitButton($button, (object) ['id' => 1]);
+    $integration->releaseSubmitButton();
+
+    expect(apply_filters('fluentform/rendering_field_html_button', '<button type="submit">Other form</button>'))
+        ->toBe('<button type="submit">Other form</button>');
 });
 
 it('keeps its own floating trigger when the form renders no standard submit button', function (?array $fields): void {

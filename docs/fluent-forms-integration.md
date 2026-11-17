@@ -20,7 +20,7 @@ The integration was exercised with WordPress 7.1.4 and the built Fluent Forms 6.
 | `fluentform/editor_element_settings_placement` | Provide the field's editor settings groups. |
 | `fluentform/form_input_types` | Include the element so Fluent Forms' field parser retains its submitted input. |
 | `fluentform/render_item_cap_captcha` | Render the configured widget and enqueue the required assets. Widget IDs are unique per rendered instance. |
-| `fluentform/render_item_submit_button` | In floating mode, at priority 9, attach a one-off filter on `fluentform/rendering_field_html_<element>` that turns the form's submit button into the widget's trigger. The element name is read from the button's own data, because it differs between forms (`button`, `submit_button`). |
+| `fluentform/render_item_submit_button` | In floating mode, at priority 9, attach a one-off filter on `fluentform/rendering_field_html_<element>` that turns the form's submit button into the widget's trigger. The element name is read from the button's own data, because it differs between forms (`button`, `submit_button`). At priority 99, after Fluent Forms has rendered the button, the filter is removed again, so it cannot reach another form's button. |
 | `fluentform/validation_errors` | Verify the token from the parsed submission data whenever the stored form contains the CAPTCHA field. Add errors under `cap-token`. |
 | `fluentform/insert_response_data` | Remove `cap-token` from the response before entry storage. |
 
