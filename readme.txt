@@ -43,6 +43,11 @@ Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof
 * Gravity Forms 2.5+ (only if you enable the Gravity Forms integration)
 * WooCommerce (only if you enable the WooCommerce integration)
 
+= More from zirkel.design =
+
+* [Regex Validation for Gravity Forms](https://wordpress.org/plugins/regex-validation-for-gravity-forms/): regular expression validation for Gravity Forms fields, with Unicode support and ready-made presets.
+* [Zirkel Virtual IBAN for WooCommerce](https://wordpress.org/plugins/zirkel-iban-for-woocommerce/): unique virtual bank details per order for bank transfers in WooCommerce, reconciled automatically via Stripe.
+
 == Installation ==
 
 1. Upload the `privacy-captcha-for-cap` folder to `/wp-content/plugins/`.
@@ -115,6 +120,14 @@ Yes. The main ones:
 * `cap_captcha_display_mode` — override the resolved display mode for a specific Gravity Forms field.
 
 The full, annotated list with examples is in README.md.
+
+= Where do I report a security issue? =
+
+Please do not post it in an issue or the support forum. Report it privately through [GitHub security advisories](https://github.com/zirkeldesign/privacy-captcha-for-cap/security/advisories/new). We confirm receipt, fix it, and credit you in the changelog unless you prefer not to be named.
+
+= Found a bug or have an idea? =
+
+Please open an issue on [GitHub](https://github.com/zirkeldesign/privacy-captcha-for-cap/issues) or ask in the [support forum](https://wordpress.org/support/plugin/privacy-captcha-for-cap/).
 
 == Changelog ==
 
