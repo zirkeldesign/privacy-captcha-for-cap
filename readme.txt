@@ -4,7 +4,7 @@ Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.8.0
+Stable tag: 1.8.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -130,6 +130,9 @@ Please do not post it in an issue or the support forum. Report it privately thro
 Please open an issue on [GitHub](https://github.com/zirkeldesign/privacy-captcha-for-cap/issues) or ask in the [support forum](https://wordpress.org/support/plugin/privacy-captcha-for-cap/).
 
 == Changelog ==
+
+= 1.8.1 =
+* Added: FAQ entries on how to report a security issue privately and where to send bugs and ideas.
 
 = 1.8.0 =
 * Added: wpDiscuz support. Switch on the wpDiscuz integration to protect the comment form and all reply forms.
