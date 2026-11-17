@@ -23,7 +23,7 @@ Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof
 * **First-class Gravity Forms field** — drag a "Privacy CAPTCHA for Cap" into any form from the Advanced Fields group. Per-field display-mode override.
 * **Contact Form 7** integration — protects every CF7 form automatically.
 * **Fluent Forms** integration — add a "Privacy CAPTCHA for Cap" field to each regular form you want to protect.
-* **wpDiscuz** integration: protects the wpDiscuz comment form and every reply form.
+* **wpDiscuz** integration: protects the wpDiscuz comment form and every reply form. Comments sent through wpDiscuz's inline feedback forms (the feedback shortcode) are not checked.
 * **WordPress comments, wp-login, registration** integrations — togglable from one settings page.
 * **WooCommerce** integration — checkout plus the My Account login, registration, and lost-password forms, each its own toggle. Only loads when WooCommerce is active.
 * **Dashboard widget** — at-a-glance Cap server stats (challenges, verified, failed, hourly chart) right on the WordPress dashboard.
