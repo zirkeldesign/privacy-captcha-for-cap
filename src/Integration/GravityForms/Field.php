@@ -87,9 +87,9 @@ final class Field extends GF_Field
             </label>
             <select id="cap_display_mode" onchange="SetFieldProperty('capDisplayMode', jQuery(this).val());">
                 <option value=""><?php echo esc_html__('Use global setting', 'privacy-captcha-for-cap'); ?></option>
-                <option value="<?php echo esc_attr(Settings::MODE_INLINE); ?>"><?php echo esc_html__('Inline (always visible)', 'privacy-captcha-for-cap'); ?></option>
-                <option value="<?php echo esc_attr(Settings::MODE_FLOATING); ?>"><?php echo esc_html__('Floating (opens on click)', 'privacy-captcha-for-cap'); ?></option>
-                <option value="<?php echo esc_attr(Settings::MODE_PROGRAMMATIC); ?>"><?php echo esc_html__('Programmatic (auto-solves silently)', 'privacy-captcha-for-cap'); ?></option>
+                <option value="<?php echo esc_attr(Settings::MODE_INLINE); ?>"><?php echo esc_html__('Visible in the form (inline)', 'privacy-captcha-for-cap'); ?></option>
+                <option value="<?php echo esc_attr(Settings::MODE_FLOATING); ?>"><?php echo esc_html__('Opens on submit (floating)', 'privacy-captcha-for-cap'); ?></option>
+                <option value="<?php echo esc_attr(Settings::MODE_PROGRAMMATIC); ?>"><?php echo esc_html__('Invisible, solved in the background (programmatic)', 'privacy-captcha-for-cap'); ?></option>
             </select>
         </li>
         <?php

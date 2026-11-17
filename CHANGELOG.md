@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- The display modes are named by what they do: "Visible in the form (inline)", "Opens on submit (floating)" and "Invisible, solved in the background (programmatic)". The settings page and the Gravity Forms field now use the same three labels. The stored values and the filter names are unchanged.
+
 ## [1.8.0] - 2026-11-17
 
 ### Added

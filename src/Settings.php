@@ -374,9 +374,9 @@ class Settings
                         <th scope="row"><label for="cap_display_mode"><?php echo esc_html__('Default display mode', 'privacy-captcha-for-cap'); ?></label></th>
                         <td>
                             <select id="cap_display_mode" name="<?php echo esc_attr(self::OPTION_KEY); ?>[display_mode]">
-                                <option value="<?php echo esc_attr(self::MODE_INLINE); ?>" <?php selected($v['display_mode'], self::MODE_INLINE); ?>><?php echo esc_html__('Inline — widget visible in the form', 'privacy-captcha-for-cap'); ?></option>
-                                <option value="<?php echo esc_attr(self::MODE_FLOATING); ?>" <?php selected($v['display_mode'], self::MODE_FLOATING); ?>><?php echo esc_html__('Floating — opens on click of a trigger button', 'privacy-captcha-for-cap'); ?></option>
-                                <option value="<?php echo esc_attr(self::MODE_PROGRAMMATIC); ?>" <?php selected($v['display_mode'], self::MODE_PROGRAMMATIC); ?>><?php echo esc_html__('Programmatic — solves silently in the background (no user interaction)', 'privacy-captcha-for-cap'); ?></option>
+                                <option value="<?php echo esc_attr(self::MODE_INLINE); ?>" <?php selected($v['display_mode'], self::MODE_INLINE); ?>><?php echo esc_html__('Visible in the form (inline)', 'privacy-captcha-for-cap'); ?></option>
+                                <option value="<?php echo esc_attr(self::MODE_FLOATING); ?>" <?php selected($v['display_mode'], self::MODE_FLOATING); ?>><?php echo esc_html__('Opens on submit (floating)', 'privacy-captcha-for-cap'); ?></option>
+                                <option value="<?php echo esc_attr(self::MODE_PROGRAMMATIC); ?>" <?php selected($v['display_mode'], self::MODE_PROGRAMMATIC); ?>><?php echo esc_html__('Invisible, solved in the background (programmatic)', 'privacy-captcha-for-cap'); ?></option>
                             </select>
                             <p class="description"><?php echo esc_html__('Per-form integrations can override this default.', 'privacy-captcha-for-cap'); ?></p>
                         </td>

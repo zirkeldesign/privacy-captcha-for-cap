@@ -31,11 +31,11 @@ The `assets/js/vendor/cap-widget.*`, `assets/wasm/cap_wasm_bg.wasm` and `assets/
 
 ## Display modes
 
-| Mode | Behaviour |
-| --- | --- |
-| **Inline** | The widget is rendered visibly inside the form. |
-| **Floating** | A trigger button is shown; clicking it opens the widget as a popover. |
-| **Programmatic** | A hidden `cap-token` input is rendered. A background script solves the proof-of-work on page load and writes the token before submit. No user interaction needed. |
+| Mode | In the settings | Behaviour |
+| --- | --- | --- |
+| **Inline** | Visible in the form | The widget is rendered visibly inside the form. |
+| **Floating** | Opens on submit | The widget is hidden and opens as a popover when the submit button is pressed. Once the check has passed, the form is sent. |
+| **Programmatic** | Invisible, solved in the background | A hidden `cap-token` input is rendered. A background script solves the proof-of-work on page load and writes the token before submit. No user interaction needed. |
 
 The Gravity Forms field has a *Display mode* setting that overrides the global default per field.
 
