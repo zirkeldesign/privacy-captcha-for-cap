@@ -33,7 +33,7 @@ Infrastruktur.
 * **Fluent Forms** – füge jedem regulären Formular, das geschützt werden soll, ein „Privacy CAPTCHA for Cap“-Feld hinzu.
 * **wpDiscuz**: schützt das Kommentarformular von wpDiscuz und jedes Antwortformular. Kommentare über die Inline-Feedback-Formulare von wpDiscuz (Feedback-Shortcode) werden nicht geprüft.
 * **Ultimate Member**: schützt die Formulare von Ultimate Member für Anmeldung, Registrierung und Passwort-Zurücksetzen.
-* **WordPress-Kommentare, wp-login, Registrierung** – über eine zentrale
+* **WordPress-Kommentare, wp-login, Registrierung, Passwort vergessen**: über eine zentrale
   Einstellungsseite aktivierbar.
 * **WooCommerce** – Kasse sowie die Formulare „Mein Konto“ für Anmeldung,
   Registrierung und Passwort vergessen, jeweils einzeln schaltbar. Wird nur

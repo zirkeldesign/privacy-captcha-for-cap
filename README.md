@@ -53,6 +53,7 @@ Each surface is an independent on/off toggle in **Settings → Privacy CAPTCHA f
 | `comments` | WordPress comment form |
 | `login` | wp-login.php / `login_form` |
 | `registration` | WordPress registration |
+| `lost_password` | wp-login.php lost password |
 | `woocommerce_checkout` | WooCommerce checkout |
 | `woocommerce_login` | WooCommerce My Account login |
 | `woocommerce_registration` | WooCommerce My Account registration |
@@ -161,6 +162,7 @@ src/
     ├── Comments.php
     ├── Login.php
     ├── Registration.php
+    ├── LostPassword.php
     ├── WooCommerce.php
     ├── GravityForms.php                # registers field + validator
     └── GravityForms/

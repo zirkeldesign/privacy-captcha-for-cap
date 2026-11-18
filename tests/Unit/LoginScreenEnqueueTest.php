@@ -5,6 +5,7 @@ declare(strict_types=1);
 use ZirkelDesign\CapCaptcha\Asset\Enqueuer;
 use ZirkelDesign\CapCaptcha\Asset\Renderer;
 use ZirkelDesign\CapCaptcha\Integration\Login;
+use ZirkelDesign\CapCaptcha\Integration\LostPassword;
 use ZirkelDesign\CapCaptcha\Integration\Registration;
 use ZirkelDesign\CapCaptcha\Settings;
 use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
@@ -58,6 +59,7 @@ function capLoginScreenModules(?string $action, array $integrations): array
 
     (new Login($settings, $renderer, $enqueuer, $verifier))->enqueueAssets();
     (new Registration($settings, $renderer, $enqueuer, $verifier))->enqueueAssets();
+    (new LostPassword($settings, $renderer, $enqueuer, $verifier))->enqueueAssets();
 
     return $GLOBALS['__cap_modules'];
 }
@@ -74,10 +76,15 @@ it('does not load the widget on screens without a protected form', function (): 
     expect(capLoginScreenModules('lostpassword', ['login' => true, 'registration' => true]))->toBe([]);
 });
 
+it('does not load the widget on the login screen when only lost password is protected', function (): void {
+    expect(capLoginScreenModules('login', ['lost_password' => true]))->toBe([]);
+});
+
 it('loads the widget on the screen of a protected form', function (?string $action, array $integrations): void {
     expect(capLoginScreenModules($action, $integrations))->toContain(Enqueuer::WIDGET_MODULE_ID);
 })->with([
     'login' => ['login', ['login' => true]],
     'login without action global' => [null, ['login' => true]],
     'register' => ['register', ['registration' => true]],
+    'lostpassword' => ['lostpassword', ['lost_password' => true]],
 ]);

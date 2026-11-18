@@ -45,6 +45,7 @@ class Settings
         'comments',
         'login',
         'registration',
+        'lost_password',
         'woocommerce_checkout',
         'woocommerce_login',
         'woocommerce_registration',
@@ -541,7 +542,7 @@ class Settings
             [
                 'label' => __('WordPress', 'privacy-captcha-for-cap'),
                 'description' => __('Protect WordPress core forms.', 'privacy-captcha-for-cap'),
-                'items' => array_intersect_key($all, array_flip(['comments', 'login', 'registration'])),
+                'items' => array_intersect_key($all, array_flip(['comments', 'login', 'registration', 'lost_password'])),
             ],
             [
                 'label' => __('Form plugins', 'privacy-captcha-for-cap'),
@@ -602,6 +603,11 @@ class Settings
             'registration' => [
                 'label' => __('Registration', 'privacy-captcha-for-cap'),
                 'description' => __('Protects the WordPress user registration form.', 'privacy-captcha-for-cap'),
+                'available' => true,
+            ],
+            'lost_password' => [
+                'label' => __('Lost password', 'privacy-captcha-for-cap'),
+                'description' => __('Protects the lost-password form on wp-login.php.', 'privacy-captcha-for-cap'),
                 'available' => true,
             ],
             'woocommerce' => [
@@ -1132,6 +1138,7 @@ class Settings
                 'comments' => false,
                 'login' => false,
                 'registration' => false,
+                'lost_password' => false,
                 'woocommerce' => false,
                 'woocommerce_checkout' => false,
                 'woocommerce_login' => false,

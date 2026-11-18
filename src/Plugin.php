@@ -13,6 +13,7 @@ use ZirkelDesign\CapCaptcha\Integration\FluentForms;
 use ZirkelDesign\CapCaptcha\Integration\GravityForms;
 use ZirkelDesign\CapCaptcha\Integration\Integration;
 use ZirkelDesign\CapCaptcha\Integration\Login;
+use ZirkelDesign\CapCaptcha\Integration\LostPassword;
 use ZirkelDesign\CapCaptcha\Integration\Registration;
 use ZirkelDesign\CapCaptcha\Integration\UltimateMember;
 use ZirkelDesign\CapCaptcha\Integration\WooCommerce;
@@ -72,6 +73,7 @@ final class Plugin
         yield new Comments($settings, $renderer, $enqueuer, $verifier);
         yield new Login($settings, $renderer, $enqueuer, $verifier);
         yield new Registration($settings, $renderer, $enqueuer, $verifier);
+        yield new LostPassword($settings, $renderer, $enqueuer, $verifier);
         yield new WooCommerce($settings, $renderer, $enqueuer, $verifier);
     }
 }
