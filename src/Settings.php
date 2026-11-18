@@ -41,6 +41,7 @@ class Settings
         'contact_form_7',
         'fluent_forms',
         'wpdiscuz',
+        'ultimate_member',
         'comments',
         'login',
         'registration',
@@ -545,7 +546,7 @@ class Settings
             [
                 'label' => __('Form plugins', 'privacy-captcha-for-cap'),
                 'description' => __('Protect form-builder plugin submissions.', 'privacy-captcha-for-cap'),
-                'items' => array_intersect_key($all, array_flip(['gravity_forms', 'contact_form_7', 'fluent_forms', 'wpdiscuz'])),
+                'items' => array_intersect_key($all, array_flip(['gravity_forms', 'contact_form_7', 'fluent_forms', 'wpdiscuz', 'ultimate_member'])),
             ],
             [
                 'label' => __('WooCommerce', 'privacy-captcha-for-cap'),
@@ -582,6 +583,11 @@ class Settings
                 'label' => __('wpDiscuz', 'privacy-captcha-for-cap'),
                 'description' => __('Protects wpDiscuz comment and reply forms.', 'privacy-captcha-for-cap'),
                 'available' => defined('WPDISCUZ_DIR_PATH'),
+            ],
+            'ultimate_member' => [
+                'label' => __('Ultimate Member', 'privacy-captcha-for-cap'),
+                'description' => __('Protects the Ultimate Member login, registration and password reset forms.', 'privacy-captcha-for-cap'),
+                'available' => defined('UM_VERSION'),
             ],
             'comments' => [
                 'label' => __('Comments', 'privacy-captcha-for-cap'),
@@ -1122,6 +1128,7 @@ class Settings
                 'contact_form_7' => false,
                 'fluent_forms' => false,
                 'wpdiscuz' => false,
+                'ultimate_member' => false,
                 'comments' => false,
                 'login' => false,
                 'registration' => false,

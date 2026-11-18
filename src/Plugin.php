@@ -14,6 +14,7 @@ use ZirkelDesign\CapCaptcha\Integration\GravityForms;
 use ZirkelDesign\CapCaptcha\Integration\Integration;
 use ZirkelDesign\CapCaptcha\Integration\Login;
 use ZirkelDesign\CapCaptcha\Integration\Registration;
+use ZirkelDesign\CapCaptcha\Integration\UltimateMember;
 use ZirkelDesign\CapCaptcha\Integration\WooCommerce;
 use ZirkelDesign\CapCaptcha\Integration\WpDiscuz;
 use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
@@ -67,6 +68,7 @@ final class Plugin
         yield new ContactForm7($settings, $renderer, $enqueuer, $verifier);
         yield new FluentForms($settings, $renderer, $enqueuer, $verifier);
         yield new WpDiscuz($settings, $renderer, $enqueuer, $verifier);
+        yield new UltimateMember($settings, $renderer, $enqueuer, $verifier);
         yield new Comments($settings, $renderer, $enqueuer, $verifier);
         yield new Login($settings, $renderer, $enqueuer, $verifier);
         yield new Registration($settings, $renderer, $enqueuer, $verifier);
