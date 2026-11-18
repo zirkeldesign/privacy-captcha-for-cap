@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ZirkelDesign\CapCaptcha\Integration;
 
+use WP_Error;
 use ZirkelDesign\CapCaptcha\Asset\Enqueuer;
 use ZirkelDesign\CapCaptcha\Asset\Renderer;
 use ZirkelDesign\CapCaptcha\Settings;
@@ -27,7 +28,8 @@ final class UltimateMember implements Integration
 
     private bool $lastFailOpen = false;
 
-    private bool $loginFailed = false;
+    /** Whether this request failed the check, which then is the only thing it may learn. */
+    private bool $failed = false;
 
     private int|string|null $renderingForm = null;
 
@@ -59,11 +61,15 @@ final class UltimateMember implements Integration
         }
         add_action('um_after_password_reset_fields', [$this, 'renderResetWidget'], 10, 0);
 
-        // Before UM's own handlers at 10, so a failed check can keep the password from being tested.
+        // Before UM's own handlers at 10, so a failed check can keep them from running.
         add_action('um_submit_form_errors_hook_login', [$this, 'validateLogin'], 5, 1);
-        add_action('um_submit_form_errors_hook_login', [$this, 'concealLoginOutcome'], PHP_INT_MAX, 0);
         add_action('um_submit_form_errors_hook__registration', [$this, 'validateRegistration'], 5, 1);
         add_action('um_reset_password_errors_hook', [$this, 'validateReset'], 5, 1);
+
+        // After every validator, whatever it is called. The login one runs before UM's status check at 9999.
+        foreach (['um_submit_form_errors_hook_login', 'um_submit_form_errors_hook', 'um_reset_password_errors_hook'] as $hook) {
+            add_action($hook, [$this, 'concealOutcome'], PHP_INT_MAX, 0);
+        }
 
         add_filter('um_before_save_filter_submitted', [$this, 'removeToken']);
         add_action('user_register', [$this, 'annotateFailOpen']);
@@ -134,27 +140,35 @@ final class UltimateMember implements Integration
      * UM checks the password in its own handler even when another one has
      * already added an error, and the page then says whether the password was
      * right. Without the CAPTCHA that check must not run at all.
-     * concealLoginOutcome() covers the case where UM renames the handler.
+     * concealOutcome() covers the case where UM renames the handler.
+     *
+     * Taking the handler off also drops the `wp_login_failed` it fires, which
+     * lockout plugins count. It is fired here instead, as for wp-login.php.
      *
      * @param  array<string, mixed>  $submitted
      */
     public function validateLogin(array $submitted): void
     {
-        $this->loginFailed = ! $this->passes($submitted);
-        if ($this->loginFailed) {
-            remove_action('um_submit_form_errors_hook_login', 'um_submit_form_errors_hook_login');
+        if ($this->passes($submitted)) {
+            return;
         }
+
+        remove_action('um_submit_form_errors_hook_login', 'um_submit_form_errors_hook_login');
+        $username = $submitted['username'] ?? $submitted['user_login'] ?? $submitted['user_email'] ?? '';
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- core's own failed-login action, fired in place of the UM handler that would have fired it.
+        do_action('wp_login_failed', is_string($username) ? $username : '', new WP_Error('cap_captcha_failed', self::failureMessage()));
     }
 
     /**
-     * Runs after every login validator, whatever it is called. After a failed
-     * check the visitor sees the CAPTCHA error alone, and the user id UM keeps
-     * for a correct password is dropped: UM's status check at 9999 would
-     * otherwise redirect a pending or blocked account and give it away.
+     * Runs after every validator, whatever it is called. After a failed check
+     * the visitor sees the CAPTCHA error alone: UM's validators would otherwise
+     * say whether a password was right, or a username, email address or reset
+     * limit exists. The user id UM keeps for a correct password is dropped too,
+     * or its status check at 9999 would redirect a pending or blocked account.
      */
-    public function concealLoginOutcome(): void
+    public function concealOutcome(): void
     {
-        if (! $this->loginFailed || ! function_exists('UM')) {
+        if (! $this->failed || ! function_exists('UM')) {
             return;
         }
 
@@ -170,10 +184,18 @@ final class UltimateMember implements Integration
         }
     }
 
-    /** @param array<string, mixed> $submitted */
+    /**
+     * UM's reset validator counts a request against the user's reset limit
+     * before anything is sent, so tokenless requests could use the limit up
+     * and lock the user out of resetting. It must not run either.
+     *
+     * @param  array<string, mixed>  $submitted
+     */
     public function validateReset(array $submitted): void
     {
-        $this->passes($submitted);
+        if (! $this->passes($submitted) && function_exists('UM')) {
+            remove_action('um_reset_password_errors_hook', [UM()->password(), 'um_reset_password_errors_hook']);
+        }
     }
 
     /**
@@ -182,6 +204,7 @@ final class UltimateMember implements Integration
      */
     private function passes(array $submitted): bool
     {
+        $this->failed = false;
         if (! $this->settings->isProtected($this->id())) {
             return true;
         }
@@ -193,6 +216,7 @@ final class UltimateMember implements Integration
             return true;
         }
 
+        $this->failed = true;
         $this->failedForm = ($submitted['mode'] ?? '') === 'password' ? 'password' : absint($submitted['form_id'] ?? 0);
         if (function_exists('UM')) {
             UM()->form()->add_error(self::ERROR_KEY, self::failureMessage());

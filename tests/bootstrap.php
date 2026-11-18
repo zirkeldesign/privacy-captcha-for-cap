@@ -453,7 +453,7 @@ if (! function_exists('wp_kses')) {
 }
 
 if (! function_exists('remove_action')) {
-    function remove_action(string $hook_name, callable|string $callback, int $priority = 10): bool
+    function remove_action(string $hook_name, mixed $callback, int $priority = 10): bool
     {
         $GLOBALS['__cap_removed_actions'][$hook_name][] = $callback;
 

@@ -35,6 +35,11 @@ if (! function_exists('UM')) {
             {
                 return $GLOBALS['__cap_um_login'];
             }
+
+            public function password(): object
+            {
+                return $GLOBALS['__cap_um_password'];
+            }
         };
     }
 }
@@ -53,6 +58,7 @@ beforeEach(function (): void {
     $GLOBALS['__cap_modules'] = [];
     $GLOBALS['__cap_um_form'] = new CapUmFormStub;
     $GLOBALS['__cap_um_login'] = (object) ['auth_id' => ''];
+    $GLOBALS['__cap_um_password'] = new stdClass;
     $GLOBALS['__cap_removed_actions'] = [];
     $GLOBALS['__cap_user_meta'] = [];
 });
@@ -105,6 +111,7 @@ it('registers on the UM form and error hooks', function (): void {
         'um_submit_form_errors_hook_login',
         'um_submit_form_errors_hook__registration',
         'um_reset_password_errors_hook',
+        'um_submit_form_errors_hook',
         'um_before_save_filter_submitted',
         'user_register',
     ]);
@@ -189,14 +196,40 @@ it('adds a UM error for an invalid or missing token', function (array $submitted
     'not a string' => [['form_id' => 5, 'cap-token' => ['x']]],
 ]);
 
-it('keeps UM from testing the password once the login check failed', function (): void {
+it('keeps UM from testing the password once the login check failed, and reports the failed login', function (): void {
     $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
+    $GLOBALS['__cap_actions'] = [];
 
-    capUltimateMember()->validateLogin(['form_id' => 5, 'cap-token' => 'invalid']);
+    capUltimateMember()->validateLogin(['form_id' => 5, 'username' => 'jane', 'cap-token' => 'invalid']);
 
+    [$username, $error] = $GLOBALS['__cap_actions']['wp_login_failed'][0];
     expect($GLOBALS['__cap_removed_actions'])->toBe([
         'um_submit_form_errors_hook_login' => ['um_submit_form_errors_hook_login'],
+    ])
+        ->and($username)->toBe('jane')
+        ->and($error->errors)->toHaveKey('cap_captcha_failed');
+});
+
+it('keeps UM from counting a failed reset request against the reset limit', function (): void {
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
+
+    capUltimateMember()->validateReset(['mode' => 'password', 'username_b' => 'jane']);
+
+    expect($GLOBALS['__cap_removed_actions'])->toBe([
+        'um_reset_password_errors_hook' => [[$GLOBALS['__cap_um_password'], 'um_reset_password_errors_hook']],
     ]);
+});
+
+it('leaves only the CAPTCHA error after a failed registration, so it tells nothing about existing accounts', function (): void {
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
+    $integration = capUltimateMember();
+
+    $integration->validateRegistration(['form_id' => 4, 'cap-token' => 'invalid']);
+    UM()->form()->add_error('user_login', 'The username you entered is incorrect');
+    $integration->concealOutcome();
+
+    expect(capUmErrors())->toBe(['cap-token' => 'CAPTCHA verification failed. Please try again.'])
+        ->and($GLOBALS['__cap_removed_actions'])->toBe([]);
 });
 
 it('leaves only the CAPTCHA error and no user id once every login validator has run', function (): void {
@@ -207,10 +240,23 @@ it('leaves only the CAPTCHA error and no user id once every login validator has 
     // What a renamed UM password handler would still do after us.
     $GLOBALS['__cap_um_login']->auth_id = 7;
     UM()->form()->add_error('user_password', 'Password is incorrect. Please try again.');
-    $integration->concealLoginOutcome();
+    $integration->concealOutcome();
 
     expect(capUmErrors())->toBe(['cap-token' => 'CAPTCHA verification failed. Please try again.'])
         ->and($GLOBALS['__cap_um_login']->auth_id)->toBe('');
+});
+
+it('conceals nothing for a solved check that follows a failed one', function (): void {
+    $integration = capUltimateMember();
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
+    $integration->validateLogin(['form_id' => 5, 'cap-token' => 'first']);
+    $GLOBALS['__cap_um_form'] = new CapUmFormStub;
+
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
+    $integration->validateLogin(['form_id' => 5, 'cap-token' => 'second']);
+    $integration->concealOutcome();
+
+    expect(capUmErrors())->toBeNull();
 });
 
 it('leaves the login errors of a solved check alone', function (): void {
@@ -219,7 +265,7 @@ it('leaves the login errors of a solved check alone', function (): void {
 
     $integration->validateLogin(['form_id' => 5, 'cap-token' => 'valid']);
     UM()->form()->add_error('user_password', 'Password is incorrect. Please try again.');
-    $integration->concealLoginOutcome();
+    $integration->concealOutcome();
 
     expect(capUmErrors())->toBe(['user_password' => 'Password is incorrect. Please try again.']);
 });

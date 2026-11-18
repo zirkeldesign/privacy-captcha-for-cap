@@ -268,3 +268,51 @@ it('checks the token on the password reset form', function (bool $verified): voi
         ? ['reached' => 'um_reset_password_process_hook']
         : ['cap-token' => 'CAPTCHA verification failed. Please try again.']);
 })->with(['valid' => [true], 'rejected' => [false]]);
+
+it('does not count tokenless reset requests against the reset limit or say the limit exists', function (): void {
+    capUmCap(false);
+    $jane = get_user_by('login', 'umjane');
+
+    $answers = [];
+    foreach (range(1, 4) as $attempt) {
+        $answers[] = capUmSubmit(['_um_password_reset' => '1', 'username_b' => 'umjane', 'cap-token' => "flood-{$attempt}"], true);
+    }
+
+    remove_all_filters('pre_http_request', 10);
+    capUmCap(true);
+    $legit = capUmSubmit(['_um_password_reset' => '1', 'username_b' => 'umjane', 'cap-token' => 'after-flood-ok'], true);
+
+    expect(array_unique($answers, SORT_REGULAR))->toBe([['cap-token' => 'CAPTCHA verification failed. Please try again.']])
+        ->and((int) get_user_meta($jane->ID, 'password_rst_attempts', true))->toBe(0)
+        ->and($legit)->toBe(['reached' => 'um_reset_password_process_hook']);
+});
+
+it('does not say whether a username or email address is taken behind a failed check', function (string $login): void {
+    capUmCap(false);
+
+    $result = capUmSubmit(capUmPost('register', [
+        'user_login' => $login,
+        'user_email' => "{$login}@example.test",
+        'user_password' => 'Str0ng-Passw0rd!',
+        'confirm_user_password' => 'Str0ng-Passw0rd!',
+    ]) + ['cap-token' => "taken-{$login}"]);
+
+    expect($result)->toBe(['cap-token' => 'CAPTCHA verification failed. Please try again.']);
+})->with(['taken' => ['umjane'], 'free' => ['umnobody']]);
+
+it('reports a login that failed the check to lockout plugins', function (): void {
+    capUmCap(false);
+    $failed = [];
+    $record = static function (string $username, WP_Error $error) use (&$failed): void {
+        $failed[] = [$username, $error->get_error_code()];
+    };
+    add_action('wp_login_failed', $record, 10, 2);
+
+    try {
+        capUmSubmit(capUmPost('login', ['username' => 'umjane', 'user_password' => 'wrong']) + ['cap-token' => 'lockout-bad']);
+    } finally {
+        remove_action('wp_login_failed', $record, 10);
+    }
+
+    expect($failed)->toBe([['umjane', 'cap_captcha_failed']]);
+});
