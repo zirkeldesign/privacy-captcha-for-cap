@@ -27,6 +27,8 @@ final class UltimateMember implements Integration
 
     private bool $lastFailOpen = false;
 
+    private bool $loginFailed = false;
+
     private int|string|null $renderingForm = null;
 
     /** Widget id waiting for the submit button UM is about to print, in floating mode. */
@@ -59,6 +61,7 @@ final class UltimateMember implements Integration
 
         // Before UM's own handlers at 10, so a failed check can keep the password from being tested.
         add_action('um_submit_form_errors_hook_login', [$this, 'validateLogin'], 5, 1);
+        add_action('um_submit_form_errors_hook_login', [$this, 'concealLoginOutcome'], PHP_INT_MAX, 0);
         add_action('um_submit_form_errors_hook__registration', [$this, 'validateRegistration'], 5, 1);
         add_action('um_reset_password_errors_hook', [$this, 'validateReset'], 5, 1);
 
@@ -78,7 +81,8 @@ final class UltimateMember implements Integration
             return;
         }
 
-        $this->renderingForm = (int) $formId;
+        // UM's login form already lists errors that belong to no field above its fields.
+        $this->renderingForm = is_array($args) && ($args['mode'] ?? '') === 'login' ? null : (int) $formId;
         if ($mode !== Settings::MODE_FLOATING) {
             $this->printWidget($this->renderer->renderForMode(wp_unique_id('cap-captcha-um-'), $mode));
 
@@ -130,14 +134,32 @@ final class UltimateMember implements Integration
      * UM checks the password in its own handler even when another one has
      * already added an error, and the page then says whether the password was
      * right. Without the CAPTCHA that check must not run at all.
+     * concealLoginOutcome() covers the case where UM renames the handler.
      *
      * @param  array<string, mixed>  $submitted
      */
     public function validateLogin(array $submitted): void
     {
-        if (! $this->passes($submitted)) {
+        $this->loginFailed = ! $this->passes($submitted);
+        if ($this->loginFailed) {
             remove_action('um_submit_form_errors_hook_login', 'um_submit_form_errors_hook_login');
         }
+    }
+
+    /**
+     * Runs after every login validator, whatever it is called. After a failed
+     * check the visitor sees the CAPTCHA error alone, and the user id UM keeps
+     * for a correct password is dropped: UM's status check at 9999 would
+     * otherwise redirect a pending or blocked account and give it away.
+     */
+    public function concealLoginOutcome(): void
+    {
+        if (! $this->loginFailed || ! function_exists('UM')) {
+            return;
+        }
+
+        UM()->form()->errors = [self::ERROR_KEY => self::failureMessage()];
+        UM()->login()->auth_id = '';
     }
 
     /** @param array<string, mixed> $submitted */
@@ -173,7 +195,7 @@ final class UltimateMember implements Integration
 
         $this->failedForm = ($submitted['mode'] ?? '') === 'password' ? 'password' : absint($submitted['form_id'] ?? 0);
         if (function_exists('UM')) {
-            UM()->form()->add_error(self::ERROR_KEY, __('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'));
+            UM()->form()->add_error(self::ERROR_KEY, self::failureMessage());
         }
 
         return false;
@@ -202,6 +224,11 @@ final class UltimateMember implements Integration
         $this->lastFailOpen = false;
         add_user_meta((int) $userId, 'cap_captcha_fail_open', 1, true);
         do_action('cap_captcha_fail_open_pass', $this->id(), ['user_id' => (int) $userId]);
+    }
+
+    private static function failureMessage(): string
+    {
+        return __('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap');
     }
 
     private function prepare(): ?string

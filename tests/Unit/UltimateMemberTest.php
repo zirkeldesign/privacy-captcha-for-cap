@@ -8,24 +8,41 @@ use ZirkelDesign\CapCaptcha\Integration\UltimateMember;
 use ZirkelDesign\CapCaptcha\Settings;
 use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
 
+/** Stands in for UM's form object: errors by field key, as UM()->form()->add_error() keeps them. */
+final class CapUmFormStub
+{
+    /** @var array<string, string>|null */
+    public ?array $errors = null;
+
+    public function add_error(string $key, string $error): void
+    {
+        $this->errors[$key] ??= $error;
+    }
+}
+
 if (! function_exists('UM')) {
-    /** Ultimate Member's accessor, recording the errors its form object is given. */
+    /** Ultimate Member's accessor, handing out the form and login state of the current test. */
     function UM(): object
     {
         return new class
         {
-            public function form(): object
+            public function form(): CapUmFormStub
             {
-                return new class
-                {
-                    public function add_error(string $key, string $error): void
-                    {
-                        $GLOBALS['__cap_um_errors'][$key] = $error;
-                    }
-                };
+                return $GLOBALS['__cap_um_form'];
+            }
+
+            public function login(): object
+            {
+                return $GLOBALS['__cap_um_login'];
             }
         };
     }
+}
+
+/** @return array<string, string>|null */
+function capUmErrors(): ?array
+{
+    return $GLOBALS['__cap_um_form']->errors;
 }
 
 beforeEach(function (): void {
@@ -34,7 +51,8 @@ beforeEach(function (): void {
     cap_reset_remote_stub();
     $_POST = [];
     $GLOBALS['__cap_modules'] = [];
-    $GLOBALS['__cap_um_errors'] = [];
+    $GLOBALS['__cap_um_form'] = new CapUmFormStub;
+    $GLOBALS['__cap_um_login'] = (object) ['auth_id' => ''];
     $GLOBALS['__cap_removed_actions'] = [];
     $GLOBALS['__cap_user_meta'] = [];
 });
@@ -155,7 +173,7 @@ it('lets a submission with a valid token through', function (): void {
 
     $request = json_decode((string) $GLOBALS['__cap_remote_last_request']['args']['body'], true);
     expect($request['response'])->toBe('valid')
-        ->and($GLOBALS['__cap_um_errors'])->toBe([])
+        ->and(capUmErrors())->toBeNull()
         ->and($GLOBALS['__cap_removed_actions'])->toBe([]);
 });
 
@@ -164,7 +182,7 @@ it('adds a UM error for an invalid or missing token', function (array $submitted
 
     capUltimateMember(failOpen: true)->validateRegistration($submitted);
 
-    expect($GLOBALS['__cap_um_errors'])->toBe(['cap-token' => 'CAPTCHA verification failed. Please try again.']);
+    expect(capUmErrors())->toBe(['cap-token' => 'CAPTCHA verification failed. Please try again.']);
 })->with([
     'invalid' => [['form_id' => 5, 'cap-token' => 'invalid']],
     'missing' => [['form_id' => 5]],
@@ -181,6 +199,31 @@ it('keeps UM from testing the password once the login check failed', function ()
     ]);
 });
 
+it('leaves only the CAPTCHA error and no user id once every login validator has run', function (): void {
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
+    $integration = capUltimateMember();
+
+    $integration->validateLogin(['form_id' => 5, 'cap-token' => 'invalid']);
+    // What a renamed UM password handler would still do after us.
+    $GLOBALS['__cap_um_login']->auth_id = 7;
+    UM()->form()->add_error('user_password', 'Password is incorrect. Please try again.');
+    $integration->concealLoginOutcome();
+
+    expect(capUmErrors())->toBe(['cap-token' => 'CAPTCHA verification failed. Please try again.'])
+        ->and($GLOBALS['__cap_um_login']->auth_id)->toBe('');
+});
+
+it('leaves the login errors of a solved check alone', function (): void {
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
+    $integration = capUltimateMember();
+
+    $integration->validateLogin(['form_id' => 5, 'cap-token' => 'valid']);
+    UM()->form()->add_error('user_password', 'Password is incorrect. Please try again.');
+    $integration->concealLoginOutcome();
+
+    expect(capUmErrors())->toBe(['user_password' => 'Password is incorrect. Please try again.']);
+});
+
 it('shows the error only under the form that failed', function (): void {
     $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
     $integration = capUltimateMember();
@@ -194,10 +237,26 @@ it('shows the error only under the form that failed', function (): void {
         ->and(capUmLoginForm($integration))->not->toContain('um-field-error');
 });
 
+it('leaves the error on the login form to UM, which lists it above the fields', function (): void {
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
+    $integration = capUltimateMember();
+    $integration->validateRegistration(['form_id' => 5, 'cap-token' => 'invalid']);
+
+    $render = static function (string $mode) use ($integration): string {
+        ob_start();
+        $integration->renderWidget(['mode' => $mode], 5);
+
+        return (string) ob_get_clean();
+    };
+
+    expect($render('register'))->toContain('um-field-error')
+        ->and($render('login'))->not->toContain('um-field-error');
+});
+
 it('leaves submissions alone when the surface is off', function (): void {
     capUltimateMember(false)->validateLogin(['form_id' => 5]);
 
-    expect($GLOBALS['__cap_um_errors'])->toBe([])
+    expect(capUmErrors())->toBeNull()
         ->and($GLOBALS['__cap_remote_last_request'] ?? null)->toBeNull();
 });
 
@@ -216,7 +275,7 @@ it('marks a registration that passed only through fail-open', function (): void 
 
     expect($GLOBALS['__cap_user_meta'])->toBe([42 => ['cap_captcha_fail_open' => 1]])
         ->and($GLOBALS['__cap_actions']['cap_captcha_fail_open_pass'])->toBe([['ultimate_member', ['user_id' => 42]]])
-        ->and($GLOBALS['__cap_um_errors'])->toBe([]);
+        ->and(capUmErrors())->toBeNull();
 });
 
 it('keeps the Ultimate Member setting when that plugin is unavailable', function (): void {

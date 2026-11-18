@@ -20,6 +20,12 @@ function capUmStopAt(string $hook): void
     }, 0);
 }
 
+/** UM redirects, then exits, when a login reveals an account status. */
+function capUmStopAtRedirect(string $location): never
+{
+    throw new CapUmReached('redirect '.(string) wp_parse_url($location, PHP_URL_QUERY));
+}
+
 /** @return array<string, string> UM's errors for the submission, or ['reached' => hook] when UM accepted it. */
 function capUmSubmit(array $post, bool $reset = false): array
 {
@@ -107,6 +113,7 @@ beforeEach(function (): void {
     capUmStopAt('um_user_login');
     capUmStopAt('um_registration_complete');
     capUmStopAt('um_reset_password_process_hook');
+    add_filter('wp_redirect', 'capUmStopAtRedirect', 0);
 });
 
 afterEach(function (): void {
@@ -117,6 +124,7 @@ afterEach(function (): void {
     remove_all_actions('um_user_login', 0);
     remove_all_actions('um_registration_complete', 0);
     remove_all_actions('um_reset_password_process_hook', 0);
+    remove_filter('wp_redirect', 'capUmStopAtRedirect', 0);
     // A failed check takes UM's password handler off for the rest of the request; this process is one request.
     if (function_exists('um_submit_form_errors_hook_login') && ! has_action('um_submit_form_errors_hook_login', 'um_submit_form_errors_hook_login')) {
         add_action('um_submit_form_errors_hook_login', 'um_submit_form_errors_hook_login');
@@ -168,6 +176,45 @@ it('rejects a login without a valid token and does not say whether the password 
     expect($right)->toBe(['cap-token' => 'CAPTCHA verification failed. Please try again.'])
         ->and($wrong)->toBe($right);
 })->with(['missing' => [null], 'rejected' => ['bad']]);
+
+it('still hides whether the password was right when UM renames its password handler', function (): void {
+    capUmCap(false);
+    // remove_action() no longer finds the handler by its old name.
+    $renamed = static fn (array $submitted) => um_submit_form_errors_hook_login($submitted);
+    remove_action('um_submit_form_errors_hook_login', 'um_submit_form_errors_hook_login');
+    add_action('um_submit_form_errors_hook_login', $renamed);
+
+    try {
+        $right = capUmSubmit(capUmPost('login', ['username' => 'umjane', 'user_password' => 'correct-horse']) + ['cap-token' => 'bad-renamed']);
+        $wrong = capUmSubmit(capUmPost('login', ['username' => 'umjane', 'user_password' => 'wrong']) + ['cap-token' => 'bad-renamed']);
+    } finally {
+        remove_action('um_submit_form_errors_hook_login', $renamed);
+    }
+
+    expect($right)->toBe(['cap-token' => 'CAPTCHA verification failed. Please try again.'])
+        ->and($wrong)->toBe($right);
+});
+
+it('does not give away a pending account behind a failed check', function (bool $verified): void {
+    capUmCap($verified);
+    $pending = get_user_by('login', 'umpending');
+    $pendingId = $pending ? $pending->ID : wp_insert_user(['user_login' => 'umpending', 'user_pass' => 'correct-horse', 'user_email' => 'umpending@example.test']);
+    update_user_meta((int) $pendingId, 'account_status', 'awaiting_admin_review');
+    $renamed = static fn (array $submitted) => um_submit_form_errors_hook_login($submitted);
+    remove_action('um_submit_form_errors_hook_login', 'um_submit_form_errors_hook_login');
+    add_action('um_submit_form_errors_hook_login', $renamed);
+
+    try {
+        $result = capUmSubmit(capUmPost('login', ['username' => 'umpending', 'user_password' => 'correct-horse']) + ['cap-token' => $verified ? 'pending-ok' : 'pending-bad']);
+    } finally {
+        remove_action('um_submit_form_errors_hook_login', $renamed);
+    }
+
+    // The passed check is the control: UM does redirect a pending account with the right password.
+    expect($result)->toBe($verified
+        ? ['reached' => 'redirect err=awaiting_admin_review']
+        : ['cap-token' => 'CAPTCHA verification failed. Please try again.']);
+})->with(['failed check' => [false], 'passed check' => [true]]);
 
 it('leaves UM logins to their own toggle when the core login surface is on', function (): void {
     remove_all_filters('cap_captcha_protect_ultimate_member');
