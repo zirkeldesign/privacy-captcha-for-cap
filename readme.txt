@@ -2,13 +2,13 @@
 Contributors: zirkeldesign, d.sturm
 Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
-Tested up to: 7.1
+Tested up to: 7.2
 Requires PHP: 8.3
-Stable tag: 1.8.1
+Stable tag: 1.9.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Privacy-friendly spam protection for comments, login, registration, WooCommerce, and Gravity Forms, powered by your own Cap server.
+Privacy-friendly spam protection for login, comments, WooCommerce, form and membership plugins, powered by your own Cap server.
 
 == Description ==
 
@@ -139,6 +139,16 @@ Please open an issue on [GitHub](https://github.com/zirkeldesign/privacy-captcha
 4. Each form you can protect has its own switch. Integrations for plugins that are not active are shown but cannot be switched on.
 
 == Changelog ==
+
+= 1.9.0 =
+* Added: protection for the Ultimate Member login, registration and password reset forms.
+* Added: protection for the WordPress "Lost password" form, so bots can no longer make your site send password reset emails. Off until you switch it on.
+* Added: support for Cap 4 servers.
+* Added: "Isolate the Cap check from the page" under Privacy, on by default. It keeps the Cap server's bot check from reading the page, as up to 1.7.0. Site keys that block on behavior or on automated interactions need it switched off.
+* Improved: "Test connection" now checks the secret key, explains why the Cap server refuses a key, tests the settings before they are saved and works without an API key.
+* Improved: the status panel says when the Cap server no longer accepts the secret.
+* Improved: tested with WordPress 7.2.
+* Fixed: the status panel showed the previous site key for up to five minutes after saving.
 
 = 1.8.1 =
 * Added: FAQ entries on how to report a security issue privately and where to send bugs and ideas.
