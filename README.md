@@ -1,6 +1,6 @@
 # Privacy CAPTCHA for Cap
 
-WordPress plugin that integrates the self-hosted [Cap](https://trycap.dev/) proof-of-work CAPTCHA into WordPress comments, login, registration, WooCommerce, Gravity Forms, Contact Form 7, Fluent Forms, and wpDiscuz — with server-side verification.
+WordPress plugin that integrates the self-hosted [Cap](https://trycap.dev/) proof-of-work CAPTCHA into WordPress comments, login, registration, WooCommerce, Gravity Forms, Contact Form 7, Fluent Forms, wpDiscuz, and Ultimate Member — with server-side verification.
 
 ## Requirements
 
@@ -49,6 +49,7 @@ Each surface is an independent on/off toggle in **Settings → Privacy CAPTCHA f
 | `contact_form_7` | Contact Form 7 forms |
 | `fluent_forms` | Fluent Forms field |
 | `wpdiscuz` | wpDiscuz comment and reply forms |
+| `ultimate_member` | Ultimate Member login, registration and password reset forms |
 | `comments` | WordPress comment form |
 | `login` | wp-login.php / `login_form` |
 | `registration` | WordPress registration |
@@ -66,6 +67,7 @@ Beyond the on/off surface toggle, form placement controls let you keep a CAPTCHA
 - **Gravity Forms** — add the "Privacy CAPTCHA for Cap" field for precise placement, and/or enable "protect all Gravity Forms" globally. Each form has a **Default / Always / Never** override in its settings; an auto-protected form without the field gets a synthetic `cap_captcha` field injected at runtime.
 - **Fluent Forms** — enable the integration, then add one "Privacy CAPTCHA for Cap" field from Advanced Fields to each regular form you want to protect. Forms without the field are not protected. On multi-step forms place the field on the final step, and do not hide it with conditional logic. Conversational forms are not supported. Failed AJAX submissions reset the widget or start a new programmatic challenge.
 - **wpDiscuz**: enable the integration; the main comment form and every reply form are protected. wpDiscuz posts comments by AJAX, so the widget is reset (or a new programmatic token solved) after each post. Direct posts to `wp-comments-post.php` on posts that use a wpDiscuz form are checked as well. wpDiscuz' inline feedback forms are not covered.
+- **Ultimate Member**: enable the integration; every Ultimate Member login, registration and password reset form is protected, with one switch for all three. In floating mode the form's own submit button opens the check, except on the password reset form, whose button is printed by the template and keeps a separate one. Profile and account forms are not covered. The core Login and Registration switches do not apply to Ultimate Member forms.
 
 For maintenance, hook contracts, test setup, and version updates, see the [Fluent Forms integration guide](docs/fluent-forms-integration.md).
 
@@ -140,6 +142,8 @@ CI does not run the Gravity Forms suite: Gravity Forms is commercial and would n
 The Fluent Forms flow runs separately without Gravity Forms. CI provisions WordPress and installs a pinned, built Fluent Forms release from WordPress.org; it also runs the JavaScript retry tests. For the exact local setup, version pins, and coverage limitations, see the [Fluent Forms integration guide](docs/fluent-forms-integration.md#tests).
 
 The wpDiscuz flow runs the same way: install wpDiscuz into the fixture (`wp plugin install wpdiscuz --activate --path="$CAP_WP_ROOT"`), then `CAP_WPDISCUZ_ONLY=1 composer test:integration -- tests/Integration/WpDiscuzFlowTest.php`. wpDiscuz reads the posted id with `filter_input()`, which only sees a real HTTP request, so the suite starts PHP's built-in server on port 8899 against the fixture and posts to `admin-ajax.php`; a must-use plugin it writes for the run fakes Cap's `/siteverify`.
+
+The Ultimate Member flow needs no server: install Ultimate Member into the fixture (`wp plugin install ultimate-member --activate --path="$CAP_WP_ROOT"`), switch the integration on (`wp option patch insert cap_captcha_settings integrations ultimate_member true --format=json --path="$CAP_WP_ROOT"`), then `CAP_UM_ONLY=1 composer test:integration -- tests/Integration/UltimateMemberFlowTest.php`. It runs UM's own form handlers in the test process and creates UM's default forms on first run.
 
 ## Architecture
 
