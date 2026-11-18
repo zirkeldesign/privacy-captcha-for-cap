@@ -66,7 +66,9 @@ jobs:
 
           svn status
 
-          if svn status -q | grep -q .; then
+          # Not `svn status -q | grep -q .`: with pipefail, grep -q exits on the first match,
+          # svn gets SIGPIPE and the whole test reads as false, so changes were never committed.
+          if [ -n "$(svn status -q)" ]; then
             svn commit \
               -m "Update plugin directory assets (icon, banner, screenshots)" \
               --username "$SVN_USERNAME" --password "$SVN_PASSWORD" \
