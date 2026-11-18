@@ -339,8 +339,8 @@ msgstr "Privacy CAPTCHA for Cap"
 
 #. Description of the plugin
 #: privacy-captcha-for-cap.php
-msgid "Privacy-friendly spam protection for WordPress comments, login, registration, WooCommerce checkout, and Gravity Forms, powered by your own Cap (trycap.dev) server."
-msgstr "Datenschutzfreundlicher Spam-Schutz für WordPress-Kommentare, Anmeldung, Registrierung, WooCommerce-Kasse und Gravity Forms – betrieben über Ihren eigenen Cap-Server (trycap.dev)."
+msgid "Privacy-friendly spam protection for login, comments, WooCommerce, form and membership plugins, powered by your own Cap (trycap.dev) server."
+msgstr "Datenschutzfreundlicher Spamschutz für Anmeldung, Kommentare, WooCommerce, Formular- und Mitglieder-Plugins über Ihren eigenen Cap-Server (trycap.dev)."
 
 #: src/Asset/Renderer.php:40
 #: src/Integration/GravityForms/Field.php:184

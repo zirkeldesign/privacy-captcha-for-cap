@@ -8,7 +8,7 @@ Stable tag: 1.9.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Privacy-friendly spam protection for comments, login, registration, WooCommerce, and Gravity Forms, powered by your own Cap server.
+Privacy-friendly spam protection for login, comments, WooCommerce, form and membership plugins, powered by your own Cap server.
 
 == Description ==
 
