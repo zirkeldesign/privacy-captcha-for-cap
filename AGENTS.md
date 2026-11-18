@@ -37,6 +37,7 @@ every WordPress core release, confirm the widget still renders on:
 | --- | --- | --- |
 | Login | `/wp-login.php` | **The fragile one.** `WP_Script_Modules::add_hooks()` does not run on wp-login, so `Asset/Enqueuer` prints the modules from `login_footer`. Grep the response for `type="module"` — a missing widget here is silent. |
 | Registration | `/wp-login.php?action=register` | needs `users_can_register` |
+| Lost password | `/wp-login.php?action=lostpassword` | a failed check answers only with the CAPTCHA error, for known and unknown accounts alike |
 | Comments | any single post | |
 | WooCommerce | checkout, login, registration, lost password | needs WooCommerce active |
 | Gravity Forms | field settings panel in the form editor | the integration suite covers submission flow |

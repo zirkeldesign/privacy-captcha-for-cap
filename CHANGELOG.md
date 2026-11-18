@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- "Lost password" under WordPress protects the lost-password form on `wp-login.php` (context `lost_password`, off by default). Until now anyone could make WordPress send reset emails to any account. A failed check answers with the CAPTCHA error alone, so it does not reveal whether an account exists.
 - Cap 4 support. The bundled widget is now cap-widget 0.1.63: Cap 4 rejects older widgets on site keys that block on behavior or on automated interactions, and flags the solves it still accepts from them.
 - "Isolate the Cap check from the page" under Privacy, on by default. Since cap-widget 0.1.59 the script the Cap server sends to tell browsers from bots runs with the rights of the page, on every protected form and on `wp-login.php`, unless the widget is told to isolate it. With the setting on it runs in a frame that cannot read the page, as it always did up to 1.7.0. Site keys that block on behavior or on automated interactions reject an isolated check: turn the setting off for those, ideally only with a Cap server you run yourself. Also available as the `cap_captcha_isolate_frame` filter.
 - "Test connection" checks the secret key and reports what the Cap server answers when it refuses a key: a secret or an API key that Cap 4 no longer accepts now says so instead of "did not return a valid response".

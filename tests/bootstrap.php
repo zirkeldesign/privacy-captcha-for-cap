@@ -290,6 +290,11 @@ if (! class_exists('WP_Error')) {
         {
             return $this->errors !== [];
         }
+
+        public function remove(string $code): void
+        {
+            unset($this->errors[$code]);
+        }
     }
 }
 
