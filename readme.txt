@@ -46,7 +46,9 @@ Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof
 
 = More from zirkel.design =
 
+* [Course Embed for Viona](https://wordpress.org/plugins/course-embed-for-viona/): embed the Viona course list of your IBB partner account with a block or a shortcode.
 * [Regex Validation for Gravity Forms](https://wordpress.org/plugins/regex-validation-for-gravity-forms/): regular expression validation for Gravity Forms fields, with Unicode support and ready-made presets.
+* [Zirkel AI Image Disclosure](https://wordpress.org/plugins/zirkel-ai-image-disclosure/): a small, accessible label for AI-generated images, set automatically from their IPTC or C2PA metadata on upload.
 * [Zirkel Virtual IBAN for WooCommerce](https://wordpress.org/plugins/zirkel-iban-for-woocommerce/): unique virtual bank details per order for bank transfers in WooCommerce, reconciled automatically via Stripe.
 
 == Installation ==
