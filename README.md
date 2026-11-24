@@ -1,6 +1,6 @@
 # Privacy CAPTCHA for Cap
 
-WordPress plugin that integrates the self-hosted [Cap](https://trycap.dev/) proof-of-work CAPTCHA into WordPress comments, login, registration, WooCommerce, Gravity Forms, Contact Form 7, Fluent Forms, wpDiscuz, and Ultimate Member — with server-side verification.
+WordPress plugin that integrates the self-hosted [Cap](https://trycap.dev/) proof-of-work CAPTCHA into WordPress comments, login, registration, WooCommerce, Gravity Forms, Contact Form 7, Fluent Forms, wpDiscuz, Ultimate Member, and WPForms — with server-side verification.
 
 ## Requirements
 
@@ -50,6 +50,7 @@ Each surface is an independent on/off toggle in **Settings → Privacy CAPTCHA f
 | `fluent_forms` | Fluent Forms field |
 | `wpdiscuz` | wpDiscuz comment and reply forms |
 | `ultimate_member` | Ultimate Member login, registration and password reset forms |
+| `wpforms` | WPForms forms |
 | `comments` | WordPress comment form |
 | `login` | wp-login.php / `login_form` |
 | `registration` | WordPress registration |
@@ -68,8 +69,9 @@ Beyond the on/off surface toggle, form placement controls let you keep a CAPTCHA
 - **Fluent Forms** — enable the integration, then add one "Privacy CAPTCHA for Cap" field from Advanced Fields to each regular form you want to protect. Forms without the field are not protected. On multi-step forms place the field on the final step, and do not hide it with conditional logic. Conversational forms are not supported. Failed AJAX submissions reset the widget or start a new programmatic challenge.
 - **wpDiscuz**: enable the integration; the main comment form and every reply form are protected. wpDiscuz posts comments by AJAX, so the widget is reset (or a new programmatic token solved) after each post. Direct posts to `wp-comments-post.php` on posts that use a wpDiscuz form are checked as well. wpDiscuz' inline feedback forms are not covered.
 - **Ultimate Member**: enable the integration; every Ultimate Member login, registration and password reset form is protected, with one switch for all three. In floating mode the form's own submit button opens the check, except on the password reset form, whose button is printed by the template and keeps a separate one. Profile and account forms are not covered. The core Login and Registration switches do not apply to Ultimate Member forms.
+- **WPForms**: enable the integration, then either turn on "Automatically protect every WPForms form" in its options or set a form to *Always*. Each form has a **Default / Always / Never** select in the form builder under Settings → Spam Protection and Security; *Default* follows the global option. The widget renders above the submit button, and in floating mode that button opens the check. After a failed AJAX submit the widget is reset (or a new programmatic token solved), except when WPForms refused the form before the token was checked. AMP pages are not covered, and WPForms Pro and its add-ons are untested.
 
-For maintenance, hook contracts, test setup, and version updates, see the [Fluent Forms integration guide](docs/fluent-forms-integration.md).
+For maintenance, hook contracts, test setup, and version updates, see the [Fluent Forms integration guide](docs/fluent-forms-integration.md) and the [WPForms integration guide](docs/wpforms-integration.md).
 
 ## Styling
 
@@ -90,7 +92,7 @@ Setting it on `:root` does not reach Gravity Forms forms, because the presets si
 - `cap_captcha_protect` — master gate for **every** surface. `($enabled, $context)` → bool. Runs before the widget renders and before a submission is verified, so it controls all situations. Example: `add_filter('cap_captcha_protect', fn($on, $ctx) => is_user_logged_in() ? false : $on, 10, 2);`
 - `cap_captcha_protect_{context}` — per-surface gate, e.g. `cap_captcha_protect_woocommerce_login`. `($enabled)` → bool. Runs after the master filter. (For `gravity_forms` this is evaluated at load time, so add the filter before the plugin boots.)
 - `cap_captcha_fail_open` — `($open, $context)` → bool. The resolved fail-open decision for a surface (after the per-surface override and global default). Fail-open only applies when Cap is unreachable or there is no token; an actively rejected token always blocks.
-- `cap_captcha_fail_open_pass` (action) — `($context, $data)` fires when a submission is accepted via fail-open. `$data` carries the relevant id (`entry_id`, `order_id`, `comment_id`, or `user_id`). The same records are tagged with `cap_captcha_fail_open = 1` meta.
+- `cap_captcha_fail_open_pass` (action) — `($context, $data)` fires when a submission is accepted via fail-open. `$data` carries the relevant id (`entry_id`, `order_id`, `comment_id`, or `user_id`); WPForms passes `form_id` and `entry_id`. The same records are tagged with `cap_captcha_fail_open = 1` meta. WPForms Lite stores no entries, so its `entry_id` is `0` and only the action fires; WPForms Pro entries get a `cap_captcha_fail_open` entry meta row.
 - `cap_captcha_widget_src` — override the URL the `cap-widget` ES module is loaded from. Default: `assets/js/vendor/cap-widget.js`.
 - `cap_captcha_floating_src` — override the URL of `cap-widget.floating.js`.
 - `cap_captcha_programmatic_src` — override the URL of `assets/js/programmatic.js`.
@@ -109,7 +111,7 @@ Setting it on `:root` does not reach Gravity Forms forms, because the presets si
 | Command | What it does |
 | --- | --- |
 | `composer test` | Run Pest unit tests (no WordPress needed) |
-| `bun run test:js` | Node tests for the programmatic, Fluent Forms and wpDiscuz scripts |
+| `bun run test:js` | Node tests for the programmatic, Fluent Forms, wpDiscuz and WPForms scripts |
 | `composer test:integration:setup` | Provision a disposable WordPress fixture for integration tests |
 | `composer test:integration` | Run the integration suite against installed form plugins |
 | `composer phpstan` | Static analysis (level 6) |
@@ -144,6 +146,8 @@ The Fluent Forms flow runs separately without Gravity Forms. CI provisions WordP
 The wpDiscuz flow runs the same way: install wpDiscuz into the fixture (`wp plugin install wpdiscuz --activate --path="$CAP_WP_ROOT"`), then `CAP_WPDISCUZ_ONLY=1 composer test:integration -- tests/Integration/WpDiscuzFlowTest.php`. wpDiscuz reads the posted id with `filter_input()`, which only sees a real HTTP request, so the suite starts PHP's built-in server on port 8899 against the fixture and posts to `admin-ajax.php`; a must-use plugin it writes for the run fakes Cap's `/siteverify`.
 
 The Ultimate Member flow needs no server: install Ultimate Member into the fixture (`wp plugin install ultimate-member --activate --path="$CAP_WP_ROOT"`), switch the integration on (`wp option patch insert cap_captcha_settings integrations ultimate_member true --format=json --path="$CAP_WP_ROOT"`), then `CAP_UM_ONLY=1 composer test:integration -- tests/Integration/UltimateMemberFlowTest.php`. It runs UM's own form handlers in the test process and creates UM's default forms on first run.
+
+The WPForms flow runs against WPForms Lite from WordPress.org with `CAP_WPFORMS_ONLY=1` and `tests/Integration/WpFormsFlowTest.php`. Non-AJAX submissions run through WPForms' own `process()` in the test process; AJAX submissions go through PHP's built-in server on port 8897, as for wpDiscuz. Keep `CAP_WP_ROOT` outside this checkout for it. For the exact setup and what it covers, see the [WPForms integration guide](docs/wpforms-integration.md#tests).
 
 ## Architecture
 
