@@ -208,3 +208,12 @@ it('loads the checkout script that renews the token after a failed checkout', fu
     expect($GLOBALS['__cap_scripts'])->toHaveKey('cap-captcha-woocommerce-checkout')
         ->and($GLOBALS['__cap_scripts']['cap-captcha-woocommerce-checkout']['deps'])->toBe(['jquery']);
 });
+
+it('passes a notice that is not a string through unchanged', function (): void {
+    $_POST['cap-token'] = 'tok';
+    $woo = capWoo();
+    $woo->register();
+    $woo->verifyCheckout([], new WP_Error('billing_email_required', 'x'));
+
+    expect(apply_filters('woocommerce_add_error', null))->toBeNull();
+});

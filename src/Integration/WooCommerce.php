@@ -167,9 +167,9 @@ final class WooCommerce implements Integration
      * event. A form rejected by its own validation never reached Cap and keeps
      * its token; every other failure may have spent it.
      */
-    public function markKeptTokenError(string $message): string
+    public function markKeptTokenError(mixed $message): mixed
     {
-        if (! $this->checkoutTokenKept || str_contains($message, self::KEPT_TOKEN_MARKER)) {
+        if (! $this->checkoutTokenKept || ! is_string($message) || str_contains($message, self::KEPT_TOKEN_MARKER)) {
             return $message;
         }
 
