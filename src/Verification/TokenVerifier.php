@@ -77,6 +77,14 @@ final class TokenVerifier
     }
 
     /**
+     * Drop the cached result for a token, so the next check asks Cap again.
+     */
+    public function forget(string $token): void
+    {
+        unset($this->memo[$token]);
+    }
+
+    /**
      * Whether the most recent verify*() call passed only because the surface's
      * fail-open policy let it through (Cap was unreachable / nothing to verify).
      * Integrations use this to annotate the resulting entry for later review.

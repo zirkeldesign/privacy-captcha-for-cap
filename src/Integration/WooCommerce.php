@@ -157,7 +157,7 @@ final class WooCommerce implements Integration
             return $response;
         }
 
-        if (! $this->settings->isProtected('woocommerce_checkout')) {
+        if (! $this->settings->isProtected('woocommerce_checkout') || ! $this->protectsStoreApiCheckout()) {
             return $response;
         }
 
@@ -166,7 +166,13 @@ final class WooCommerce implements Integration
             ? sanitize_text_field($extensions['cap-captcha']['token'])
             : '';
 
-        if (! $this->verifier->verifyToken($token, 'woocommerce_checkout')) {
+        $verified = $this->verifier->verifyToken($token, 'woocommerce_checkout');
+
+        // A batch request runs several checkouts in one PHP request; each one
+        // must redeem its own token rather than reuse the cached result.
+        $this->verifier->forget($token);
+
+        if (! $verified) {
             return new WP_Error(
                 'cap_captcha_failed',
                 esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'),
@@ -177,6 +183,55 @@ final class WooCommerce implements Integration
         $this->lastCheckoutFailOpen = $this->verifier->wasLastFailOpen();
 
         return $response;
+    }
+
+    /**
+     * The block checkout and the express buttons of some gateways place their
+     * orders through the Store API but render no widget, so enforcing there
+     * would refuse every such order. Until the block checkout has a widget,
+     * the Store API is checked only on shops that use neither.
+     */
+    private function protectsStoreApiCheckout(): bool
+    {
+        $usesStoreApi = (function_exists('wc_get_page_id') && has_block('woocommerce/checkout', wc_get_page_id('checkout')))
+            || $this->hasStoreApiExpressCheckout();
+
+        /**
+         * Whether Store API checkouts must carry a Cap token.
+         *
+         * @param  bool  $protect  False on shops with the Checkout block or Store API express buttons.
+         */
+        return (bool) apply_filters('cap_captcha_protect_store_api_checkout', ! $usesStoreApi);
+    }
+
+    /**
+     * WooPayments and Stripe place Apple Pay, Google Pay and Link orders
+     * through the Store API checkout, also on the classic checkout.
+     */
+    private function hasStoreApiExpressCheckout(): bool
+    {
+        if (! function_exists('WC') || ! is_object(WC()->payment_gateways())) {
+            return false;
+        }
+
+        foreach (WC()->payment_gateways()->payment_gateways() as $gateway) {
+            if (! is_object($gateway) || ($gateway->enabled ?? 'no') !== 'yes') {
+                continue;
+            }
+
+            if (method_exists($gateway, 'is_express_checkout_enabled') && $gateway->is_express_checkout_enabled()) {
+                return true;
+            }
+
+            if (! method_exists($gateway, 'is_express_checkout_enabled')
+                && method_exists($gateway, 'is_payment_request_enabled')
+                && $gateway->is_payment_request_enabled()
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -200,7 +255,7 @@ final class WooCommerce implements Integration
             $order->save();
         }
 
-        do_action('cap_captcha_fail_open_pass', 'woocommerce_checkout', ['order_id' => (int) $orderId]);
+        do_action('cap_captcha_fail_open_pass', 'woocommerce_checkout', ['order_id' => is_object($orderId) && method_exists($orderId, 'get_id') ? (int) $orderId->get_id() : (int) $orderId]);
     }
 
     public function renderLoginWidget(): void

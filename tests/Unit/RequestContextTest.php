@@ -188,3 +188,13 @@ describe('isLoginScreenPost', function (): void {
         expect(RequestContext::isLoginScreenPost())->toBeFalse();
     });
 });
+
+it('counts a POST to wp-login.php served under another URL', function (): void {
+    $GLOBALS['pagenow'] = 'index.php';
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $GLOBALS['__cap_did_actions'] = ['login_init' => 1];
+
+    expect(RequestContext::isLoginScreenPost())->toBeTrue();
+
+    unset($GLOBALS['pagenow'], $_SERVER['REQUEST_METHOD'], $GLOBALS['__cap_did_actions']);
+});

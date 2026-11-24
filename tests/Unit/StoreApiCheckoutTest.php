@@ -13,7 +13,29 @@ beforeEach(function (): void {
     cap_reset_options();
     cap_reset_remote_stub();
     cap_reset_filters();
+    $GLOBALS['__cap_page_blocks'] = [];
+    $GLOBALS['__cap_wc_gateways'] = [];
 });
+
+if (! function_exists('WC')) {
+    function WC(): object
+    {
+        return new class
+        {
+            public function payment_gateways(): object
+            {
+                return new class
+                {
+                    /** @return array<int, object> */
+                    public function payment_gateways(): array
+                    {
+                        return $GLOBALS['__cap_wc_gateways'] ?? [];
+                    }
+                };
+            }
+        };
+    }
+}
 
 function capStoreApiWoo(bool $checkout = true, bool $failOpen = false): WooCommerce
 {
@@ -101,4 +123,84 @@ it('registers the token field in the checkout endpoint data, so the Store API ke
     expect($args['endpoint'])->toBe('checkout')
         ->and($args['namespace'])->toBe('cap-captcha')
         ->and(($args['schema_callback'])()['token']['type'])->toBe('string');
+});
+
+it('leaves the Store API alone on a shop with the Checkout block', function (): void {
+    $GLOBALS['__cap_page_blocks'] = ['woocommerce/checkout'];
+
+    expect(capStoreApiWoo()->verifyStoreApiCheckout(null, [], capStoreApiRequest()))->toBeNull()
+        ->and($GLOBALS['__cap_remote_last_request'] ?? null)->toBeNull();
+});
+
+it('leaves the Store API alone while a gateway offers express buttons', function (object $gateway): void {
+    $GLOBALS['__cap_wc_gateways'] = [$gateway];
+
+    expect(capStoreApiWoo()->verifyStoreApiCheckout(null, [], capStoreApiRequest()))->toBeNull();
+})->with([
+    'Stripe' => [new class
+    {
+        public string $enabled = 'yes';
+
+        public function is_express_checkout_enabled(): bool
+        {
+            return true;
+        }
+    }],
+    'WooPayments' => [new class
+    {
+        public string $enabled = 'yes';
+
+        public function is_payment_request_enabled(): bool
+        {
+            return true;
+        }
+    }],
+]);
+
+it('still checks the Store API when the express gateway is switched off', function (): void {
+    $GLOBALS['__cap_wc_gateways'] = [new class
+    {
+        public string $enabled = 'no';
+
+        public function is_express_checkout_enabled(): bool
+        {
+            return true;
+        }
+    }];
+
+    expect(capStoreApiWoo()->verifyStoreApiCheckout(null, [], capStoreApiRequest()))->toBeInstanceOf(WP_Error::class);
+});
+
+it('lets a filter force the Store API check on a block checkout shop', function (): void {
+    $GLOBALS['__cap_page_blocks'] = ['woocommerce/checkout'];
+    add_filter('cap_captcha_protect_store_api_checkout', fn (): bool => true);
+
+    expect(capStoreApiWoo()->verifyStoreApiCheckout(null, [], capStoreApiRequest()))->toBeInstanceOf(WP_Error::class);
+});
+
+it('asks Cap again for every checkout in one batch request', function (): void {
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
+    $woo = capStoreApiWoo();
+
+    $woo->verifyStoreApiCheckout(null, [], capStoreApiRequest(token: 'tok'));
+    $woo->verifyStoreApiCheckout(null, [], capStoreApiRequest(token: 'tok'));
+
+    expect($GLOBALS['__cap_remote_post_count'])->toBe(2);
+});
+
+it('passes the order id of a Store API order to the fail-open action', function (): void {
+    $GLOBALS['__cap_remote_response'] = new WP_Error('http_request_failed', 'down');
+    $woo = capStoreApiWoo(failOpen: true);
+    $GLOBALS['__cap_actions'] = [];
+    $woo->verifyStoreApiCheckout(null, [], capStoreApiRequest(token: 'tok'));
+
+    $woo->annotateCheckoutFailOpen(new class
+    {
+        public function get_id(): int
+        {
+            return 1234;
+        }
+    });
+
+    expect($GLOBALS['__cap_actions']['cap_captcha_fail_open_pass'][0][1]['order_id'] ?? null)->toBe(1234);
 });

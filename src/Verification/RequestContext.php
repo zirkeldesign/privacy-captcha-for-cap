@@ -66,7 +66,9 @@ final class RequestContext
             return false;
         }
 
-        return ($GLOBALS['pagenow'] ?? '') === 'wp-login.php'
+        // login_init covers plugins that serve wp-login.php under another URL
+        // without setting $pagenow.
+        return (($GLOBALS['pagenow'] ?? '') === 'wp-login.php' || did_action('login_init') > 0)
             && ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST';
     }
 }

@@ -99,6 +99,27 @@ if (! function_exists('add_filter')) {
     }
 }
 
+if (! function_exists('did_action')) {
+    function did_action(string $hook_name): int
+    {
+        return (int) ($GLOBALS['__cap_did_actions'][$hook_name] ?? 0);
+    }
+}
+
+if (! function_exists('has_block')) {
+    function has_block(string $block_name, mixed $post = null): bool
+    {
+        return in_array($block_name, $GLOBALS['__cap_page_blocks'] ?? [], true);
+    }
+}
+
+if (! function_exists('wc_get_page_id')) {
+    function wc_get_page_id(string $page): int
+    {
+        return 42;
+    }
+}
+
 if (! function_exists('remove_filter')) {
     function remove_filter(string $hook_name, callable $callback, int $priority = 10): bool
     {
@@ -310,6 +331,7 @@ if (! function_exists('wp_remote_post')) {
     function wp_remote_post(string $url, array $args = []): array|\WP_Error
     {
         $GLOBALS['__cap_remote_last_request'] = ['url' => $url, 'args' => $args];
+        $GLOBALS['__cap_remote_post_count'] = ($GLOBALS['__cap_remote_post_count'] ?? 0) + 1;
 
         $response = $GLOBALS['__cap_remote_response'] ?? ['body' => '{"success":true}'];
 
@@ -374,6 +396,7 @@ function cap_reset_remote_stub(): void
     unset(
         $GLOBALS['__cap_remote_response'],
         $GLOBALS['__cap_remote_last_request'],
+        $GLOBALS['__cap_remote_post_count'],
         $GLOBALS['__cap_remote_get_responses'],
         $GLOBALS['__cap_remote_get_requests'],
     );
