@@ -125,8 +125,10 @@ function capWpFormsCreate(string $protection = 'always', bool $ajax = false): in
  *
  * @return array<string, mixed> WPForms' errors for the form.
  */
-function capWpFormsSubmit(int $formId, string $name = 'Ada Lovelace', ?string $token = 'solved-token'): array
+function capWpFormsSubmit(int $formId, string $name = 'Ada Lovelace', ?string $token = ''): array
 {
+    // The verifier remembers each token's answer for the request, and this process is one long request.
+    $token = $token === '' ? uniqid('token-', true) : $token;
     $_SERVER['REQUEST_METHOD'] = 'POST';
     $_POST = ['wpforms' => ['id' => (string) $formId, 'fields' => [1 => $name]]];
     if ($token !== null) {

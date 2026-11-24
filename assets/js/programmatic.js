@@ -28,7 +28,7 @@
 
         function writeToken(token) {
             document.querySelectorAll('input[name="' + fieldName + '"]').forEach(function (field) {
-                if (field.closest('.cap-captcha--fluent, .cap-captcha--wpdiscuz')) return;
+                if (field.closest('.cap-captcha--fluent, .cap-captcha--wpdiscuz, .cap-captcha--wpforms')) return;
                 field.value = token;
             });
         }
@@ -42,7 +42,7 @@
             if (!(form instanceof HTMLFormElement)) return;
             var field = form.querySelector('input[name="' + fieldName + '"]');
             if (!field || field.value) return;
-            if (field.closest('.cap-captcha--fluent, .cap-captcha--wpdiscuz')) return;
+            if (field.closest('.cap-captcha--fluent, .cap-captcha--wpdiscuz, .cap-captcha--wpforms')) return;
 
             event.preventDefault();
             tokenPromise.then(function (result) {
