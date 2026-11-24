@@ -44,7 +44,7 @@ final class WooCommerce implements Integration
         // Checkout.
         add_action('woocommerce_after_checkout_billing_form', [$this, 'renderWidget']);
         add_filter('woocommerce_order_button_html', [$this, 'attachFloatingAttrsToSubmit']);
-        add_action('woocommerce_checkout_process', [$this, 'verifyCheckout']);
+        add_action('woocommerce_after_checkout_validation', [$this, 'verifyCheckout'], 10, 2);
         add_action('woocommerce_checkout_order_processed', [$this, 'annotateCheckoutFailOpen']);
 
         // My Account — login.
@@ -74,6 +74,13 @@ final class WooCommerce implements Integration
 
         $mode = $this->settings->getDisplayMode();
         $this->enqueuer->enqueueForMode($mode);
+        wp_enqueue_script(
+            'cap-captcha-woocommerce-checkout',
+            CAP_CAPTCHA_URL.'assets/js/woocommerce-checkout.js',
+            ['jquery'],
+            CAP_CAPTCHA_VERSION,
+            ['in_footer' => true]
+        );
         $this->enqueuer->printGlobals();
 
         // WC hooks woocommerce_order_button_html (below) so the existing
@@ -91,19 +98,27 @@ final class WooCommerce implements Integration
         return Renderer::addFloatingAttrsToSubmit($button, self::WIDGET_ID);
     }
 
-    public function verifyCheckout(): void
+    /**
+     * Runs once WooCommerce has validated the form. Cap tokens are single use,
+     * so a form with errors keeps its token for the corrected submission.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function verifyCheckout(array $data, WP_Error $errors): void
     {
         if (! $this->settings->isProtected('woocommerce_checkout')) {
             return;
         }
 
+        if ($errors->has_errors() || (function_exists('wc_notice_count') && wc_notice_count('error') > 0)) {
+            return;
+        }
+
         if (! $this->verifier->verifyCurrentRequest('woocommerce_checkout')) {
-            if (function_exists('wc_add_notice')) {
-                wc_add_notice(
-                    esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'),
-                    'error'
-                );
-            }
+            $errors->add(
+                'cap_captcha_failed',
+                esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap')
+            );
 
             return;
         }
