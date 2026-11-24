@@ -105,3 +105,43 @@ it('still skips checkout account creation with fail-open on and no token', funct
 
     expect($woo->verifyRegistration(new WP_Error)->has_errors())->toBeFalse();
 });
+
+it('verifies the checkout after WooCommerce has validated the form', function (): void {
+    $GLOBALS['__cap_filters'] = [];
+
+    capWoo()->register();
+
+    expect($GLOBALS['__cap_filters'])->not->toHaveKey('woocommerce_checkout_process')
+        ->and($GLOBALS['__cap_filters']['woocommerce_after_checkout_validation'][0]['args'] ?? null)->toBe(2);
+});
+
+it('keeps the token unspent while the checkout form has errors', function (): void {
+    $_POST['cap-token'] = 'tok';
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
+    $errors = new WP_Error('billing_phone_required', 'x');
+
+    capWoo()->verifyCheckout([], $errors);
+
+    expect($GLOBALS['__cap_remote_last_request'] ?? null)->toBeNull()
+        ->and($errors->get_error_codes())->toBe(['billing_phone_required']);
+});
+
+it('adds the CAPTCHA error to a valid checkout with a rejected token', function (): void {
+    $_POST['cap-token'] = 'tok';
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
+    $errors = new WP_Error;
+
+    capWoo()->verifyCheckout([], $errors);
+
+    expect($errors->get_error_codes())->toBe(['cap_captcha_failed']);
+});
+
+it('loads the checkout script that renews the token after a failed checkout', function (): void {
+    $GLOBALS['__cap_scripts'] = [];
+    ob_start();
+    capWoo()->renderWidget();
+    ob_end_clean();
+
+    expect($GLOBALS['__cap_scripts'])->toHaveKey('cap-captcha-woocommerce-checkout')
+        ->and($GLOBALS['__cap_scripts']['cap-captcha-woocommerce-checkout']['deps'])->toBe(['jquery']);
+});
