@@ -50,23 +50,40 @@ async function settle() {
     await new Promise((resolve) => setImmediate(resolve));
 }
 
-test('a failed checkout resets the widget, whose token may be spent', async () => {
+// The server marks the errors of a checkout that spent the token.
+const SPENT = '<ul class="woocommerce-error"><li>Payment declined.<span class="cap-captcha-spent"></span></li></ul>';
+const UNSPENT = '<ul class="woocommerce-error"><li>Billing Email address is a required field.</li></ul>';
+
+test('a checkout that spent the token resets the widget', async () => {
     const context = fixture();
     assert.equal(typeof context.bodyHandlers.checkout_error, 'function');
 
-    context.bodyHandlers.checkout_error();
+    context.bodyHandlers.checkout_error({}, SPENT);
     await settle();
 
     assert.equal(context.getResets(), 1);
 });
 
-test('a failed checkout solves a fresh token in programmatic mode', async () => {
+test('a checkout that spent the token solves a fresh one in programmatic mode', async () => {
     const context = fixture({ programmatic: true });
     assert.equal(context.getSolves(), 0);
 
-    context.bodyHandlers.checkout_error();
+    context.bodyHandlers.checkout_error({}, SPENT);
     await settle();
 
     assert.equal(context.getSolves(), 1);
     assert.equal(context.field.value, 'token-1');
+});
+
+test('a checkout rejected before the token was checked keeps the token', async () => {
+    const inline = fixture();
+    const programmatic = fixture({ programmatic: true });
+
+    inline.bodyHandlers.checkout_error({}, UNSPENT);
+    programmatic.bodyHandlers.checkout_error({}, UNSPENT);
+    await settle();
+
+    assert.equal(inline.getResets(), 0);
+    assert.equal(programmatic.getSolves(), 0);
+    assert.equal(programmatic.field.value, 'spent-token');
 });

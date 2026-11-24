@@ -136,6 +136,28 @@ it('adds the CAPTCHA error to a valid checkout with a rejected token', function 
     expect($errors->get_error_codes())->toBe(['cap_captcha_failed']);
 });
 
+it('marks the checkout errors added once the token was checked', function (): void {
+    $_POST['cap-token'] = 'tok';
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
+    $woo = capWoo();
+    $woo->register();
+
+    $woo->verifyCheckout([], new WP_Error);
+
+    expect(apply_filters('woocommerce_add_error', 'Payment declined.'))->toContain('cap-captcha-spent');
+});
+
+it('leaves the checkout errors unmarked while the token is unspent', function (): void {
+    $_POST['cap-token'] = 'tok';
+    $woo = capWoo();
+    $woo->register();
+
+    $woo->verifyCheckout([], new WP_Error('billing_email_required', 'x'));
+
+    expect(apply_filters('woocommerce_add_error', 'Billing Email address is a required field.'))
+        ->toBe('Billing Email address is a required field.');
+});
+
 it('loads the checkout script that renews the token after a failed checkout', function (): void {
     $GLOBALS['__cap_scripts'] = [];
     ob_start();
