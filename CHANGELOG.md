@@ -24,7 +24,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- Fail-open now applies when the Cap server answers `siteverify` with a 5xx, 408 or 429 and a JSON body. Cap reports its own internal errors (for example when its Valkey is down) as JSON, and such an answer counted as a rejected token, so a Cap outage blocked every form even on surfaces set to fail open. A JSON `success: false` with any other status is still a rejection.
+- Fail-open now applies when the Cap server answers `siteverify` with a 5xx or 408 and a JSON body. Cap reports its own internal errors (for example when its Valkey is down) as JSON, and such an answer counted as a rejected token, so a Cap outage blocked every form even on surfaces set to fail open. A JSON `success: false` with any other status is still a rejection.
+- Security: a rate-limit answer (429) from the Cap server or a proxy in front of it no longer counts as an outage. Cap limits `siteverify` per calling server, so anyone could push a site into that limit by posting made-up tokens and, on surfaces set to fail open, get past the CAPTCHA.
 - The status panel kept showing the previous site key for up to five minutes after the settings were saved.
 
 ## [1.8.1] - 2026-11-17

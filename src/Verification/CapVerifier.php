@@ -26,8 +26,10 @@ final class CapVerifier
      * server. An empty token or missing configuration is reported as
      * Unreachable (we cannot verify), so the caller's fail-open policy decides.
      * A request the sender can cause to fail (oversized token, a 4xx from a
-     * proxy in front of Cap) is a rejection, never a reason to fail open. A 5xx,
-     * 408 or 429 is an outage, whether or not its body is JSON.
+     * proxy in front of Cap) is a rejection, never a reason to fail open. A 5xx
+     * or 408 is an outage, whether or not its body is JSON. A 429 is not: Cap
+     * rate-limits siteverify per caller, the caller is this WordPress server,
+     * and any visitor can drive it there by posting made-up tokens.
      */
     public function check(string $token): VerificationResult
     {
@@ -60,7 +62,7 @@ final class CapVerifier
 
         // Cap answers its own internal errors with a JSON body, so an outage
         // is told by the status before the body is read.
-        if ($status >= 500 || in_array($status, [408, 429], true)) {
+        if ($status >= 500 || $status === 408) {
             return VerificationResult::Unreachable;
         }
 
