@@ -37,7 +37,15 @@ final class WooCommerce implements Integration
 
     public const LOST_PASSWORD_WIDGET_ID = 'cap-captcha-wc-lost-password';
 
+    /**
+     * Class on an empty span appended to the errors of a checkout whose token
+     * was sent to Cap, so the checkout script renews the token only then.
+     */
+    public const SPENT_TOKEN_MARKER = 'cap-captcha-spent';
+
     private bool $lastCheckoutFailOpen = false;
+
+    private bool $checkoutTokenChecked = false;
 
     public function register(): void
     {
@@ -45,6 +53,7 @@ final class WooCommerce implements Integration
         add_action('woocommerce_after_checkout_billing_form', [$this, 'renderWidget']);
         add_filter('woocommerce_order_button_html', [$this, 'attachFloatingAttrsToSubmit']);
         add_action('woocommerce_after_checkout_validation', [$this, 'verifyCheckout'], 10, 2);
+        add_filter('woocommerce_add_error', [$this, 'markSpentTokenError']);
         add_action('woocommerce_checkout_order_processed', [$this, 'annotateCheckoutFailOpen']);
 
         // My Account — login.
@@ -114,6 +123,8 @@ final class WooCommerce implements Integration
             return;
         }
 
+        $this->checkoutTokenChecked = true;
+
         if (! $this->verifier->verifyCurrentRequest('woocommerce_checkout')) {
             $errors->add(
                 'cap_captcha_failed',
@@ -124,6 +135,20 @@ final class WooCommerce implements Integration
         }
 
         $this->lastCheckoutFailOpen = $this->verifier->wasLastFailOpen();
+    }
+
+    /**
+     * WooCommerce passes the error HTML to the checkout's `checkout_error`
+     * event. A rejected token or a failure after the check (a declined
+     * payment) leaves a spent token in the form; a validation error does not.
+     */
+    public function markSpentTokenError(string $message): string
+    {
+        if (! $this->checkoutTokenChecked || str_contains($message, self::SPENT_TOKEN_MARKER)) {
+            return $message;
+        }
+
+        return $message.'<span class="'.self::SPENT_TOKEN_MARKER.'"></span>';
     }
 
     /**
