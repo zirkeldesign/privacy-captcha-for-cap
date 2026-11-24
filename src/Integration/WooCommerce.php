@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ZirkelDesign\CapCaptcha\Integration;
 
+use Exception;
 use WP_Error;
 use ZirkelDesign\CapCaptcha\Asset\Enqueuer;
 use ZirkelDesign\CapCaptcha\Asset\Renderer;
@@ -38,22 +39,26 @@ final class WooCommerce implements Integration
     public const LOST_PASSWORD_WIDGET_ID = 'cap-captcha-wc-lost-password';
 
     /**
-     * Class on an empty span appended to the errors of a checkout whose token
-     * was sent to Cap, so the checkout script renews the token only then.
+     * Class on an empty span appended to the errors of a checkout that never
+     * sent its token to Cap. The checkout script renews the token after every
+     * other failed checkout, including ones that carry no notice at all.
      */
-    public const SPENT_TOKEN_MARKER = 'cap-captcha-spent';
+    public const KEPT_TOKEN_MARKER = 'cap-captcha-kept';
 
     private bool $lastCheckoutFailOpen = false;
 
-    private bool $checkoutTokenChecked = false;
+    private bool $checkoutTokenKept = false;
 
     public function register(): void
     {
         // Checkout.
         add_action('woocommerce_after_checkout_billing_form', [$this, 'renderWidget']);
         add_filter('woocommerce_order_button_html', [$this, 'attachFloatingAttrsToSubmit']);
-        add_action('woocommerce_after_checkout_validation', [$this, 'verifyCheckout'], 10, 2);
-        add_filter('woocommerce_add_error', [$this, 'markSpentTokenError']);
+        // Last, so a plugin that removes a field error after us cannot let an
+        // order through whose token was never checked.
+        add_action('woocommerce_after_checkout_validation', [$this, 'verifyCheckout'], PHP_INT_MAX, 2);
+        add_filter('woocommerce_add_error', [$this, 'markKeptTokenError']);
+        add_action('woocommerce_checkout_create_order', [$this, 'refuseUncheckedOrder']);
         add_action('woocommerce_checkout_order_processed', [$this, 'annotateCheckoutFailOpen']);
 
         // My Account — login.
@@ -119,11 +124,15 @@ final class WooCommerce implements Integration
             return;
         }
 
-        if ($errors->has_errors() || (function_exists('wc_notice_count') && wc_notice_count('error') > 0)) {
+        // "Update totals" (no-JS checkout) validates the form but places no order.
+        if (! empty($data['woocommerce_checkout_update_totals'])
+            || $errors->has_errors()
+            || (function_exists('wc_notice_count') && wc_notice_count('error') > 0)
+        ) {
+            $this->checkoutTokenKept = true;
+
             return;
         }
-
-        $this->checkoutTokenChecked = true;
 
         if (! $this->verifier->verifyCurrentRequest('woocommerce_checkout')) {
             $errors->add(
@@ -138,17 +147,33 @@ final class WooCommerce implements Integration
     }
 
     /**
-     * WooCommerce passes the error HTML to the checkout's `checkout_error`
-     * event. A rejected token or a failure after the check (a declined
-     * payment) leaves a spent token in the form; a validation error does not.
+     * The token is skipped only because the form had errors, so WooCommerce
+     * should place no order. An error that never became a notice (an empty
+     * message, or a filter that blanked it) would let one through unchecked.
+     *
+     * @throws Exception
      */
-    public function markSpentTokenError(string $message): string
+    public function refuseUncheckedOrder(): void
     {
-        if (! $this->checkoutTokenChecked || str_contains($message, self::SPENT_TOKEN_MARKER)) {
+        if (! $this->checkoutTokenKept) {
+            return;
+        }
+
+        throw new Exception(esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'));
+    }
+
+    /**
+     * WooCommerce passes the error HTML to the checkout's `checkout_error`
+     * event. A form rejected by its own validation never reached Cap and keeps
+     * its token; every other failure may have spent it.
+     */
+    public function markKeptTokenError(string $message): string
+    {
+        if (! $this->checkoutTokenKept || str_contains($message, self::KEPT_TOKEN_MARKER)) {
             return $message;
         }
 
-        return $message.'<span class="'.self::SPENT_TOKEN_MARKER.'"></span>';
+        return $message.'<span class="'.self::KEPT_TOKEN_MARKER.'"></span>';
     }
 
     /**

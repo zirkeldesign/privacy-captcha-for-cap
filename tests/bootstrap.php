@@ -93,9 +93,16 @@ if (! function_exists('esc_attr')) {
 if (! function_exists('add_filter')) {
     function add_filter(string $hook_name, callable $callback, int $priority = 10, int $accepted_args = 1): bool
     {
-        $GLOBALS['__cap_filters'][$hook_name][] = ['cb' => $callback, 'args' => $accepted_args];
+        $GLOBALS['__cap_filters'][$hook_name][] = ['cb' => $callback, 'args' => $accepted_args, 'priority' => $priority];
 
         return true;
+    }
+}
+
+if (! function_exists('wc_notice_count')) {
+    function wc_notice_count(string $notice_type = ''): int
+    {
+        return $notice_type === 'error' ? (int) ($GLOBALS['__cap_wc_error_notices'] ?? 0) : 0;
     }
 }
 

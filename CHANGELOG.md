@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- The classic WooCommerce checkout spent the CAPTCHA token before WooCommerce validated the form, so after a validation error (a missing phone number, say) the next "Place order" failed the CAPTCHA check. The token is now verified on `woocommerce_after_checkout_validation`, only when the form has no other errors, and a failure is added to WooCommerce's validation errors. When a checkout fails after the check (a rejected token, a declined payment), its errors carry an empty `cap-captcha-spent` span (added on `woocommerce_add_error`), and `assets/js/woocommerce-checkout.js` resets the widget on WooCommerce's `checkout_error` event, or in programmatic mode solves a new token. A checkout rejected by WooCommerce's own validation keeps its token.
+- The classic WooCommerce checkout spent the CAPTCHA token before WooCommerce validated the form, so after a validation error (a missing phone number, say) the next "Place order" failed the CAPTCHA check. The token is now verified on `woocommerce_after_checkout_validation` at the last priority, only when the form has no other errors and is not an "Update totals" submit, and a failure is added to WooCommerce's validation errors. The errors of a form rejected before Cap was asked carry an empty `cap-captcha-kept` span (added on `woocommerce_add_error`); on every other `checkout_error`, including a declined payment or a server error without a notice, `assets/js/woocommerce-checkout.js` resets the widget, or in programmatic mode solves a new token and holds "Place order" until it is there.
 - The status panel kept showing the previous site key for up to five minutes after the settings were saved.
 
 ## [1.8.1] - 2026-11-17

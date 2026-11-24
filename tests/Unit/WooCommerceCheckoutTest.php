@@ -11,6 +11,7 @@ use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
 
 beforeEach(function (): void {
     $_POST = [];
+    $GLOBALS['__cap_wc_error_notices'] = 0;
     cap_reset_options();
     cap_reset_remote_stub();
     cap_reset_filters();
@@ -112,7 +113,8 @@ it('verifies the checkout after WooCommerce has validated the form', function ()
     capWoo()->register();
 
     expect($GLOBALS['__cap_filters'])->not->toHaveKey('woocommerce_checkout_process')
-        ->and($GLOBALS['__cap_filters']['woocommerce_after_checkout_validation'][0]['args'] ?? null)->toBe(2);
+        ->and($GLOBALS['__cap_filters']['woocommerce_after_checkout_validation'][0]['args'] ?? null)->toBe(2)
+        ->and($GLOBALS['__cap_filters']['woocommerce_after_checkout_validation'][0]['priority'] ?? null)->toBe(PHP_INT_MAX);
 });
 
 it('keeps the token unspent while the checkout form has errors', function (): void {
@@ -136,7 +138,7 @@ it('adds the CAPTCHA error to a valid checkout with a rejected token', function 
     expect($errors->get_error_codes())->toBe(['cap_captcha_failed']);
 });
 
-it('marks the checkout errors added once the token was checked', function (): void {
+it('leaves the errors unmarked once the token was sent to Cap', function (): void {
     $_POST['cap-token'] = 'tok';
     $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
     $woo = capWoo();
@@ -144,10 +146,10 @@ it('marks the checkout errors added once the token was checked', function (): vo
 
     $woo->verifyCheckout([], new WP_Error);
 
-    expect(apply_filters('woocommerce_add_error', 'Payment declined.'))->toContain('cap-captcha-spent');
+    expect(apply_filters('woocommerce_add_error', 'Payment declined.'))->toBe('Payment declined.');
 });
 
-it('leaves the checkout errors unmarked while the token is unspent', function (): void {
+it('marks the errors of a form whose token was kept', function (): void {
     $_POST['cap-token'] = 'tok';
     $woo = capWoo();
     $woo->register();
@@ -155,7 +157,46 @@ it('leaves the checkout errors unmarked while the token is unspent', function ()
     $woo->verifyCheckout([], new WP_Error('billing_email_required', 'x'));
 
     expect(apply_filters('woocommerce_add_error', 'Billing Email address is a required field.'))
-        ->toBe('Billing Email address is a required field.');
+        ->toContain('cap-captcha-kept')
+        ->and(apply_filters('woocommerce_add_error', apply_filters('woocommerce_add_error', 'x')))
+        ->toBe(apply_filters('woocommerce_add_error', 'x'));
+});
+
+it('keeps the token while an earlier error notice is pending', function (): void {
+    $_POST['cap-token'] = 'tok';
+    $GLOBALS['__cap_wc_error_notices'] = 1;
+
+    capWoo()->verifyCheckout([], new WP_Error);
+
+    expect($GLOBALS['__cap_remote_last_request'] ?? null)->toBeNull();
+});
+
+it('refuses an order whose token was skipped because of errors', function (): void {
+    $_POST['cap-token'] = 'tok';
+    $woo = capWoo();
+
+    $woo->verifyCheckout([], new WP_Error('billing_phone_required', ''));
+
+    expect(fn () => $woo->refuseUncheckedOrder())->toThrow(Exception::class);
+});
+
+it('lets a checked order be created', function (): void {
+    $_POST['cap-token'] = 'tok';
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
+    $woo = capWoo();
+
+    $woo->verifyCheckout([], new WP_Error);
+    $woo->refuseUncheckedOrder();
+
+    expect(true)->toBeTrue();
+});
+
+it('keeps the token on an "Update totals" submit', function (): void {
+    $_POST['cap-token'] = 'tok';
+
+    capWoo()->verifyCheckout(['woocommerce_checkout_update_totals' => true], new WP_Error);
+
+    expect($GLOBALS['__cap_remote_last_request'] ?? null)->toBeNull();
 });
 
 it('loads the checkout script that renews the token after a failed checkout', function (): void {
