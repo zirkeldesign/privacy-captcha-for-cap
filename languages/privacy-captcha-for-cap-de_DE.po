@@ -50,10 +50,11 @@ msgstr "Bitte löse das CAPTCHA, bevor du das Formular absendest."
 
 #: src/Integration/FluentForms.php:211
 #: src/Integration/GravityForms/Validator.php:75
-#: src/Integration/Login.php:130
-#: src/Integration/Registration.php:87
-#: src/Integration/WooCommerce.php:103
-#: src/Integration/WooCommerce.php:213
+#: src/Integration/Login.php:123
+#: src/Integration/Registration.php:86
+#: src/Integration/WooCommerce.php:108
+#: src/Integration/WooCommerce.php:179
+#: src/Integration/WooCommerce.php:355
 #: src/Integration/WpDiscuz.php:130
 msgid "CAPTCHA verification failed. Please try again."
 msgstr "CAPTCHA-Prüfung fehlgeschlagen. Bitte versuche es erneut."
@@ -193,13 +194,9 @@ msgstr "Registrierung"
 msgid "Protects the WordPress user registration form."
 msgstr "Schützt das WordPress-Registrierungsformular."
 
-#: src/Integration/WooCommerce.php:70
+#: src/Integration/WooCommerce.php:75
 msgid "WooCommerce checkout"
 msgstr "WooCommerce-Kasse"
-
-#: src/Settings.php:556
-msgid "Protects the WooCommerce checkout form."
-msgstr "Schützt das WooCommerce-Kassenformular."
 
 #: src/Settings.php:426
 msgid "Admin notices"
@@ -402,15 +399,15 @@ msgstr "Einstellungen öffnen"
 msgid "Settings & full status →"
 msgstr "Einstellungen & vollständiger Status →"
 
-#: src/Integration/WooCommerce.php:140
+#: src/Integration/WooCommerce.php:282
 msgid "WooCommerce login"
 msgstr "WooCommerce-Anmeldung"
 
-#: src/Integration/WooCommerce.php:145
+#: src/Integration/WooCommerce.php:287
 msgid "WooCommerce registration"
 msgstr "WooCommerce-Registrierung"
 
-#: src/Integration/WooCommerce.php:150
+#: src/Integration/WooCommerce.php:292
 msgid "WooCommerce lost password"
 msgstr "WooCommerce-Passwort-vergessen"
 
@@ -522,7 +519,7 @@ msgstr "WooCommerce-Schutz aktivieren und unten auswählen, welche Formulare."
 msgid "Options"
 msgstr "Optionen"
 
-#: src/Integration/WooCommerce.php:131
+#: src/Integration/WooCommerce.php:273
 msgid "Placed during a Cap outage — CAPTCHA verification was skipped (fail-open)."
 msgstr "Während eines Cap-Ausfalls aufgegeben — die CAPTCHA-Prüfung wurde übersprungen (Fail-open)."
 
@@ -623,3 +620,11 @@ msgstr "Öffnet sich beim Absenden (eingeklappt)"
 #: src/Settings.php:379
 msgid "Invisible, solved in the background (programmatic)"
 msgstr "Unsichtbar, im Hintergrund gelöst (programmatisch)"
+
+#: src/Integration/WooCommerce.php:133
+msgid "Cap token proving the CAPTCHA was solved."
+msgstr "Cap-Token als Nachweis, dass das CAPTCHA gelöst wurde."
+
+#: src/Settings.php:556
+msgid "Protects the classic WooCommerce checkout form. Orders through the Store API are checked too, except on shops that use the Checkout block and for orders paid with a gateway whose express buttons order through the Store API (WooPayments, Stripe), since no widget is shown there yet."
+msgstr "Schützt das klassische WooCommerce-Kassenformular. Bestellungen über die Store API werden ebenfalls geprüft, außer in Shops mit dem Kassen-Block und bei Zahlung über ein Gateway, dessen Express-Zahlknöpfe über die Store API bestellen (WooPayments, Stripe), da dort noch kein Widget angezeigt wird."

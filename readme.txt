@@ -4,7 +4,7 @@ Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.8.1
+Stable tag: 1.8.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -25,7 +25,7 @@ Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof
 * **Fluent Forms** integration — add a "Privacy CAPTCHA for Cap" field to each regular form you want to protect.
 * **wpDiscuz** integration: protects the wpDiscuz comment form and every reply form. Comments sent through wpDiscuz's inline feedback forms (the feedback shortcode) are not checked.
 * **WordPress comments, wp-login, registration** integrations — togglable from one settings page.
-* **WooCommerce** integration — checkout plus the My Account login, registration, and lost-password forms, each its own toggle. Only loads when WooCommerce is active.
+* **WooCommerce** integration — checkout plus the My Account login, registration, and lost-password forms, each its own toggle. Only loads when WooCommerce is active. Checkout protection covers the classic checkout; the Checkout block and orders through Store API express buttons show no CAPTCHA yet and stay unchecked.
 * **Dashboard widget** — at-a-glance Cap server stats (challenges, verified, failed, hourly chart) right on the WordPress dashboard.
 * **Granular per-surface toggles** and **developer filters** (`cap_captcha_protect`) to enable/disable protection on any form, even conditionally.
 * **Three display modes**: inline widget, floating popover, or fully programmatic (auto-solves silently).
@@ -130,6 +130,10 @@ Please do not post it in an issue or the support forum. Report it privately thro
 Please open an issue on [GitHub](https://github.com/zirkeldesign/privacy-captcha-for-cap/issues) or ask in the [support forum](https://wordpress.org/support/plugin/privacy-captcha-for-cap/).
 
 == Changelog ==
+
+= 1.8.2 =
+* Security: the CAPTCHA on the WordPress login and registration forms could be skipped, and orders placed through the WooCommerce Store API were never checked. Every login and registration that wp-login.php handles is now checked, and so are Store API orders on shops with the classic checkout, except orders paid through a gateway's express buttons. Sites with these forms protected should update. Thanks to D3strukt0r for reporting.
+* Changed: login forms of themes or other plugins that post to their own page are no longer checked; they never showed the CAPTCHA.
 
 = 1.8.1 =
 * Added: FAQ entries on how to report a security issue privately and where to send bugs and ideas.
