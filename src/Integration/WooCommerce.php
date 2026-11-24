@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace ZirkelDesign\CapCaptcha\Integration;
 
+use Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils;
 use WP_Error;
 use WP_REST_Request;
 use ZirkelDesign\CapCaptcha\Asset\Enqueuer;
@@ -157,7 +158,7 @@ final class WooCommerce implements Integration
             return $response;
         }
 
-        if (! $this->settings->isProtected('woocommerce_checkout') || ! $this->protectsStoreApiCheckout()) {
+        if (! $this->settings->isProtected('woocommerce_checkout') || ! $this->protectsStoreApiCheckout($request)) {
             return $response;
         }
 
@@ -189,49 +190,67 @@ final class WooCommerce implements Integration
      * The block checkout and the express buttons of some gateways place their
      * orders through the Store API but render no widget, so enforcing there
      * would refuse every such order. Until the block checkout has a widget,
-     * the Store API is checked only on shops that use neither.
+     * the Store API is checked except on block-checkout shops and for orders
+     * paid with a gateway whose express buttons are on; an order naming that
+     * gateway still has to pass the gateway's own payment.
      */
-    private function protectsStoreApiCheckout(): bool
+    private function protectsStoreApiCheckout(WP_REST_Request $request): bool
     {
-        $usesStoreApi = (function_exists('wc_get_page_id') && has_block('woocommerce/checkout', wc_get_page_id('checkout')))
-            || $this->hasStoreApiExpressCheckout();
+        $paymentMethod = $request->get_param('payment_method');
+        $exempt = $this->usesCheckoutBlock()
+            || (is_string($paymentMethod) && in_array($paymentMethod, $this->storeApiExpressGateways(), true));
 
         /**
-         * Whether Store API checkouts must carry a Cap token.
+         * Whether this Store API checkout must carry a Cap token.
          *
-         * @param  bool  $protect  False on shops with the Checkout block or Store API express buttons.
+         * @param  bool  $protect  False on block-checkout shops and for express-button gateways.
+         * @param  WP_REST_Request  $request
          */
-        return (bool) apply_filters('cap_captcha_protect_store_api_checkout', ! $usesStoreApi);
+        return (bool) apply_filters('cap_captcha_protect_store_api_checkout', ! $exempt, $request);
+    }
+
+    private function usesCheckoutBlock(): bool
+    {
+        if (class_exists(CartCheckoutUtils::class)) {
+            return CartCheckoutUtils::is_checkout_block_default();
+        }
+
+        return function_exists('wc_get_page_id') && has_block('woocommerce/checkout', wc_get_page_id('checkout'));
     }
 
     /**
-     * WooPayments and Stripe place Apple Pay, Google Pay and Link orders
-     * through the Store API checkout, also on the classic checkout.
+     * Ids of enabled gateways whose express buttons (Apple Pay, Google Pay,
+     * Link) order through the Store API checkout, also on the classic
+     * checkout: Stripe and WooPayments.
+     *
+     * @return array<int, string>
      */
-    private function hasStoreApiExpressCheckout(): bool
+    private function storeApiExpressGateways(): array
     {
         if (! function_exists('WC') || ! is_object(WC()->payment_gateways())) {
-            return false;
+            return [];
         }
 
+        $ids = [];
+
         foreach (WC()->payment_gateways()->payment_gateways() as $gateway) {
-            if (! is_object($gateway) || ($gateway->enabled ?? 'no') !== 'yes') {
+            if (! is_object($gateway) || ($gateway->enabled ?? 'no') !== 'yes' || ! is_string($gateway->id ?? null)) {
                 continue;
             }
 
-            if (method_exists($gateway, 'is_express_checkout_enabled') && $gateway->is_express_checkout_enabled()) {
-                return true;
-            }
+            // Stripe deprecated is_payment_request_enabled() for this one.
+            $method = method_exists($gateway, 'is_express_checkout_enabled') ? 'is_express_checkout_enabled' : 'is_payment_request_enabled';
 
-            if (! method_exists($gateway, 'is_express_checkout_enabled')
-                && method_exists($gateway, 'is_payment_request_enabled')
-                && $gateway->is_payment_request_enabled()
-            ) {
-                return true;
+            try {
+                if (method_exists($gateway, $method) && $gateway->{$method}()) {
+                    $ids[] = $gateway->id;
+                }
+            } catch (\Throwable) {
+                continue;
             }
         }
 
-        return false;
+        return $ids;
     }
 
     /**

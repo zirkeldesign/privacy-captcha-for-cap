@@ -51,9 +51,10 @@ function capStoreApiWoo(bool $checkout = true, bool $failOpen = false): WooComme
     return new WooCommerce($settings, new Renderer($settings), new Enqueuer($settings), new TokenVerifier($settings));
 }
 
-function capStoreApiRequest(string $method = 'POST', string $route = '/wc/store/v1/checkout', string $token = ''): WP_REST_Request
+function capStoreApiRequest(string $method = 'POST', string $route = '/wc/store/v1/checkout', string $token = '', string $paymentMethod = 'cod'): WP_REST_Request
 {
     $request = new WP_REST_Request($method, $route);
+    $request->set_param('payment_method', $paymentMethod);
     if ($token !== '') {
         $request->set_param('extensions', ['cap-captcha' => ['token' => $token]]);
     }
@@ -132,13 +133,17 @@ it('leaves the Store API alone on a shop with the Checkout block', function (): 
         ->and($GLOBALS['__cap_remote_last_request'] ?? null)->toBeNull();
 });
 
-it('leaves the Store API alone while a gateway offers express buttons', function (object $gateway): void {
+it('leaves an order through an express-button gateway alone, but not other payment methods', function (object $gateway): void {
     $GLOBALS['__cap_wc_gateways'] = [$gateway];
+    $woo = capStoreApiWoo();
 
-    expect(capStoreApiWoo()->verifyStoreApiCheckout(null, [], capStoreApiRequest()))->toBeNull();
+    expect($woo->verifyStoreApiCheckout(null, [], capStoreApiRequest(paymentMethod: $gateway->id)))->toBeNull()
+        ->and($woo->verifyStoreApiCheckout(null, [], capStoreApiRequest(paymentMethod: 'cod')))->toBeInstanceOf(WP_Error::class);
 })->with([
     'Stripe' => [new class
     {
+        public string $id = 'stripe';
+
         public string $enabled = 'yes';
 
         public function is_express_checkout_enabled(): bool
@@ -148,6 +153,8 @@ it('leaves the Store API alone while a gateway offers express buttons', function
     }],
     'WooPayments' => [new class
     {
+        public string $id = 'woocommerce_payments';
+
         public string $enabled = 'yes';
 
         public function is_payment_request_enabled(): bool
@@ -160,6 +167,8 @@ it('leaves the Store API alone while a gateway offers express buttons', function
 it('still checks the Store API when the express gateway is switched off', function (): void {
     $GLOBALS['__cap_wc_gateways'] = [new class
     {
+        public string $id = 'stripe';
+
         public string $enabled = 'no';
 
         public function is_express_checkout_enabled(): bool
@@ -168,7 +177,23 @@ it('still checks the Store API when the express gateway is switched off', functi
         }
     }];
 
-    expect(capStoreApiWoo()->verifyStoreApiCheckout(null, [], capStoreApiRequest()))->toBeInstanceOf(WP_Error::class);
+    expect(capStoreApiWoo()->verifyStoreApiCheckout(null, [], capStoreApiRequest(paymentMethod: 'stripe')))->toBeInstanceOf(WP_Error::class);
+});
+
+it('checks the Store API when a gateway fails to say whether express is on', function (): void {
+    $GLOBALS['__cap_wc_gateways'] = [new class
+    {
+        public string $id = 'stripe';
+
+        public string $enabled = 'yes';
+
+        public function is_express_checkout_enabled(): bool
+        {
+            throw new RuntimeException('no API connection');
+        }
+    }];
+
+    expect(capStoreApiWoo()->verifyStoreApiCheckout(null, [], capStoreApiRequest(paymentMethod: 'stripe')))->toBeInstanceOf(WP_Error::class);
 });
 
 it('lets a filter force the Store API check on a block checkout shop', function (): void {
