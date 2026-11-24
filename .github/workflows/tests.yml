@@ -66,7 +66,7 @@ jobs:
       - name: Verify vendored cap-widget + WASM are up to date
         run: bun run build:check
 
-      - name: Test the programmatic, Fluent Forms and wpDiscuz scripts
+      - name: Test the programmatic, Fluent Forms, wpDiscuz and WPForms scripts
         run: bun run test:js
 
   tests:
@@ -209,3 +209,43 @@ jobs:
 
       - name: Test real Ultimate Member submissions
         run: composer test:integration -- tests/Integration/UltimateMemberFlowTest.php --fail-on-skipped
+
+  wpforms:
+    name: WPForms integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CAP_WP_VERSION: '7.1.4'
+      CAP_WPFORMS_ONLY: '1'
+      WPFORMS_LITE_VERSION: '2.0.5.2'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # The runner context is not available in a job-level env block.
+      - name: Point the fixture at the runner's temp directory
+        run: echo "CAP_WP_ROOT=$RUNNER_TEMP/cap-wpforms-wordpress" >> "$GITHUB_ENV"
+
+      - name: Setup PHP and WP-CLI
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, sqlite3, curl
+          tools: wp-cli
+          ini-values: memory_limit=512M
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Provision WordPress
+        run: composer test:integration:setup
+
+      - name: Install WPForms Lite
+        run: |
+          wp plugin install wpforms-lite --version="$WPFORMS_LITE_VERSION" --activate --path="$CAP_WP_ROOT"
+          wp option patch insert cap_captcha_settings integrations wpforms true --format=json --path="$CAP_WP_ROOT"
+
+      - name: Test real WPForms submissions
+        run: composer test:integration -- tests/Integration/WpFormsFlowTest.php --fail-on-skipped
