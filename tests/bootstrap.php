@@ -451,3 +451,58 @@ if (! function_exists('wp_kses')) {
         return $content;
     }
 }
+
+if (! function_exists('remove_action')) {
+    function remove_action(string $hook_name, mixed $callback, int $priority = 10): bool
+    {
+        $GLOBALS['__cap_removed_actions'][$hook_name][] = $callback;
+
+        return true;
+    }
+}
+
+if (! function_exists('absint')) {
+    function absint(mixed $maybeint): int
+    {
+        return abs((int) $maybeint);
+    }
+}
+
+if (! function_exists('add_user_meta')) {
+    function add_user_meta(int $user_id, string $meta_key, mixed $meta_value, bool $unique = false): int
+    {
+        $GLOBALS['__cap_user_meta'][$user_id][$meta_key] = $meta_value;
+
+        return 1;
+    }
+}
+
+if (! class_exists('WP_REST_Request')) {
+    class WP_REST_Request
+    {
+        /** @var array<string, mixed> */
+        private array $params = [];
+
+        public function __construct(private string $method = '', private string $route = '') {}
+
+        public function get_method(): string
+        {
+            return $this->method;
+        }
+
+        public function get_route(): string
+        {
+            return $this->route;
+        }
+
+        public function get_param(string $key): mixed
+        {
+            return $this->params[$key] ?? null;
+        }
+
+        public function set_param(string $key, mixed $value): void
+        {
+            $this->params[$key] = $value;
+        }
+    }
+}
