@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ZirkelDesign\CapCaptcha\Integration;
 
 use WP_Error;
+use WP_REST_Request;
 use ZirkelDesign\CapCaptcha\Asset\Enqueuer;
 use ZirkelDesign\CapCaptcha\Asset\Renderer;
 use ZirkelDesign\CapCaptcha\Settings;
@@ -46,6 +47,9 @@ final class WooCommerce implements Integration
         add_filter('woocommerce_order_button_html', [$this, 'attachFloatingAttrsToSubmit']);
         add_action('woocommerce_checkout_process', [$this, 'verifyCheckout']);
         add_action('woocommerce_checkout_order_processed', [$this, 'annotateCheckoutFailOpen']);
+        add_action('init', [$this, 'registerStoreApiTokenField']);
+        add_filter('rest_request_before_callbacks', [$this, 'verifyStoreApiCheckout'], 10, 3);
+        add_action('woocommerce_store_api_checkout_order_processed', [$this, 'annotateCheckoutFailOpen']);
 
         // My Account — login.
         add_action('woocommerce_login_form', [$this, 'renderLoginWidget']);
@@ -112,10 +116,74 @@ final class WooCommerce implements Integration
     }
 
     /**
+     * The Store API drops `extensions` data of a namespace without a schema.
+     */
+    public function registerStoreApiTokenField(): void
+    {
+        if (! function_exists('woocommerce_store_api_register_endpoint_data')) {
+            return;
+        }
+
+        woocommerce_store_api_register_endpoint_data([
+            'endpoint' => 'checkout',
+            'namespace' => 'cap-captcha',
+            'schema_callback' => static fn (): array => [
+                'token' => [
+                    'description' => __('Cap token proving the CAPTCHA was solved.', 'privacy-captcha-for-cap'),
+                    'type' => 'string',
+                    'context' => [],
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * The block checkout places its order through the Store API, where
+     * woocommerce_checkout_process never fires. While checkout protection is on,
+     * such an order needs a token in `extensions['cap-captcha']['token']`; the
+     * block checkout renders no widget yet, so it is refused.
+     *
+     * @param  array<string, mixed>  $handler
+     */
+    public function verifyStoreApiCheckout(mixed $response, array $handler, WP_REST_Request $request): mixed
+    {
+        if ($response instanceof WP_Error || $request->get_method() !== 'POST') {
+            return $response;
+        }
+
+        // Route matching is case-insensitive, and the Store API also answers
+        // under the unversioned `wc/store` namespace.
+        if (preg_match('#^/wc/store(?:/v\d+)?/checkout/?$#i', $request->get_route()) !== 1) {
+            return $response;
+        }
+
+        if (! $this->settings->isProtected('woocommerce_checkout')) {
+            return $response;
+        }
+
+        $extensions = $request->get_param('extensions');
+        $token = is_array($extensions) && is_string($extensions['cap-captcha']['token'] ?? null)
+            ? sanitize_text_field($extensions['cap-captcha']['token'])
+            : '';
+
+        if (! $this->verifier->verifyToken($token, 'woocommerce_checkout')) {
+            return new WP_Error(
+                'cap_captcha_failed',
+                esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'),
+                ['status' => 400]
+            );
+        }
+
+        $this->lastCheckoutFailOpen = $this->verifier->wasLastFailOpen();
+
+        return $response;
+    }
+
+    /**
      * Tag an order placed during a Cap outage (fail-open) with order meta and a
      * note, so it can be reviewed later.
      *
-     * @param  int|string  $orderId
+     * @param  int|string|object  $orderId  The order id, or the order itself from the Store API.
      */
     public function annotateCheckoutFailOpen($orderId): void
     {
