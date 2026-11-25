@@ -27,6 +27,8 @@ All notable changes to this project will be documented in this file.
 - Fail-open now applies when the Cap server answers `siteverify` with a 5xx or 408 and a JSON body. Cap reports its own internal errors (for example when its Valkey is down) as JSON, and such an answer counted as a rejected token, so a Cap outage blocked every form even on surfaces set to fail open. A JSON `success: false` with any other status is still a rejection.
 - Security: a rate-limit answer (429) from the Cap server or a proxy in front of it no longer counts as an outage. Cap limits `siteverify` per calling server, so anyone could push a site into that limit by posting made-up tokens and, on surfaces set to fail open, get past the CAPTCHA.
 - The status panel kept showing the previous site key for up to five minutes after the settings were saved.
+- In programmatic mode, a form submitted before the token was ready went out without its submit button. On `wp-login.php` the request then lacked `wp-submit`, so the token it carried was not checked.
+- In programmatic mode, a challenge that could not be solved left the submit button dead: the form was sent again and again without ever leaving the page, and nothing was shown. The form now shows "CAPTCHA could not be started. Please try again." under the hidden field, and the next submit solves again. The message carries the `cap-captcha-error` class.
 
 ## [1.8.2] - 2026-11-25
 

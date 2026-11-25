@@ -7,6 +7,9 @@
  * form is submitted before the token is ready, we intercept the submit,
  * wait for the token, then re-submit.
  *
+ * A solve that fails shows `errorMessage` under every field and leaves the
+ * form on the page. The next submit solves again.
+ *
  * Reads its config from `window.CAP_CAPTCHA_PROGRAMMATIC`. Depends on the
  * widget script exposing `window.Cap` (the cap-widget package does so).
  */
@@ -14,6 +17,8 @@
 (function () {
     var cfg = window.CAP_CAPTCHA_PROGRAMMATIC;
     if (!cfg || !cfg.apiEndpoint) return;
+
+    var ERROR_CLASS = 'cap-captcha-error';
 
     function start() {
         if (typeof window.Cap === 'undefined') {
@@ -23,41 +28,95 @@
         }
 
         var fieldName = cfg.tokenField || 'cap-token';
-        var cap = new window.Cap({ apiEndpoint: cfg.apiEndpoint });
-        var tokenPromise = cap.solve();
+        // The solve in flight or the one that succeeded, null after a failure.
+        var attempt = null;
 
-        function writeToken(token) {
-            document.querySelectorAll('input[name="' + fieldName + '"]').forEach(function (field) {
-                if (field.closest('.cap-captcha--fluent, .cap-captcha--wpdiscuz')) return;
-                field.value = token;
+        // Fluent Forms and wpDiscuz fields belong to their own scripts, which
+        // need one single-use token per form and show their own error.
+        function isOwned(field) {
+            return !field.closest('.cap-captcha--fluent, .cap-captcha--wpdiscuz');
+        }
+
+        function ownedFields() {
+            return Array.prototype.filter.call(
+                document.querySelectorAll('input[name="' + fieldName + '"]'),
+                isOwned
+            );
+        }
+
+        function messageOf(field) {
+            var next = field.nextElementSibling;
+            return next && next.classList.contains(ERROR_CLASS) ? next : null;
+        }
+
+        function showError() {
+            if (!cfg.errorMessage) return;
+            ownedFields().forEach(function (field) {
+                var message = messageOf(field);
+                if (!message) {
+                    message = document.createElement('div');
+                    message.className = ERROR_CLASS;
+                    message.setAttribute('role', 'alert');
+                    field.insertAdjacentElement('afterend', message);
+                }
+                message.textContent = cfg.errorMessage;
+                message.hidden = false;
             });
         }
 
-        tokenPromise.then(function (result) {
-            writeToken(result.token);
-        }).catch(function () {});
+        function hideError() {
+            ownedFields().forEach(function (field) {
+                var message = messageOf(field);
+                if (message) message.hidden = true;
+            });
+        }
+
+        function solve() {
+            hideError();
+
+            var promise = new window.Cap({ apiEndpoint: cfg.apiEndpoint }).solve().then(function (result) {
+                // An empty token would leave the fields empty and every submit
+                // waiting on a solve that already answered.
+                if (!result || !result.token) throw new Error('Cap returned no token');
+                return result;
+            });
+
+            attempt = promise;
+            promise.then(function (result) {
+                ownedFields().forEach(function (field) {
+                    field.value = result.token;
+                });
+            }, function () {
+                if (attempt === promise) attempt = null;
+                showError();
+            });
+
+            return promise;
+        }
+
+        solve();
 
         document.addEventListener('submit', function (event) {
             var form = event.target;
             if (!(form instanceof HTMLFormElement)) return;
             var field = form.querySelector('input[name="' + fieldName + '"]');
             if (!field || field.value) return;
-            if (field.closest('.cap-captcha--fluent, .cap-captcha--wpdiscuz')) return;
+            if (!isOwned(field)) return;
 
             event.preventDefault();
-            tokenPromise.then(function (result) {
+            // Without it the form goes out without the name and value of the
+            // button, which wp-login.php (`wp-submit`) and others read.
+            var submitter = event.submitter;
+            (attempt || solve()).then(function (result) {
                 field.value = result.token;
                 if (typeof form.requestSubmit === 'function') {
-                    form.requestSubmit();
+                    form.requestSubmit(submitter || undefined);
                 } else {
                     form.submit();
                 }
-            }).catch(function () {
-                if (typeof form.requestSubmit === 'function') {
-                    form.requestSubmit();
-                } else {
-                    form.submit();
-                }
+            }, function () {
+                // Submitting again would fire this listener on a field that
+                // is still empty. The message is up, the form stays put.
             });
         }, true);
     }

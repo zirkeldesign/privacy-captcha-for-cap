@@ -39,3 +39,17 @@ it('passes the widget its labels for a check the page blocked', function (): voi
     expect($html)->toContain('data-cap-i18n-csp-error-label="Blocked by this page"')
         ->and($html)->toContain('data-cap-i18n-troubleshooting-label="Troubleshoot"');
 });
+
+it('gives the programmatic script a message for a challenge that could not be solved', function (): void {
+    update_option(Settings::OPTION_KEY, [
+        'endpoint_base' => 'https://cap.example.test',
+        'site_key' => 'abc123',
+        'secret_key' => 'deadbeef',
+        'display_mode' => Settings::MODE_PROGRAMMATIC,
+    ]);
+    capResetSettingsSingleton();
+
+    $globals = (new Enqueuer(Settings::get_instance()))->globals();
+
+    expect($globals['CAP_CAPTCHA_PROGRAMMATIC']['errorMessage'])->toBeString()->not->toBeEmpty();
+});
