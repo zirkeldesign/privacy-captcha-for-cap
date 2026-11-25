@@ -207,19 +207,16 @@ test('inline mode resets the widget after a failure and keeps it after a kept fa
     assert.equal(form.widgetInput.value, '');
 });
 
-test('inline mode solves the widget before a submit without a token', async () => {
+test('inline mode leaves an unsolved widget to the visitor and lets the submit go to the server', async () => {
     const context = fixture({ mode: 'inline' });
     const form = context.forms[0];
 
     const event = context.trigger('wpformsBeforeFormSubmit', form);
-    assert.equal(event.prevented, true);
     await settle();
-    assert.equal(form.widget.solves, 1);
-    assert.equal(form.submits, 1);
 
-    form.submits = 0;
-    assert.equal(context.trigger('wpformsBeforeFormSubmit', form).prevented, false);
-    assert.equal(form.widget.solves, 1);
+    assert.equal(event.prevented, false);
+    assert.equal(form.widget.solves, 0);
+    assert.equal(form.submits, 0);
 });
 
 test('a form without our widget is left alone', () => {

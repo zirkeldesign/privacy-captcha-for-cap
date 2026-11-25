@@ -4,8 +4,8 @@
  * An AJAX form stays on the page after a refused submit. When the server says
  * the token never reached Cap (WPForms refused the form first), it is kept;
  * after any other failure the widget is reset, or in programmatic mode a new
- * token is solved, since Cap tokens are single-use. A submit without a
- * usable token is held until there is one.
+ * token is solved, since Cap tokens are single-use. In programmatic mode a
+ * submit without a usable token is held until there is one.
  */
 (function ($) {
     var WRAPPER = '.cap-captcha--wpforms';
@@ -66,11 +66,6 @@
         return form.querySelector(WRAPPER + ' input[data-cap-programmatic]');
     }
 
-    function widgetHasToken(widget) {
-        var input = widget.querySelector('input[name="cap-token"]');
-        return Boolean((input && input.value) || widget.token);
-    }
-
     // The spent token stays in the field until the new one replaces it; submits wait for that.
     function refresh(form) {
         form.querySelectorAll(WRAPPER + ' cap-widget').forEach(function (widget) {
@@ -83,20 +78,18 @@
         }
     }
 
-    /** A promise for the token a submit has to wait for, or null when it can go. */
+    /**
+     * A promise for the token a submit has to wait for, or null when it can go.
+     * Only the hidden field of programmatic mode is solved here. A visible
+     * widget is the visitor's to press: a form sent without it gets the
+     * server's error, as on every other form, and a site key that requires the
+     * press would reject a solve this script started.
+     */
     function tokenReady(form) {
         var field = tokenField(form);
-        if (field) {
-            return fresh.has(field) ? null : (pending.get(field) || solve(field));
-        }
+        if (!field) return null;
 
-        var widget = form.querySelector(WRAPPER + ' cap-widget');
-        if (!widget || widgetHasToken(widget) || typeof widget.solve !== 'function') return null;
-
-        return Promise.resolve(widget.solve()).then(function (result) {
-            if (!widgetHasToken(widget) && !(result && result.token)) throw new Error('Cap returned no token');
-            return result;
-        });
+        return fresh.has(field) ? null : (pending.get(field) || solve(field));
     }
 
     function ownForm(event) {

@@ -5,7 +5,7 @@ This guide is for maintaining and debugging the optional WPForms integration. Fo
 ## Scope and files
 
 - [WpForms.php](../src/Integration/WpForms.php) registers rendering, the builder setting, verification, the AJAX error flag and the fail-open mark. [Plugin.php](../src/Plugin.php) loads it only when `WPFORMS_VERSION` is defined and `wpforms()` exists; [Settings.php](../src/Settings.php) exposes the `wpforms` toggle, the filter context and the `wpforms_protect_all` option.
-- [wpforms.js](../assets/js/wpforms.js) handles per-form programmatic solves, holds a submit without a usable token, and renews the token after a failed submit. The shared [programmatic.js](../assets/js/programmatic.js) deliberately skips WPForms fields.
+- [wpforms.js](../assets/js/wpforms.js) handles per-form programmatic solves, holds a programmatic submit without a usable token, and renews the token after a failed submit. The shared [programmatic.js](../assets/js/programmatic.js) deliberately skips WPForms fields.
 - Which forms are protected is decided per form: the builder's **Settings → Spam Protection and Security** panel gets a *Protection* select with *Default*, *Always* and *Never*, stored as `settings[cap_captcha_mode]` in the form data. *Default* follows **Automatically protect every WPForms form** in the integration's options (off by default). Forms saved before the setting existed count as *Default*. The `wpforms` surface toggle and the `cap_captcha_protect` filters still apply on top: with the surface off, no form is protected, *Always* included.
 - The stored `wpforms_protect_all` value is kept while WPForms is inactive, since its options drawer is not rendered then and a save would otherwise switch it off.
 - Tested with WPForms Lite only. WPForms Pro, its payment integrations and its add-ons (Conversational Forms, Form Pages, Lead Forms, Save and Resume) have not been tested. The Pro entry-meta path is covered by a unit test against a stub.
@@ -36,7 +36,9 @@ Cap tokens are single-use, and an AJAX form stays on the page after a refused su
 - **`cap_captcha_kept` in the error response**: WPForms refused the form before the check, the token is unspent, the script leaves the widget alone.
 - **No flag** on `wpformsAjaxSubmitFailed` (a rejected token, a handler after the check), and every `wpformsAjaxSubmitError`: the script resets the form's `<cap-widget>`, or in programmatic mode solves a new token. Unknown failures renew rather than keep, so a spent token never stays in a form by default.
 
-`wpformsBeforeFormSubmit` fires for AJAX and normal submits alike, and WPForms stops when it is prevented. The script prevents it while the form has no usable token: in programmatic mode until the pending or a new solve finishes (the spent token stays in the field until the new one replaces it), with a visible widget until `widget.solve()` returns one. It then calls `wpforms.formSubmit()` again and lets that one through. A failed solve shows the error and sends nothing.
+`wpformsBeforeFormSubmit` fires for AJAX and normal submits alike, and WPForms stops when it is prevented. In programmatic mode the script prevents it while the form has no usable token, until the pending or a new solve finishes (the spent token stays in the field until the new one replaces it). It then calls `wpforms.formSubmit()` again and lets that one through. A failed solve shows the error and sends nothing.
+
+A visible widget (inline, floating) is never solved by the script. The visitor presses it, and a form sent without it gets the server's "CAPTCHA verification failed", as on every other form. A site key that requires a press on the widget, which forces inline mode, would reject a solve the script started.
 
 Non-AJAX forms reload the page after a submit, which renders a fresh widget.
 
