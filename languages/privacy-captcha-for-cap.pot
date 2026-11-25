@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-18T12:56:22+00:00\n"
+"POT-Creation-Date: 2026-11-25T08:21:50+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: privacy-captcha-for-cap\n"
@@ -135,13 +135,14 @@ msgstr ""
 
 #: src/Integration/FluentForms.php:211
 #: src/Integration/GravityForms/Validator.php:75
-#: src/Integration/Login.php:130
-#: src/Integration/LostPassword.php:101
-#: src/Integration/Registration.php:87
+#: src/Integration/Login.php:123
+#: src/Integration/LostPassword.php:96
+#: src/Integration/Registration.php:86
 #: src/Integration/UltimateMember.php:255
 #: src/Integration/UltimateMember.php:280
-#: src/Integration/WooCommerce.php:103
-#: src/Integration/WooCommerce.php:213
+#: src/Integration/WooCommerce.php:108
+#: src/Integration/WooCommerce.php:179
+#: src/Integration/WooCommerce.php:355
 #: src/Integration/WpDiscuz.php:130
 msgid "CAPTCHA verification failed. Please try again."
 msgstr ""
@@ -224,7 +225,7 @@ msgstr ""
 msgid "Ultimate Member"
 msgstr ""
 
-#: src/Integration/WooCommerce.php:70
+#: src/Integration/WooCommerce.php:75
 msgid "WooCommerce checkout"
 msgstr ""
 
@@ -507,7 +508,7 @@ msgstr ""
 msgid "Checkout"
 msgstr ""
 
-#: src/Settings.php:556
+#: src/Settings.php:620
 msgid "Protects the classic WooCommerce checkout form. Orders through the Store API are checked too, except on shops that use the Checkout block and for orders paid with a gateway whose express buttons order through the Store API (WooPayments, Stripe), since no widget is shown there yet."
 msgstr ""
 

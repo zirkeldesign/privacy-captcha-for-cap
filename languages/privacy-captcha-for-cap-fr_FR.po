@@ -156,13 +156,14 @@ msgstr "Gravity Forms"
 
 #: src/Integration/FluentForms.php:211
 #: src/Integration/GravityForms/Validator.php:75
-#: src/Integration/Login.php:130
-#: src/Integration/LostPassword.php:101
-#: src/Integration/Registration.php:87
+#: src/Integration/Login.php:123
+#: src/Integration/LostPassword.php:96
+#: src/Integration/Registration.php:86
 #: src/Integration/UltimateMember.php:255
 #: src/Integration/UltimateMember.php:280
-#: src/Integration/WooCommerce.php:103
-#: src/Integration/WooCommerce.php:213
+#: src/Integration/WooCommerce.php:108
+#: src/Integration/WooCommerce.php:179
+#: src/Integration/WooCommerce.php:355
 #: src/Integration/WpDiscuz.php:130
 msgid "CAPTCHA verification failed. Please try again."
 msgstr "La vérification CAPTCHA a échoué. Veuillez réessayer."
@@ -725,6 +726,6 @@ msgstr "Protège les formulaires de connexion, d’inscription et de réinitiali
 msgid "Cap token proving the CAPTCHA was solved."
 msgstr "Jeton Cap prouvant que le CAPTCHA a été résolu."
 
-#: src/Settings.php:556
+#: src/Settings.php:620
 msgid "Protects the classic WooCommerce checkout form. Orders through the Store API are checked too, except on shops that use the Checkout block and for orders paid with a gateway whose express buttons order through the Store API (WooPayments, Stripe), since no widget is shown there yet."
 msgstr "Protège le formulaire de commande WooCommerce classique. Les commandes passées via la Store API sont aussi vérifiées, sauf dans les boutiques qui utilisent le bloc Commande et pour les commandes payées avec une passerelle dont les boutons de paiement express commandent via la Store API (WooPayments, Stripe), car aucun widget n’y est encore affiché."

@@ -50,13 +50,14 @@ msgstr "Bitte löse das CAPTCHA, bevor du das Formular absendest."
 
 #: src/Integration/FluentForms.php:211
 #: src/Integration/GravityForms/Validator.php:75
-#: src/Integration/Login.php:130
-#: src/Integration/LostPassword.php:101
-#: src/Integration/Registration.php:87
+#: src/Integration/Login.php:123
+#: src/Integration/LostPassword.php:96
+#: src/Integration/Registration.php:86
 #: src/Integration/UltimateMember.php:255
 #: src/Integration/UltimateMember.php:280
-#: src/Integration/WooCommerce.php:103
-#: src/Integration/WooCommerce.php:213
+#: src/Integration/WooCommerce.php:108
+#: src/Integration/WooCommerce.php:179
+#: src/Integration/WooCommerce.php:355
 #: src/Integration/WpDiscuz.php:130
 msgid "CAPTCHA verification failed. Please try again."
 msgstr "CAPTCHA-Prüfung fehlgeschlagen. Bitte versuche es erneut."
@@ -723,6 +724,6 @@ msgstr "Schützt die Formulare von Ultimate Member für Anmeldung, Registrierung
 msgid "Cap token proving the CAPTCHA was solved."
 msgstr "Cap-Token als Nachweis, dass das CAPTCHA gelöst wurde."
 
-#: src/Settings.php:556
+#: src/Settings.php:620
 msgid "Protects the classic WooCommerce checkout form. Orders through the Store API are checked too, except on shops that use the Checkout block and for orders paid with a gateway whose express buttons order through the Store API (WooPayments, Stripe), since no widget is shown there yet."
 msgstr "Schützt das klassische WooCommerce-Kassenformular. Bestellungen über die Store API werden ebenfalls geprüft, außer in Shops mit dem Kassen-Block und bei Zahlung über ein Gateway, dessen Express-Zahlknöpfe über die Store API bestellen (WooPayments, Stripe), da dort noch kein Widget angezeigt wird."
