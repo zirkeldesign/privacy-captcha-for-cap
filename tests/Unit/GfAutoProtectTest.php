@@ -12,7 +12,6 @@ function capResetSettingsSingleton(): void
 {
     $ref = new ReflectionClass(Settings::class);
     $prop = $ref->getProperty('instance');
-    $prop->setAccessible(true);
     $prop->setValue(null, null);
 }
 
