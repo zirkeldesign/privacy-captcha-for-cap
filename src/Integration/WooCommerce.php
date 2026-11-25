@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace ZirkelDesign\CapCaptcha\Integration;
 
+use Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils;
 use WP_Error;
+use WP_REST_Request;
 use ZirkelDesign\CapCaptcha\Asset\Enqueuer;
 use ZirkelDesign\CapCaptcha\Asset\Renderer;
 use ZirkelDesign\CapCaptcha\Settings;
@@ -46,6 +48,9 @@ final class WooCommerce implements Integration
         add_filter('woocommerce_order_button_html', [$this, 'attachFloatingAttrsToSubmit']);
         add_action('woocommerce_checkout_process', [$this, 'verifyCheckout']);
         add_action('woocommerce_checkout_order_processed', [$this, 'annotateCheckoutFailOpen']);
+        add_action('init', [$this, 'registerStoreApiTokenField']);
+        add_filter('rest_request_before_callbacks', [$this, 'verifyStoreApiCheckout'], 10, 3);
+        add_action('woocommerce_store_api_checkout_order_processed', [$this, 'annotateCheckoutFailOpen']);
 
         // My Account — login.
         add_action('woocommerce_login_form', [$this, 'renderLoginWidget']);
@@ -112,10 +117,147 @@ final class WooCommerce implements Integration
     }
 
     /**
+     * The Store API drops `extensions` data of a namespace without a schema.
+     */
+    public function registerStoreApiTokenField(): void
+    {
+        if (! function_exists('woocommerce_store_api_register_endpoint_data')) {
+            return;
+        }
+
+        woocommerce_store_api_register_endpoint_data([
+            'endpoint' => 'checkout',
+            'namespace' => 'cap-captcha',
+            'schema_callback' => static fn (): array => [
+                'token' => [
+                    'description' => __('Cap token proving the CAPTCHA was solved.', 'privacy-captcha-for-cap'),
+                    'type' => 'string',
+                    'context' => [],
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * The block checkout places its order through the Store API, where
+     * woocommerce_checkout_process never fires. While checkout protection is on,
+     * such an order needs a token in `extensions['cap-captcha']['token']`; the
+     * block checkout renders no widget yet, so it is refused.
+     *
+     * @param  array<string, mixed>  $handler
+     */
+    public function verifyStoreApiCheckout(mixed $response, array $handler, WP_REST_Request $request): mixed
+    {
+        if ($response instanceof WP_Error || $request->get_method() !== 'POST') {
+            return $response;
+        }
+
+        // Route matching is case-insensitive, and the Store API also answers
+        // under the unversioned `wc/store` namespace.
+        if (preg_match('#^/wc/store(?:/v\d+)?/checkout/?$#i', $request->get_route()) !== 1) {
+            return $response;
+        }
+
+        if (! $this->settings->isProtected('woocommerce_checkout') || ! $this->protectsStoreApiCheckout($request)) {
+            return $response;
+        }
+
+        $extensions = $request->get_param('extensions');
+        $token = is_array($extensions) && is_string($extensions['cap-captcha']['token'] ?? null)
+            ? sanitize_text_field($extensions['cap-captcha']['token'])
+            : '';
+
+        $verified = $this->verifier->verifyToken($token, 'woocommerce_checkout');
+
+        // A batch request runs several checkouts in one PHP request; each one
+        // must redeem its own token rather than reuse the cached result.
+        $this->verifier->forget($token);
+
+        if (! $verified) {
+            return new WP_Error(
+                'cap_captcha_failed',
+                esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'),
+                ['status' => 400]
+            );
+        }
+
+        $this->lastCheckoutFailOpen = $this->verifier->wasLastFailOpen();
+
+        return $response;
+    }
+
+    /**
+     * The block checkout and the express buttons of some gateways place their
+     * orders through the Store API but render no widget, so enforcing there
+     * would refuse every such order. Until the block checkout has a widget,
+     * the Store API is checked except on block-checkout shops and for orders
+     * paid with a gateway whose express buttons are on; an order naming that
+     * gateway still has to pass the gateway's own payment.
+     */
+    private function protectsStoreApiCheckout(WP_REST_Request $request): bool
+    {
+        $paymentMethod = $request->get_param('payment_method');
+        $exempt = $this->usesCheckoutBlock()
+            || (is_string($paymentMethod) && in_array($paymentMethod, $this->storeApiExpressGateways(), true));
+
+        /**
+         * Whether this Store API checkout must carry a Cap token.
+         *
+         * @param  bool  $protect  False on block-checkout shops and for express-button gateways.
+         * @param  WP_REST_Request  $request
+         */
+        return (bool) apply_filters('cap_captcha_protect_store_api_checkout', ! $exempt, $request);
+    }
+
+    private function usesCheckoutBlock(): bool
+    {
+        if (class_exists(CartCheckoutUtils::class)) {
+            return CartCheckoutUtils::is_checkout_block_default();
+        }
+
+        return function_exists('wc_get_page_id') && has_block('woocommerce/checkout', wc_get_page_id('checkout'));
+    }
+
+    /**
+     * Ids of enabled gateways whose express buttons (Apple Pay, Google Pay,
+     * Link) order through the Store API checkout, also on the classic
+     * checkout: Stripe and WooPayments.
+     *
+     * @return array<int, string>
+     */
+    private function storeApiExpressGateways(): array
+    {
+        if (! function_exists('WC') || ! is_object(WC()->payment_gateways())) {
+            return [];
+        }
+
+        $ids = [];
+
+        foreach (WC()->payment_gateways()->payment_gateways() as $gateway) {
+            if (! is_object($gateway) || ($gateway->enabled ?? 'no') !== 'yes' || ! is_string($gateway->id ?? null)) {
+                continue;
+            }
+
+            // Stripe deprecated is_payment_request_enabled() for this one.
+            $method = method_exists($gateway, 'is_express_checkout_enabled') ? 'is_express_checkout_enabled' : 'is_payment_request_enabled';
+
+            try {
+                if (method_exists($gateway, $method) && $gateway->{$method}()) {
+                    $ids[] = $gateway->id;
+                }
+            } catch (\Throwable) {
+                continue;
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
      * Tag an order placed during a Cap outage (fail-open) with order meta and a
      * note, so it can be reviewed later.
      *
-     * @param  int|string  $orderId
+     * @param  int|string|object  $orderId  The order id, or the order itself from the Store API.
      */
     public function annotateCheckoutFailOpen($orderId): void
     {
@@ -132,7 +274,7 @@ final class WooCommerce implements Integration
             $order->save();
         }
 
-        do_action('cap_captcha_fail_open_pass', 'woocommerce_checkout', ['order_id' => (int) $orderId]);
+        do_action('cap_captcha_fail_open_pass', 'woocommerce_checkout', ['order_id' => is_object($orderId) && method_exists($orderId, 'get_id') ? (int) $orderId->get_id() : (int) $orderId]);
     }
 
     public function renderLoginWidget(): void

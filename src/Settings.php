@@ -617,7 +617,7 @@ class Settings
             ],
             'woocommerce_checkout' => [
                 'label' => __('Checkout', 'privacy-captcha-for-cap'),
-                'description' => __('Protects the WooCommerce checkout form.', 'privacy-captcha-for-cap'),
+                'description' => __('Protects the classic WooCommerce checkout form. Orders through the Store API are checked too, except on shops that use the Checkout block and for orders paid with a gateway whose express buttons order through the Store API (WooPayments, Stripe), since no widget is shown there yet.', 'privacy-captcha-for-cap'),
                 'available' => $wooAvailable,
             ],
             'woocommerce_login' => [

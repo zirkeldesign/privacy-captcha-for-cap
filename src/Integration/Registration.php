@@ -75,9 +75,8 @@ final class Registration implements Integration
         }
 
         // register_new_user() is also reachable from REST, XML-RPC and CLI, none
-        // of which rendered our widget. `wp-submit` is wp-login.php's own submit
-        // input, present on every real registration POST.
-        if (! RequestContext::isFormPost('wp-submit')) {
+        // of which rendered our widget.
+        if (! RequestContext::isLoginScreenPost()) {
             return $errors;
         }
 

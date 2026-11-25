@@ -11,9 +11,14 @@ use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
 
 beforeEach(function (): void {
     $_POST = [];
+    unset($GLOBALS['pagenow'], $_SERVER['REQUEST_METHOD']);
     cap_reset_options();
     cap_reset_remote_stub();
     cap_reset_filters();
+});
+
+afterEach(function (): void {
+    unset($GLOBALS['pagenow'], $_SERVER['REQUEST_METHOD']);
 });
 
 /**
@@ -75,6 +80,8 @@ it('skips core Login verification for WooCommerce My Account logins', function (
 });
 
 it('verifies a normal wp-login submission', function (): void {
+    $GLOBALS['pagenow'] = 'wp-login.php';
+    $_SERVER['REQUEST_METHOD'] = 'POST';
     $_POST['wp-submit'] = 'Log In';
     $user = new WP_User;
 

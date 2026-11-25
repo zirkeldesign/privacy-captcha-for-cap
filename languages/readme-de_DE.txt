@@ -37,7 +37,9 @@ Infrastruktur.
   Einstellungsseite aktivierbar.
 * **WooCommerce** – Kasse sowie die Formulare „Mein Konto“ für Anmeldung,
   Registrierung und Passwort vergessen, jeweils einzeln schaltbar. Wird nur
-  geladen, wenn WooCommerce aktiv ist.
+  geladen, wenn WooCommerce aktiv ist. Der Kassenschutz gilt für die klassische Kasse; der Kassen-Block und
+  Bestellungen über Express-Zahlknöpfe der Store API zeigen noch kein CAPTCHA
+  und bleiben ungeprüft.
 * **Dashboard-Widget** – Cap-Server-Statistiken auf einen Blick (Challenges,
   bestätigt, fehlgeschlagen, stündliches Diagramm) direkt im WordPress-Dashboard.
 * **Granulare Schalter pro Oberfläche** und **Entwickler-Filter**

@@ -26,6 +26,17 @@ All notable changes to this project will be documented in this file.
 
 - The status panel kept showing the previous site key for up to five minutes after the settings were saved.
 
+## [1.8.2] - 2026-11-25
+
+### Security
+
+- The login and registration forms on `wp-login.php` could be sent without solving the CAPTCHA, and orders placed through the WooCommerce Store API checkout were never checked. Every POST that `wp-login.php` handles on these forms is now checked (also when a plugin serves it under another URL, via `login_init`), and so are Store API checkouts while checkout protection is on, each checkout of a batch request with its own token. Reported by D3strukt0r.
+
+### Changed
+
+- Store API checkouts are left unchecked on shops whose checkout uses the Checkout block, and for orders paid with a gateway whose express buttons order through the Store API (WooPayments, Stripe), since the plugin shows no widget there yet. The `cap_captcha_protect_store_api_checkout` filter overrides that in either direction.
+- Login and registration checks apply to requests handled by `wp-login.php`, not to every request that carries its submit button. A login form of a theme or another plugin that posts to its own page is no longer checked; it never showed the widget. A form that posts to `wp-login.php` without showing the widget is now refused; `cap_captcha_protect_login` lets a site exempt it.
+
 ## [1.8.1] - 2026-11-17
 
 ### Added

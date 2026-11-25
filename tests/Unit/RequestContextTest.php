@@ -156,3 +156,45 @@ it('rejects a form post from a non-interactive request even when the marker is p
 
     expect(capRunRequestContext($prelude, 'isFormPost', ["'wp-submit'"]))->toBeFalse();
 });
+
+describe('isLoginScreenPost', function (): void {
+    beforeEach(function (): void {
+        unset($GLOBALS['pagenow'], $_SERVER['REQUEST_METHOD']);
+    });
+
+    afterEach(function (): void {
+        unset($GLOBALS['pagenow'], $_SERVER['REQUEST_METHOD']);
+    });
+
+    it('reports a POST handled by wp-login.php, with or without its submit button', function (): void {
+        $GLOBALS['pagenow'] = 'wp-login.php';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+
+        expect(RequestContext::isLoginScreenPost())->toBeTrue();
+    });
+
+    it('ignores a GET of wp-login.php', function (): void {
+        $GLOBALS['pagenow'] = 'wp-login.php';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+
+        expect(RequestContext::isLoginScreenPost())->toBeFalse();
+    });
+
+    it('ignores a POST to another page, even one naming its button wp-submit', function (): void {
+        $GLOBALS['pagenow'] = 'index.php';
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $_POST['wp-submit'] = 'Log In';
+
+        expect(RequestContext::isLoginScreenPost())->toBeFalse();
+    });
+});
+
+it('counts a POST to wp-login.php served under another URL', function (): void {
+    $GLOBALS['pagenow'] = 'index.php';
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $GLOBALS['__cap_did_actions'] = ['login_init' => 1];
+
+    expect(RequestContext::isLoginScreenPost())->toBeTrue();
+
+    unset($GLOBALS['pagenow'], $_SERVER['REQUEST_METHOD'], $GLOBALS['__cap_did_actions']);
+});

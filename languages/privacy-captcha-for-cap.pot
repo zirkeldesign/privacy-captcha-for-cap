@@ -2,7 +2,7 @@
 # This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: Privacy CAPTCHA for Cap 1.8.1\n"
+"Project-Id-Version: Privacy CAPTCHA for Cap 1.8.2\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/privacy-captcha-for-cap\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -228,19 +228,23 @@ msgstr ""
 msgid "WooCommerce checkout"
 msgstr ""
 
-#: src/Integration/WooCommerce.php:131
+#: src/Integration/WooCommerce.php:133
+msgid "Cap token proving the CAPTCHA was solved."
+msgstr ""
+
+#: src/Integration/WooCommerce.php:273
 msgid "Placed during a Cap outage — CAPTCHA verification was skipped (fail-open)."
 msgstr ""
 
-#: src/Integration/WooCommerce.php:140
+#: src/Integration/WooCommerce.php:282
 msgid "WooCommerce login"
 msgstr ""
 
-#: src/Integration/WooCommerce.php:145
+#: src/Integration/WooCommerce.php:287
 msgid "WooCommerce registration"
 msgstr ""
 
-#: src/Integration/WooCommerce.php:150
+#: src/Integration/WooCommerce.php:292
 msgid "WooCommerce lost password"
 msgstr ""
 
@@ -503,8 +507,8 @@ msgstr ""
 msgid "Checkout"
 msgstr ""
 
-#: src/Settings.php:620
-msgid "Protects the WooCommerce checkout form."
+#: src/Settings.php:556
+msgid "Protects the classic WooCommerce checkout form. Orders through the Store API are checked too, except on shops that use the Checkout block and for orders paid with a gateway whose express buttons order through the Store API (WooPayments, Stripe), since no widget is shown there yet."
 msgstr ""
 
 #: src/Settings.php:624

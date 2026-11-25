@@ -196,13 +196,9 @@ msgstr "Registrierung"
 msgid "Protects the WordPress user registration form."
 msgstr "Schützt das WordPress-Registrierungsformular."
 
-#: src/Integration/WooCommerce.php:70
+#: src/Integration/WooCommerce.php:75
 msgid "WooCommerce checkout"
 msgstr "WooCommerce-Kasse"
-
-#: src/Settings.php:620
-msgid "Protects the WooCommerce checkout form."
-msgstr "Schützt das WooCommerce-Kassenformular."
 
 #: src/Settings.php:479
 msgid "Admin notices"
@@ -380,15 +376,15 @@ msgstr "Einstellungen öffnen"
 msgid "Settings & full status →"
 msgstr "Einstellungen & vollständiger Status →"
 
-#: src/Integration/WooCommerce.php:140
+#: src/Integration/WooCommerce.php:282
 msgid "WooCommerce login"
 msgstr "WooCommerce-Anmeldung"
 
-#: src/Integration/WooCommerce.php:145
+#: src/Integration/WooCommerce.php:287
 msgid "WooCommerce registration"
 msgstr "WooCommerce-Registrierung"
 
-#: src/Integration/WooCommerce.php:150
+#: src/Integration/WooCommerce.php:292
 msgid "WooCommerce lost password"
 msgstr "WooCommerce-Passwort-vergessen"
 
@@ -502,7 +498,7 @@ msgstr "WooCommerce-Schutz aktivieren und unten auswählen, welche Formulare."
 msgid "Options"
 msgstr "Optionen"
 
-#: src/Integration/WooCommerce.php:131
+#: src/Integration/WooCommerce.php:273
 msgid "Placed during a Cap outage — CAPTCHA verification was skipped (fail-open)."
 msgstr "Während eines Cap-Ausfalls aufgegeben — die CAPTCHA-Prüfung wurde übersprungen (Fail-open)."
 
@@ -722,3 +718,11 @@ msgstr ""
 #: src/Settings.php:590
 msgid "Protects the Ultimate Member login, registration and password reset forms."
 msgstr "Schützt die Formulare von Ultimate Member für Anmeldung, Registrierung und Passwort-Zurücksetzen."
+
+#: src/Integration/WooCommerce.php:133
+msgid "Cap token proving the CAPTCHA was solved."
+msgstr "Cap-Token als Nachweis, dass das CAPTCHA gelöst wurde."
+
+#: src/Settings.php:556
+msgid "Protects the classic WooCommerce checkout form. Orders through the Store API are checked too, except on shops that use the Checkout block and for orders paid with a gateway whose express buttons order through the Store API (WooPayments, Stripe), since no widget is shown there yet."
+msgstr "Schützt das klassische WooCommerce-Kassenformular. Bestellungen über die Store API werden ebenfalls geprüft, außer in Shops mit dem Kassen-Block und bei Zahlung über ein Gateway, dessen Express-Zahlknöpfe über die Store API bestellen (WooPayments, Stripe), da dort noch kein Widget angezeigt wird."

@@ -181,23 +181,23 @@ msgstr "Connexion"
 msgid "Registration"
 msgstr "Inscription"
 
-#: src/Integration/WooCommerce.php:70
+#: src/Integration/WooCommerce.php:75
 msgid "WooCommerce checkout"
 msgstr "Commande WooCommerce"
 
-#: src/Integration/WooCommerce.php:131
+#: src/Integration/WooCommerce.php:273
 msgid "Placed during a Cap outage — CAPTCHA verification was skipped (fail-open)."
 msgstr "Commande passée pendant une indisponibilité de Cap : la vérification CAPTCHA a été ignorée (mode tolérant)."
 
-#: src/Integration/WooCommerce.php:140
+#: src/Integration/WooCommerce.php:282
 msgid "WooCommerce login"
 msgstr "Connexion WooCommerce"
 
-#: src/Integration/WooCommerce.php:145
+#: src/Integration/WooCommerce.php:287
 msgid "WooCommerce registration"
 msgstr "Inscription WooCommerce"
 
-#: src/Integration/WooCommerce.php:150
+#: src/Integration/WooCommerce.php:292
 msgid "WooCommerce lost password"
 msgstr "Mot de passe perdu WooCommerce"
 
@@ -407,10 +407,6 @@ msgstr "Activez la protection WooCommerce, puis choisissez les formulaires ci-de
 #: src/Settings.php:619
 msgid "Checkout"
 msgstr "Commande"
-
-#: src/Settings.php:620
-msgid "Protects the WooCommerce checkout form."
-msgstr "Protège le formulaire de commande WooCommerce."
 
 #: src/Settings.php:624
 msgid "Account login"
@@ -724,3 +720,11 @@ msgstr ""
 #: src/Settings.php:590
 msgid "Protects the Ultimate Member login, registration and password reset forms."
 msgstr "Protège les formulaires de connexion, d’inscription et de réinitialisation du mot de passe d’Ultimate Member."
+
+#: src/Integration/WooCommerce.php:133
+msgid "Cap token proving the CAPTCHA was solved."
+msgstr "Jeton Cap prouvant que le CAPTCHA a été résolu."
+
+#: src/Settings.php:556
+msgid "Protects the classic WooCommerce checkout form. Orders through the Store API are checked too, except on shops that use the Checkout block and for orders paid with a gateway whose express buttons order through the Store API (WooPayments, Stripe), since no widget is shown there yet."
+msgstr "Protège le formulaire de commande WooCommerce classique. Les commandes passées via la Store API sont aussi vérifiées, sauf dans les boutiques qui utilisent le bloc Commande et pour les commandes payées avec une passerelle dont les boutons de paiement express commandent via la Store API (WooPayments, Stripe), car aucun widget n’y est encore affiché."
