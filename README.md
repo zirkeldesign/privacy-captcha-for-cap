@@ -7,8 +7,8 @@ WordPress plugin that integrates the self-hosted [Cap](https://trycap.dev/) proo
 - WordPress 6.5+ (uses `wp_enqueue_script_module`)
 - PHP 8.3+
 - A reachable Cap server
-- Gravity Forms 2.5+ (only if the Gravity Forms integration is enabled)
-- WooCommerce (only if the WooCommerce integration is enabled)
+
+Each integration needs its own plugin and loads only when that plugin is active. Gravity Forms needs version 2.5 or later.
 
 ## Installation (development)
 
