@@ -40,7 +40,8 @@ final class LostPassword implements Integration
 
     public function enqueueAssets(): void
     {
-        if (! Login::isScreen('lostpassword') || ! $this->settings->isProtected('lost_password') || ! $this->settings->isConfigured()) {
+        // Core serves the same form for both actions.
+        if ((! Login::isScreen('lostpassword') && ! Login::isScreen('retrievepassword')) || ! $this->settings->isProtected('lost_password') || ! $this->settings->isConfigured()) {
             return;
         }
 
@@ -72,17 +73,12 @@ final class LostPassword implements Integration
             return;
         }
 
-        // The WooCommerce My Account form posts to the same hook and is owned
-        // by its own woocommerce_lost_password surface.
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Only detecting which form is posting; WooCommerce verifies this nonce itself before this runs.
-        if (isset($_POST['woocommerce-lost-password-nonce'])) {
-            return;
-        }
-
-        // retrieve_password() is also called from the users screen, REST and
-        // plugins that never rendered our widget. `wp-submit` is wp-login.php's
-        // own submit input.
-        if (! RequestContext::isFormPost('wp-submit')) {
+        // retrieve_password() also runs for the WooCommerce My Account form
+        // (its own woocommerce_lost_password surface), the users screen, REST
+        // and plugins that never rendered our widget. Core sends a reset link
+        // for any POST wp-login.php handles, whatever fields it carries, so no
+        // field of the form may decide whether the check runs.
+        if (! RequestContext::isLoginScreenPost()) {
             return;
         }
 

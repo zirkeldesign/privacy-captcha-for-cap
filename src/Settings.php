@@ -9,6 +9,7 @@ use ZirkelDesign\CapCaptcha\Status\SecretProbe;
 use ZirkelDesign\CapCaptcha\Status\SolverProbe;
 use ZirkelDesign\CapCaptcha\Status\StatsClient;
 use ZirkelDesign\CapCaptcha\Status\StatusPanel;
+use ZirkelDesign\CapCaptcha\Status\StoredKeyPolicy;
 
 class Settings
 {
@@ -426,7 +427,7 @@ class Settings
                                 <option value="<?php echo esc_attr(self::MODE_PROGRAMMATIC); ?>" <?php selected($v['display_mode'], self::MODE_PROGRAMMATIC); ?>><?php echo esc_html__('Invisible, solved in the background (programmatic)', 'privacy-captcha-for-cap'); ?></option>
                             </select>
                             <p class="description"><?php echo esc_html__('Per-form integrations can override this default.', 'privacy-captcha-for-cap'); ?></p>
-                            <p class="description"><?php echo esc_html__('Floating and programmatic solve without a press on the widget. A site key that scores behavior and requires an interaction rejects them.', 'privacy-captcha-for-cap'); ?></p>
+                            <?php $this->renderDisplayModeNotice(); ?>
                         </td>
                     </tr>
                 </table>
@@ -496,6 +497,29 @@ class Settings
             </form>
         </div>
         <?php
+    }
+
+    /**
+     * Says under the display mode what the site key does to it: that the key
+     * overrides the choice, or that nothing could tell whether it does.
+     */
+    private function renderDisplayModeNotice(): void
+    {
+        if ($this->isInlineForced()) {
+            $state = 'forced';
+            $message = __('The site key requires a press on the widget: every form uses the "Visible in the form" mode, whatever is chosen here or on a form.', 'privacy-captcha-for-cap');
+        } elseif ($this->isDisplayModeUnchecked()) {
+            $state = 'unchecked';
+            $message = $this->displayModeUncheckedMessage();
+        } else {
+            return;
+        }
+
+        printf(
+            '<div class="notice notice-warning inline cap-captcha-display-mode-%s"><p>%s</p></div>',
+            esc_attr($state),
+            esc_html($message)
+        );
     }
 
     private function renderStatusPanel(): void
@@ -627,7 +651,7 @@ class Settings
             ],
             'woocommerce_checkout' => [
                 'label' => __('Checkout', 'privacy-captcha-for-cap'),
-                'description' => __('Protects the WooCommerce checkout form.', 'privacy-captcha-for-cap'),
+                'description' => __('Protects the classic WooCommerce checkout form. Orders through the Store API are checked too, except on shops that use the Checkout block and for orders paid with a gateway whose express buttons order through the Store API (WooPayments, Stripe), since no widget is shown there yet.', 'privacy-captcha-for-cap'),
                 'available' => $wooAvailable,
             ],
             'woocommerce_login' => [
@@ -889,7 +913,50 @@ class Settings
         return defined('CAP_CAPTCHA_ADMIN_API_KEY') && is_string(\CAP_CAPTCHA_ADMIN_API_KEY) && \CAP_CAPTCHA_ADMIN_API_KEY !== '';
     }
 
+    /**
+     * The display mode forms are rendered in: the configured one, unless the
+     * site key demands a press on the widget.
+     */
     public function getDisplayMode(): string
+    {
+        return $this->enforceDisplayMode($this->getConfiguredDisplayMode());
+    }
+
+    /**
+     * Inline when the site key requires a press on the widget, which the
+     * floating and programmatic modes never give: the Cap server rejects
+     * every solve from them. The mode as given otherwise.
+     */
+    public function enforceDisplayMode(string $mode): string
+    {
+        return $this->isInlineForced() ? self::MODE_INLINE : $mode;
+    }
+
+    public function isInlineForced(): bool
+    {
+        return (bool) apply_filters('cap_captcha_force_inline', (new StoredKeyPolicy)->requiresInteraction());
+    }
+
+    /**
+     * Whether the configured mode solves without a press on the widget while
+     * the rules of the site key were never read. A key that requires the
+     * press then rejects every solve, and nothing falls back to inline.
+     */
+    public function isDisplayModeUnchecked(): bool
+    {
+        return $this->getConfiguredDisplayMode() !== self::MODE_INLINE
+            && ! $this->isInlineForced()
+            && ! (new StoredKeyPolicy)->isKnown();
+    }
+
+    public function displayModeUncheckedMessage(): string
+    {
+        return $this->getAdminApiKey() === ''
+            ? __('No API key: the rules of the site key cannot be read. If the key requires a press on the widget, only the "Visible in the form" mode works.', 'privacy-captcha-for-cap')
+            : __('The rules of the site key could not be read from the Cap server. If the key requires a press on the widget, only the "Visible in the form" mode works.', 'privacy-captcha-for-cap');
+    }
+
+    public function getConfiguredDisplayMode(): string
     {
         $mode = $this->get('display_mode');
 

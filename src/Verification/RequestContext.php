@@ -54,4 +54,21 @@ final class RequestContext
     {
         return ! self::isNonInteractive() && self::isPostFrom($markerField);
     }
+
+    /**
+     * A POST that wp-login.php itself handles. Core signs in, registers and
+     * sends reset links for any such POST, whatever fields it carries, so no
+     * field of the form may decide whether the check runs.
+     */
+    public static function isLoginScreenPost(): bool
+    {
+        if (self::isNonInteractive()) {
+            return false;
+        }
+
+        // login_init covers plugins that serve wp-login.php under another URL
+        // without setting $pagenow.
+        return (($GLOBALS['pagenow'] ?? '') === 'wp-login.php' || did_action('login_init') > 0)
+            && sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD'] ?? '')) === 'POST';
+    }
 }

@@ -19,6 +19,8 @@ use ZirkelDesign\CapCaptcha\Integration\UltimateMember;
 use ZirkelDesign\CapCaptcha\Integration\WooCommerce;
 use ZirkelDesign\CapCaptcha\Integration\WpDiscuz;
 use ZirkelDesign\CapCaptcha\Integration\WpForms;
+use ZirkelDesign\CapCaptcha\Status\StatsClient;
+use ZirkelDesign\CapCaptcha\Status\StoredKeyPolicy;
 use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
 
 /**
@@ -27,6 +29,8 @@ use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
  */
 final class Plugin
 {
+    public const REFRESH_KEY_POLICY_HOOK = 'cap_captcha_refresh_key_policy';
+
     public static function boot(): void
     {
         // load_plugin_textdomain() is intentionally NOT called — WordPress 4.6+
@@ -52,9 +56,27 @@ final class Plugin
             $integration->register();
         }
 
+        // The rules of the site key change on the Cap server, out of sight of
+        // WordPress. Reading the key refreshes the copy the forms rely on.
+        add_action(self::REFRESH_KEY_POLICY_HOOK, static function () use ($settings): void {
+            (new StatsClient($settings))->fetch(true);
+        });
+
         if (is_admin()) {
             (new DashboardWidget($settings))->register();
+
+            // Seeds the option so it is autoloaded before any rule was read.
+            add_option(StoredKeyPolicy::OPTION, []);
+
+            if (! wp_next_scheduled(self::REFRESH_KEY_POLICY_HOOK)) {
+                wp_schedule_event(time(), 'hourly', self::REFRESH_KEY_POLICY_HOOK);
+            }
         }
+    }
+
+    public static function deactivate(): void
+    {
+        wp_clear_scheduled_hook(self::REFRESH_KEY_POLICY_HOOK);
     }
 
     /**

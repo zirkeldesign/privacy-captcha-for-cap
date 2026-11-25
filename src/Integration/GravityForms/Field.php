@@ -55,7 +55,8 @@ final class Field extends GF_Field
 
     /**
      * Resolve the display mode for this field instance, falling back to the
-     * global setting when the field doesn't override it.
+     * global setting when the field doesn't override it. A site key that
+     * requires a press on the widget overrides both.
      */
     public function resolveDisplayMode(): string
     {
@@ -68,7 +69,9 @@ final class Field extends GF_Field
 
         $filtered = (string) apply_filters('cap_captcha_display_mode', $mode, $this);
 
-        return in_array($filtered, $valid, true) ? $filtered : Settings::MODE_INLINE;
+        return Settings::get_instance()->enforceDisplayMode(
+            in_array($filtered, $valid, true) ? $filtered : Settings::MODE_INLINE
+        );
     }
 
     /**

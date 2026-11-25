@@ -47,6 +47,28 @@ if (! function_exists('update_option')) {
     }
 }
 
+if (! function_exists('add_option')) {
+    function add_option(string $name, mixed $value = ''): bool
+    {
+        if (array_key_exists($name, $GLOBALS['__cap_options'] ?? [])) {
+            return false;
+        }
+
+        $GLOBALS['__cap_options'][$name] = $value;
+
+        return true;
+    }
+}
+
+if (! function_exists('delete_option')) {
+    function delete_option(string $name): bool
+    {
+        unset($GLOBALS['__cap_options'][$name]);
+
+        return true;
+    }
+}
+
 /**
  * Reset the in-memory wp_options store between tests.
  */
@@ -93,9 +115,37 @@ if (! function_exists('esc_attr')) {
 if (! function_exists('add_filter')) {
     function add_filter(string $hook_name, callable $callback, int $priority = 10, int $accepted_args = 1): bool
     {
-        $GLOBALS['__cap_filters'][$hook_name][] = ['cb' => $callback, 'args' => $accepted_args];
+        $GLOBALS['__cap_filters'][$hook_name][] = ['cb' => $callback, 'args' => $accepted_args, 'priority' => $priority];
 
         return true;
+    }
+}
+
+if (! function_exists('did_action')) {
+    function did_action(string $hook_name): int
+    {
+        return (int) ($GLOBALS['__cap_did_actions'][$hook_name] ?? 0);
+    }
+}
+
+if (! function_exists('has_block')) {
+    function has_block(string $block_name, mixed $post = null): bool
+    {
+        return in_array($block_name, $GLOBALS['__cap_page_blocks'] ?? [], true);
+    }
+}
+
+if (! function_exists('wc_get_page_id')) {
+    function wc_get_page_id(string $page): int
+    {
+        return 42;
+    }
+}
+
+if (! function_exists('wc_notice_count')) {
+    function wc_notice_count(string $notice_type = ''): int
+    {
+        return $notice_type === 'error' ? (int) ($GLOBALS['__cap_wc_error_notices'] ?? 0) : 0;
     }
 }
 
@@ -315,6 +365,7 @@ if (! function_exists('wp_remote_post')) {
     function wp_remote_post(string $url, array $args = []): array|\WP_Error
     {
         $GLOBALS['__cap_remote_last_request'] = ['url' => $url, 'args' => $args];
+        $GLOBALS['__cap_remote_post_count'] = ($GLOBALS['__cap_remote_post_count'] ?? 0) + 1;
 
         $response = $GLOBALS['__cap_remote_response'] ?? ['body' => '{"success":true}'];
 
@@ -379,6 +430,7 @@ function cap_reset_remote_stub(): void
     unset(
         $GLOBALS['__cap_remote_response'],
         $GLOBALS['__cap_remote_last_request'],
+        $GLOBALS['__cap_remote_post_count'],
         $GLOBALS['__cap_remote_get_responses'],
         $GLOBALS['__cap_remote_get_requests'],
     );
@@ -552,5 +604,35 @@ if (! function_exists('wpforms_panel_fields_group')) {
         echo $html;
 
         return null;
+    }
+}
+
+if (! class_exists('WP_REST_Request')) {
+    class WP_REST_Request
+    {
+        /** @var array<string, mixed> */
+        private array $params = [];
+
+        public function __construct(private string $method = '', private string $route = '') {}
+
+        public function get_method(): string
+        {
+            return $this->method;
+        }
+
+        public function get_route(): string
+        {
+            return $this->route;
+        }
+
+        public function get_param(string $key): mixed
+        {
+            return $this->params[$key] ?? null;
+        }
+
+        public function set_param(string $key, mixed $value): void
+        {
+            $this->params[$key] = $value;
+        }
     }
 }
