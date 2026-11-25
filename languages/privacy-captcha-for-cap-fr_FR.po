@@ -754,4 +754,4 @@ msgstr "Protéger automatiquement tous les formulaires WPForms"
 
 #: src/Settings.php:816
 msgid "Each form can override this in the form builder under Settings → Spam Protection and Security (Default / Always / Never)."
-msgstr "Chaque formulaire peut remplacer ce réglage dans le constructeur de formulaires, sous Paramètres → Protection anti-spam et sécurité (Par défaut / Toujours / Jamais)."
+msgstr "Chaque formulaire peut remplacer ce réglage dans le constructeur de formulaires, sous Réglages → Protection anti-spam et sécurité (Par défaut / Toujours / Jamais)."
