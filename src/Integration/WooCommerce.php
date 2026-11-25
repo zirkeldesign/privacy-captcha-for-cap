@@ -11,6 +11,7 @@ use WP_REST_Request;
 use ZirkelDesign\CapCaptcha\Asset\Enqueuer;
 use ZirkelDesign\CapCaptcha\Asset\Renderer;
 use ZirkelDesign\CapCaptcha\Settings;
+use ZirkelDesign\CapCaptcha\Verification\RequestContext;
 use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
 
 final class WooCommerce implements Integration
@@ -72,7 +73,9 @@ final class WooCommerce implements Integration
 
         // My Account — registration.
         add_action('woocommerce_register_form', [$this, 'renderRegisterWidget']);
-        add_filter('woocommerce_registration_errors', [$this, 'verifyRegistration'], 10, 1);
+        // Fires only from WooCommerce's My Account registration handler, not
+        // for accounts created at checkout or by wc_create_new_customer().
+        add_filter('woocommerce_process_registration_errors', [$this, 'verifyRegistration'], 10, 1);
 
         // My Account — lost password.
         add_action('woocommerce_lostpassword_form', [$this, 'renderLostPasswordWidget']);
@@ -126,6 +129,13 @@ final class WooCommerce implements Integration
     public function verifyCheckout(array $data, WP_Error $errors): void
     {
         if (! $this->settings->isProtected('woocommerce_checkout')) {
+            return;
+        }
+
+        // Gateways validate the form ahead of the order (PayPal Payments calls
+        // validate_checkout() when its button is pressed). Only process_checkout()
+        // places an order, and a token spent here would fail the real submit.
+        if (did_action('woocommerce_checkout_process') === 0) {
             return;
         }
 
@@ -364,24 +374,17 @@ final class WooCommerce implements Integration
 
     public function verifyRegistration(WP_Error $errors): WP_Error
     {
-        // woocommerce_registration_errors also fires during checkout account
-        // creation and programmatic wc_create_new_customer(), where our widget
-        // is not rendered. Only validate the actual My Account registration
-        // form, identified by its own nonce field.
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Only detecting which form is posting; WooCommerce verifies this nonce itself before this runs.
-        if (! isset($_POST['woocommerce-register-nonce'])) {
-            return $errors;
-        }
-
         return $this->verifyAccountForm('woocommerce_registration', $errors);
     }
 
     public function verifyLostPassword(WP_Error $errors): void
     {
-        // lostpassword_post also fires on wp-login.php; only act on the
-        // WooCommerce My Account form, identified by its own nonce field.
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Only detecting which form is posting; WooCommerce verifies this nonce itself before this runs.
-        if (! isset($_POST['woocommerce-lost-password-nonce'])) {
+        // lostpassword_post also fires on wp-login.php (the lost_password
+        // surface) and for resets started from the users screen or REST.
+        // WooCommerce's handler does nothing without `wc_reset_password`; its
+        // nonce is no marker, it is also accepted as `_wpnonce` or in the URL.
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Only detecting WooCommerce's handler; it verifies its own nonce before this runs.
+        if (RequestContext::isLoginScreenPost() || ! isset($_POST['wc_reset_password'])) {
             return;
         }
 

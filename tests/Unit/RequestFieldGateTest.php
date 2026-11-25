@@ -17,10 +17,10 @@ const CAP_ALLOWED_REQUEST_FIELDS = [
     // wp-comments-post.php cannot store a comment without the post id.
     "Comments.php => 'comment_post_ID'",
     "WpDiscuz.php => 'comment_post_ID'",
-    // WooCommerce verifies these nonces itself before it registers a customer
-    // or sends a reset link, so a request without one does nothing.
-    "WooCommerce.php => 'woocommerce-register-nonce'",
-    "WooCommerce.php => 'woocommerce-lost-password-nonce'",
+    // WC_Form_Handler::process_lost_password() does nothing without it. Its
+    // nonce field was the marker until 1.9.0 and is none: WooCommerce also
+    // takes the nonce as `_wpnonce` or from the URL.
+    "WooCommerce.php => 'wc_reset_password'",
     // The token itself, and Gravity Forms' own paging fields: they select
     // which page is validated, never whether the last page is.
     "GravityForms/Field.php => 'cap-token'",
