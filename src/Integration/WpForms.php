@@ -268,6 +268,6 @@ final class WpForms implements Integration
         $error = esc_html__('CAPTCHA could not be started. Please try again.', 'privacy-captcha-for-cap');
 
         // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Renderer escapes the widget attributes and text.
-        echo '<div class="cap-captcha--wpforms">'.$widget.'<div class="cap-captcha-wpforms-error wpforms-error" role="alert" hidden>'.$error.'</div></div>';
+        echo '<div class="cap-captcha--wpforms">'.$widget.'<div class="cap-captcha-wpforms-error cap-captcha-error wpforms-error" role="alert" hidden>'.$error.'</div></div>';
     }
 }
