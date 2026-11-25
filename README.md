@@ -71,6 +71,30 @@ Beyond the on/off surface toggle, form placement controls let you keep a CAPTCHA
 
 For maintenance, hook contracts, test setup, and version updates, see the [Fluent Forms integration guide](docs/fluent-forms-integration.md).
 
+### Gravity Forms from a front end of your own
+
+Gravity Forms takes submissions from anyone on `POST /wp-json/gf/v2/forms/<id>/submissions` once its REST API is on, and on the older Web API route `gravityformsapi/forms/<id>/submissions`. A submission to a protected form that arrives there from nobody signed in needs a Cap token, sent as the input value `cap-token` next to the form's own values. Each token buys one submission.
+
+In a browser, load the widget from the `cap-widget` package yourself, because Gravity Forms renders nothing there, and point it at your Cap server and site key:
+
+```html
+<cap-widget data-cap-api-endpoint="https://cap.example.com/<site-key>/"></cap-widget>
+```
+
+```js
+document.querySelector('cap-widget').addEventListener('solve', async (event) => {
+    await fetch('/wp-json/gf/v2/forms/3/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input_1: 'Hello', 'cap-token': event.detail.token }),
+    });
+});
+```
+
+Without a visible widget, `new Cap({ apiEndpoint }).solve()` resolves to an object with the same `token`. After a submission that failed, solve again: the token is spent.
+
+A server that submits for itself has no browser to solve with and should sign in instead. The REST API v2 accepts a Gravity Forms API key (Basic authentication over HTTPS, OAuth 1.0a otherwise), and a signed-in call needs no token. The Web API v1 submissions route checks no authentication at all, so there the choice is a token, the v2 route, or setting the form to "Never" in its settings. `GFAPI::submit_form()` called from PHP is never checked.
+
 ## Styling
 
 In Gravity Forms forms using the Orbital theme, the widget takes on the look of the fields around it: font, text and background colour, border, corner radius, height, checkbox, focus ring and spinner. `assets/css/cap-captcha.css` maps the form's `--gf-*` tokens onto the widget's `--cap-*` custom properties, so form styles picked in the block editor carry over too. Forms on the legacy Gravity Forms theme and all other surfaces keep the widget's own defaults.
