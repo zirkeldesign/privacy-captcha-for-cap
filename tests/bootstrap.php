@@ -128,6 +128,42 @@ if (! function_exists('did_action')) {
     }
 }
 
+if (! function_exists('is_user_logged_in')) {
+    function is_user_logged_in(): bool
+    {
+        return (bool) ($GLOBALS['__cap_logged_in'] ?? false);
+    }
+}
+
+if (! function_exists('get_query_var')) {
+    function get_query_var(string $name, mixed $default = ''): mixed
+    {
+        return $GLOBALS['__cap_query_vars'][$name] ?? $default;
+    }
+}
+
+if (! function_exists('wc_add_notice')) {
+    function wc_add_notice(string $message, string $type = 'success'): void
+    {
+        $GLOBALS['__cap_wc_notices'][$type][] = $message;
+    }
+}
+
+if (! function_exists('wp_safe_redirect')) {
+    // Always followed by exit in the plugin, so the stub halts like wp_die().
+    function wp_safe_redirect(string $location, int $status = 302): never
+    {
+        throw new CapTestHalt(null, 'redirect:'.$location);
+    }
+}
+
+if (! function_exists('home_url')) {
+    function home_url(string $path = ''): string
+    {
+        return 'http://localhost'.$path;
+    }
+}
+
 if (! function_exists('has_block')) {
     function has_block(string $block_name, mixed $post = null): bool
     {

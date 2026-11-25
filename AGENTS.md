@@ -49,10 +49,11 @@ every WordPress core release, confirm the widget still renders on:
 | --- | --- | --- |
 | Login | `/wp-login.php` | **The fragile one.** `WP_Script_Modules::add_hooks()` does not run on wp-login, so `Asset/Enqueuer` prints the modules from `login_footer`. Grep the response for `type="module"` — a missing widget here is silent. |
 | Registration | `/wp-login.php?action=register` | needs `users_can_register` |
+| Multisite signup | `/wp-signup.php` | needs a network with registration on. Both steps (account, then site) show the widget and each needs its own token |
 | Lost password | `/wp-login.php?action=lostpassword` | a failed check answers only with the CAPTCHA error, for known and unknown accounts alike |
 | Comments | any single post | |
-| WooCommerce | checkout, login, registration, lost password | needs WooCommerce active |
-| Gravity Forms | field settings panel in the form editor | the integration suite covers submission flow |
+| WooCommerce | checkout, order-pay (`/checkout/order-pay/<id>/?pay_for_order=true&key=...`), login, registration, lost password | needs WooCommerce active. A failed order-pay check redirects back to the page with the CAPTCHA error |
+| Gravity Forms | field settings panel in the form editor | the integration suite covers submission flow. With the REST API v2 on, `POST /wp-json/gf/v2/forms/<id>/submissions` to a protected form must fail without `cap-token` |
 | Contact Form 7 | a form with the automatic mode on | |
 | Fluent Forms | a form containing the "Privacy CAPTCHA for Cap" field | CI runs the real-plugin suite. Check inline, floating and programmatic mode, and two forms on one page: tokens are single-use and per form. Hook contracts and setup: `docs/fluent-forms-integration.md` |
 | wpDiscuz | any single post with wpDiscuz active, main form and a reply form | CI runs the real-plugin suite (`tests/Integration/WpDiscuzFlowTest.php`, posts through PHP's built-in server). Check all three modes, a reply form opened after load, and two comments in a row from one page: the token is spent after each post. |

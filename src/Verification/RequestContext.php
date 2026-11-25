@@ -71,4 +71,18 @@ final class RequestContext
         return (($GLOBALS['pagenow'] ?? '') === 'wp-login.php' || did_action('login_init') > 0)
             && sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD'] ?? '')) === 'POST';
     }
+
+    /**
+     * A POST that wp-signup.php handles, the multisite registration screen.
+     * Core's own signup_nonce_check() tells it apart the same way.
+     */
+    public static function isSignupScreenPost(): bool
+    {
+        if (self::isNonInteractive()) {
+            return false;
+        }
+
+        return (($GLOBALS['pagenow'] ?? '') === 'wp-signup.php' || did_action('before_signup_header') > 0)
+            && sanitize_text_field(wp_unslash($_SERVER['REQUEST_METHOD'] ?? '')) === 'POST';
+    }
 }

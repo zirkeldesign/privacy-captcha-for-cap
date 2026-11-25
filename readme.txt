@@ -20,13 +20,13 @@ Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof
 
 = Features =
 
-* **First-class Gravity Forms field** — drag a "Privacy CAPTCHA for Cap" into any form from the Advanced Fields group. Per-field display-mode override.
+* **First-class Gravity Forms field** — drag a "Privacy CAPTCHA for Cap" into any form from the Advanced Fields group. Per-field display-mode override. Entries sent to a protected form through the Gravity Forms REST API or Web API without signing in need a token too, as the input value `cap-token`.
 * **Contact Form 7** integration — protects every CF7 form automatically.
 * **Fluent Forms** integration — add a "Privacy CAPTCHA for Cap" field to each regular form you want to protect.
 * **wpDiscuz** integration: protects the wpDiscuz comment form and every reply form. Comments sent through wpDiscuz's inline feedback forms (the feedback shortcode) are not checked.
 * **Ultimate Member** integration: protects the Ultimate Member login, registration and password reset forms.
-* **WordPress comments, wp-login, registration, lost password** integrations, togglable from one settings page.
-* **WooCommerce** integration — checkout plus the My Account login, registration, and lost-password forms, each its own toggle. Only loads when WooCommerce is active. Checkout protection covers the classic checkout; the Checkout block and orders through Store API express buttons show no CAPTCHA yet and stay unchecked.
+* **WordPress comments, wp-login, registration, lost password** integrations, togglable from one settings page. On a multisite network the Registration switch protects the signup page (`wp-signup.php`).
+* **WooCommerce** integration — checkout plus the My Account login, registration, and lost-password forms, each its own toggle. Only loads when WooCommerce is active. Checkout protection covers the classic checkout and the payment of an order that already exists (the order-pay page); the Checkout block and orders through Store API express buttons show no CAPTCHA yet and stay unchecked.
 * **Dashboard widget** — at-a-glance Cap server stats (challenges, verified, failed, hourly chart) right on the WordPress dashboard.
 * **Granular per-surface toggles** and **developer filters** (`cap_captcha_protect`) to enable/disable protection on any form, even conditionally.
 * **Three display modes**: inline widget, floating popover, or fully programmatic (auto-solves silently).

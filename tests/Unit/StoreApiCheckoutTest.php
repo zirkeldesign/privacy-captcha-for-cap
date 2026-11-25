@@ -229,3 +229,62 @@ it('passes the order id of a Store API order to the fail-open action', function 
 
     expect($GLOBALS['__cap_actions']['cap_captcha_fail_open_pass'][0][1]['order_id'] ?? null)->toBe(1234);
 });
+
+// Paying for an order that exists. A guest needs the order key and billing
+// email, both of which whoever placed the order holds.
+it('refuses a Store API payment for an existing order without a token', function (string $route): void {
+    $result = capStoreApiWoo()->verifyStoreApiCheckout(null, [], capStoreApiRequest('POST', $route));
+
+    expect($result)->toBeInstanceOf(WP_Error::class)
+        ->and($result->get_error_code())->toBe('cap_captcha_failed');
+})->with(['/wc/store/v1/checkout/42', '/wc/store/checkout/42/', '/WC/Store/V1/Checkout/42']);
+
+it('lets a Store API payment for an existing order with a valid token through', function (): void {
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
+
+    expect(capStoreApiWoo()->verifyStoreApiCheckout(null, [], capStoreApiRequest('POST', '/wc/store/v1/checkout/42', 'tok')))->toBeNull();
+});
+
+it('checks a Store API payment for an existing order on a block-checkout shop and for an express gateway too', function (): void {
+    $GLOBALS['__cap_page_blocks'] = ['woocommerce/checkout'];
+    $GLOBALS['__cap_wc_gateways'] = [new class
+    {
+        public string $id = 'stripe';
+
+        public string $enabled = 'yes';
+
+        public function is_express_checkout_enabled(): bool
+        {
+            return true;
+        }
+    }];
+
+    $result = capStoreApiWoo()->verifyStoreApiCheckout(null, [], capStoreApiRequest('POST', '/wc/store/v1/checkout/42', '', 'stripe'));
+
+    expect($result)->toBeInstanceOf(WP_Error::class);
+});
+
+// WC_Form_Handler::pay_action() needs `woocommerce_pay`, the order key and the
+// pay nonce, all of which the order-pay page hands to whoever opens it.
+it('ends an order-pay request without a token before the gateway is asked', function (): void {
+    $GLOBALS['__cap_wc_notices'] = [];
+    $_POST = ['woocommerce_pay' => '1', 'payment_method' => 'stripe'];
+
+    expect(fn () => capStoreApiWoo()->verifyOrderPay(null))->toThrow(CapTestHalt::class, 'redirect:');
+    expect($GLOBALS['__cap_wc_notices']['error'] ?? [])->toHaveCount(1);
+});
+
+it('lets an order-pay request with a valid token through', function (): void {
+    $_POST = ['woocommerce_pay' => '1', 'payment_method' => 'stripe', 'cap-token' => 'tok'];
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
+
+    capStoreApiWoo()->verifyOrderPay(null);
+
+    expect(true)->toBeTrue();
+});
+
+it('leaves order-pay alone while checkout protection is off', function (): void {
+    capStoreApiWoo(checkout: false)->verifyOrderPay(null);
+
+    expect(true)->toBeTrue();
+});

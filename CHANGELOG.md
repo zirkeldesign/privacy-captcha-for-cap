@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Security
+
+- Paying for an order that already exists needed no token. The classic order-pay form (`WC_Form_Handler::pay_action()`) and the Store API route `POST /wc/store/v1/checkout/<id>` both reach the gateway's `process_payment()` without a checkout validation hook, so one solved CAPTCHA bought one unpaid order and any number of payment attempts against it. The order-pay page now shows the widget and is checked on `woocommerce_before_pay_action`; a refused attempt ends the request with a redirect back to the page, since a notice alone can be blanked by a filter. The Store API route is checked like `checkout`, with the token in `extensions['cap-captcha']['token']`, and without the exceptions for the Checkout block and express gateways: nothing in WooCommerce's own front end pays through that route. Covered by the "WooCommerce checkout" switch.
+- On a multisite network the Registration switch protected nothing: registration runs through `wp-signup.php` and `wpmu_validate_user_signup()`, which never applies `registration_errors`. Both signup forms now show the widget and every POST `wp-signup.php` handles is checked on `wpmu_validate_user_signup`. Someone who registers a site with the account solves once per step, because core validates the account on both. Users added in wp-admin or over REST run the same filter and are left alone. A signed-in user creating another site is not checked. Signups that pass through fail-open are not marked.
+- Gravity Forms entries sent to a protected form through the REST API v2 (`POST /wp-json/gf/v2/forms/<id>/submissions`) or the Web API v1 submissions route were never checked; both routes take submissions from anyone once the API is switched on. Such a submission from nobody signed in now needs a token as the input value `cap-token`. `GFAPI::submit_form()` called from PHP, signed-in API calls and the validation-only route are left alone. A site that feeds a protected form this way from a front end of its own has to send the token, or set the form to "Never".
+
 ## [1.9.0] - 2026-11-25
 
 ### Security

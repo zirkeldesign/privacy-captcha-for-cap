@@ -41,6 +41,8 @@ final class WooCommerce implements Integration
 
     public const LOST_PASSWORD_WIDGET_ID = 'cap-captcha-wc-lost-password';
 
+    public const ORDER_PAY_WIDGET_ID = 'cap-captcha-order-pay';
+
     /**
      * Class on an empty span appended to the errors of a checkout that never
      * sent its token to Cap. The checkout script renews the token after every
@@ -66,6 +68,11 @@ final class WooCommerce implements Integration
         add_action('init', [$this, 'registerStoreApiTokenField']);
         add_filter('rest_request_before_callbacks', [$this, 'verifyStoreApiCheckout'], 10, 3);
         add_action('woocommerce_store_api_checkout_order_processed', [$this, 'annotateCheckoutFailOpen']);
+
+        // Paying for an order that exists: each attempt is a payment of its
+        // own, whoever placed the order.
+        add_action('woocommerce_pay_order_before_submit', [$this, 'renderOrderPayWidget']);
+        add_action('woocommerce_before_pay_action', [$this, 'verifyOrderPay']);
 
         // My Account — login.
         add_action('woocommerce_login_form', [$this, 'renderLoginWidget']);
@@ -161,6 +168,36 @@ final class WooCommerce implements Integration
         $this->lastCheckoutFailOpen = $this->verifier->wasLastFailOpen();
     }
 
+    public function renderOrderPayWidget(): void
+    {
+        $this->renderAccountWidget('woocommerce_checkout', self::ORDER_PAY_WIDGET_ID, __('WooCommerce checkout', 'privacy-captcha-for-cap'));
+    }
+
+    /**
+     * WC_Form_Handler::pay_action() goes on to the gateway's process_payment()
+     * unless an error notice exists by then. A notice can be blanked by a
+     * filter, so a refused payment ends the request here.
+     */
+    public function verifyOrderPay(mixed $order): void
+    {
+        if (! $this->settings->isProtected('woocommerce_checkout') || $this->verifier->verifyCurrentRequest('woocommerce_checkout')) {
+            return;
+        }
+
+        // A visitor without a session cookie would lose the notice on the redirect.
+        $session = function_exists('WC') ? (WC()->session ?? null) : null;
+        if (is_object($session) && method_exists($session, 'has_session') && ! $session->has_session()) {
+            $session->set_customer_session_cookie(true);
+        }
+
+        if (function_exists('wc_add_notice')) {
+            wc_add_notice(esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'), 'error');
+        }
+
+        wp_safe_redirect(is_object($order) && method_exists($order, 'get_checkout_payment_url') ? $order->get_checkout_payment_url() : home_url('/'));
+        exit;
+    }
+
     /**
      * The Store API drops `extensions` data of a namespace without a schema.
      */
@@ -198,12 +235,13 @@ final class WooCommerce implements Integration
         }
 
         // Route matching is case-insensitive, and the Store API also answers
-        // under the unversioned `wc/store` namespace.
-        if (preg_match('#^/wc/store(?:/v\d+)?/checkout/?$#i', $request->get_route()) !== 1) {
+        // under the unversioned `wc/store` namespace. `checkout/<id>` pays for
+        // an order that exists.
+        if (preg_match('#^/wc/store(?:/v\d+)?/checkout(/\d+)?/?$#i', $request->get_route(), $route) !== 1) {
             return $response;
         }
 
-        if (! $this->settings->isProtected('woocommerce_checkout') || ! $this->protectsStoreApiCheckout($request)) {
+        if (! $this->settings->isProtected('woocommerce_checkout') || ! $this->protectsStoreApiCheckout($request, ($route[1] ?? '') !== '')) {
             return $response;
         }
 
@@ -238,17 +276,20 @@ final class WooCommerce implements Integration
      * the Store API is checked except on block-checkout shops and for orders
      * paid with a gateway whose express buttons are on; an order naming that
      * gateway still has to pass the gateway's own payment.
+     *
+     * Nothing in WooCommerce's own front end pays for an existing order
+     * through the Store API, so that route has no widgetless form to spare.
      */
-    private function protectsStoreApiCheckout(WP_REST_Request $request): bool
+    private function protectsStoreApiCheckout(WP_REST_Request $request, bool $paysExistingOrder = false): bool
     {
         $paymentMethod = $request->get_param('payment_method');
-        $exempt = $this->usesCheckoutBlock()
-            || (is_string($paymentMethod) && in_array($paymentMethod, $this->storeApiExpressGateways(), true));
+        $exempt = ! $paysExistingOrder && ($this->usesCheckoutBlock()
+            || (is_string($paymentMethod) && in_array($paymentMethod, $this->storeApiExpressGateways(), true)));
 
         /**
          * Whether this Store API checkout must carry a Cap token.
          *
-         * @param  bool  $protect  False on block-checkout shops and for express-button gateways.
+         * @param  bool  $protect  False on block-checkout shops and for express-button gateways, unless the request pays for an existing order.
          * @param  WP_REST_Request  $request
          */
         return (bool) apply_filters('cap_captcha_protect_store_api_checkout', ! $exempt, $request);

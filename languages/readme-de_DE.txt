@@ -28,15 +28,16 @@ Infrastruktur.
 * **Erstklassiges Gravity-Forms-Feld** – ziehe ein „Privacy CAPTCHA for Cap“
   aus der Gruppe „Erweiterte Felder“ in jedes Formular. Anzeigemodus pro Feld
   überschreibbar.
+  Einträge, die ohne Anmeldung über die REST-API oder die Web-API von Gravity Forms an ein geschütztes Formular gehen, brauchen ebenfalls ein Token, als Eingabewert `cap-token`.
 * **Contact Form 7** – schützt automatisch jedes CF7-Formular.
 * **Fluent Forms** – füge jedem regulären Formular, das geschützt werden soll, ein „Privacy CAPTCHA for Cap“-Feld hinzu.
 * **wpDiscuz**: schützt das Kommentarformular von wpDiscuz und jedes Antwortformular. Kommentare über die Inline-Feedback-Formulare von wpDiscuz (Feedback-Shortcode) werden nicht geprüft.
 * **Ultimate Member**: schützt die Formulare von Ultimate Member für Anmeldung, Registrierung und Passwort-Zurücksetzen.
 * **WordPress-Kommentare, wp-login, Registrierung, Passwort vergessen**: über eine zentrale
-  Einstellungsseite aktivierbar.
+  Einstellungsseite aktivierbar. In einem Multisite-Netzwerk schützt der Schalter „Registrierung“ die Signup-Seite (`wp-signup.php`).
 * **WooCommerce** – Kasse sowie die Formulare „Mein Konto“ für Anmeldung,
   Registrierung und Passwort vergessen, jeweils einzeln schaltbar. Wird nur
-  geladen, wenn WooCommerce aktiv ist. Der Kassenschutz gilt für die klassische Kasse; der Kassen-Block und
+  geladen, wenn WooCommerce aktiv ist. Der Kassenschutz gilt für die klassische Kasse und für die Zahlung einer bereits bestehenden Bestellung (Seite „Bestellung bezahlen“); der Kassen-Block und
   Bestellungen über Express-Zahlknöpfe der Store API zeigen noch kein CAPTCHA
   und bleiben ungeprüft.
 * **Dashboard-Widget** – Cap-Server-Statistiken auf einen Blick (Challenges,
