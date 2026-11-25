@@ -12,6 +12,7 @@
     var pending = new WeakMap();
     var fresh = new WeakSet();
     var passing = new WeakSet();
+    var held = new WeakSet();
 
     function errorMessage(element) {
         var wrapper = element.closest(WRAPPER);
@@ -116,10 +117,17 @@
         if (!ready) return;
 
         event.preventDefault();
+        // WPForms re-enables the button when the submit is prevented; a second
+        // click must not send the form twice with one token.
+        if (held.has(form)) return;
+        held.add(form);
         ready.then(function () {
+            held.delete(form);
             passing.add(form);
             window.wpforms.formSubmit($(form));
-        }).catch(function () {});
+        }).catch(function () {
+            held.delete(form);
+        });
     });
 
     $(document).on('wpformsAjaxSubmitFailed', function (event, json) {

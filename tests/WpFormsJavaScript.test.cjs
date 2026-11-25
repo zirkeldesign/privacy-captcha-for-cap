@@ -118,6 +118,18 @@ test('a submit is held until the token is there, then sent once', async () => {
     assert.equal(context.trigger('wpformsBeforeFormSubmit', form).prevented, false);
 });
 
+test('two clicks during one held submit send the form once', async () => {
+    const resolvers = [];
+    const context = fixture({ Cap: class { solve() { return new Promise((resolve) => resolvers.push(resolve)); } } });
+    const form = context.forms[0];
+    context.trigger('wpformsBeforeFormSubmit', form);
+    context.trigger('wpformsBeforeFormSubmit', form);
+
+    resolvers[0]({ token: 'late' });
+    await settle();
+    assert.equal(form.submits, 1);
+});
+
 test('a failed AJAX submit renews the token unless the server kept it', async () => {
     const context = fixture({ count: 2 });
     await settle();

@@ -248,6 +248,16 @@ it('renders no widget while Cap is not configured', function (): void {
         ->and($GLOBALS['__cap_modules'])->toBe([]);
 });
 
+it('files the error under the id WPForms loaded the form by, which its last error check reads', function (): void {
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
+    $_POST['cap-token'] = 'spent';
+
+    capWpForms()->verify([], ['id' => '9'], capWpFormData('always', 5));
+
+    expect(capWpFormsProcess()->errors)->toHaveKey(9)
+        ->and(capWpFormsProcess()->errors)->not->toHaveKey(5);
+});
+
 it('lets a submission with a verified token through', function (): void {
     $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
     $_POST['cap-token'] = 'valid';
