@@ -87,4 +87,5 @@ it('loads the widget on the screen of a protected form', function (?string $acti
     'login without action global' => [null, ['login' => true]],
     'register' => ['register', ['registration' => true]],
     'lostpassword' => ['lostpassword', ['lost_password' => true]],
+    'retrievepassword, the same form under core\'s other action' => ['retrievepassword', ['lost_password' => true]],
 ]);

@@ -4,8 +4,7 @@ diese Datei dient nur als Vorlage zum Einfügen in GlotPress.
 
 == Kurzbeschreibung ==
 
-Datenschutzfreundlicher Spamschutz für Kommentare, Anmeldung, Registrierung,
-WooCommerce und Gravity Forms – betrieben über deinen eigenen Cap-Server.
+Datenschutzfreundlicher Spamschutz für Anmeldung, Kommentare, WooCommerce, Formular- und Mitglieder-Plugins über deinen eigenen Cap-Server.
 
 == Beschreibung ==
 
@@ -37,7 +36,9 @@ Infrastruktur.
   Einstellungsseite aktivierbar.
 * **WooCommerce** – Kasse sowie die Formulare „Mein Konto“ für Anmeldung,
   Registrierung und Passwort vergessen, jeweils einzeln schaltbar. Wird nur
-  geladen, wenn WooCommerce aktiv ist.
+  geladen, wenn WooCommerce aktiv ist. Der Kassenschutz gilt für die klassische Kasse; der Kassen-Block und
+  Bestellungen über Express-Zahlknöpfe der Store API zeigen noch kein CAPTCHA
+  und bleiben ungeprüft.
 * **Dashboard-Widget** – Cap-Server-Statistiken auf einen Blick (Challenges,
   bestätigt, fehlgeschlagen, stündliches Diagramm) direkt im WordPress-Dashboard.
 * **Granulare Schalter pro Oberfläche** und **Entwickler-Filter**

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-11-25
+
+### Security
+
+- The WooCommerce My Account registration and lost-password forms could be sent without solving the CAPTCHA: the check ran only when the request named the form's nonce the way the form does, and WooCommerce accepts it under another name. Registration is now checked on `woocommerce_process_registration_errors`, which only the My Account handler fires, and the lost-password check no longer looks at the nonce field. Shops with these two toggles on should update. Found in a review of 1.8.2.
+
 ### Added
 
 - Ultimate Member integration (`ultimate_member` context, off by default, listed with the form plugins). The widget renders above the submit button of the UM login and registration forms (`um_after_login_fields`, `um_after_register_fields`) and on the password reset form (`um_after_password_reset_fields`). The token is verified on `um_submit_form_errors_hook_login`, `um_submit_form_errors_hook__registration` and `um_reset_password_errors_hook`, and a failure is added as a UM form error. When the login check fails, UM's own password check is taken off for that request: it runs even after another handler has added an error, and the page would otherwise say whether the password was right. The same goes for UM's reset validator, which would otherwise count every tokenless request against the user's reset limit and so let anyone lock a user out of resetting. As a second line that does not depend on UM's function names, a last callback on each error hook leaves only the CAPTCHA error, so a failed check tells nothing about the password, a taken username or email address, or the reset limit, and drops the user id UM keeps for a correct password, which its status check would otherwise answer with a redirect for pending or blocked accounts. A login that fails the check still fires `wp_login_failed`, as on wp-login.php, so lockout plugins count it. On the login form the error appears in UM's own notice above the fields, on registration and reset under the widget. In floating mode the UM submit button becomes the trigger on login and registration; the reset form keeps a separate trigger. The token is removed from the `submitted` user meta UM saves on registration, and registrations that only passed through fail-open get the `cap_captcha_fail_open` user meta. Profile and account forms are not covered.
@@ -11,8 +17,9 @@ All notable changes to this project will be documented in this file.
 - Cap 4 support. The bundled widget is now cap-widget 0.1.63: Cap 4 rejects older widgets on site keys that block on behavior or on automated interactions, and flags the solves it still accepts from them.
 - "Isolate the Cap check from the page" under Privacy, on by default. Since cap-widget 0.1.59 the script the Cap server sends to tell browsers from bots runs with the rights of the page, on every protected form and on `wp-login.php`, unless the widget is told to isolate it. With the setting on it runs in a frame that cannot read the page, as it always did up to 1.7.0. Site keys that block on behavior or on automated interactions reject an isolated check: turn the setting off for those, ideally only with a Cap server you run yourself. Also available as the `cap_captcha_isolate_frame` filter.
 - "Test connection" checks the secret key and reports what the Cap server answers when it refuses a key: a secret or an API key that Cap 4 no longer accepts now says so instead of "did not return a valid response".
-- "Test connection" warns about an API key that can read other site keys and about a display mode the site key cannot accept, and fails when the site key rejects an isolated check.
+- "Test connection" warns about an API key that can read other site keys, and fails when the site key rejects an isolated check.
 - The status panel says when the Cap server no longer accepts the secret of the site key.
+- Forms fall back to the inline widget when the site key requires a press on the widget, which the floating and programmatic modes never give. The plugin reads the rule through the API key, on the settings page, on the dashboard and every hour. The `cap_captcha_force_inline` filter overrides it. The settings page says under the display mode when the key overrides the choice, and when the rule could not be read, for lack of an API key or of an answer from the Cap server; "Test connection" says the latter too when it runs without an API key.
 - The widget's "Blocked by this page" and "Troubleshoot" labels are translatable.
 
 ### Changed
@@ -24,7 +31,26 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- The classic checkout no longer spends the token when a gateway validates the form ahead of the order (PayPal Payments does when its button is pressed); it is verified only inside `process_checkout()`.
+- The "Lost password" widget also loads on `wp-login.php?action=retrievepassword`, which core serves the same form for.
+- In programmatic mode, two clicks while a token is being solved send the form once, and the script stops waiting for a widget script that never loads.
+- Fail-open now applies when the Cap server answers `siteverify` with a 5xx or 408 and a JSON body. Cap reports its own internal errors (for example when its Valkey is down) as JSON, and such an answer counted as a rejected token, so a Cap outage blocked every form even on surfaces set to fail open. A JSON `success: false` with any other status is still a rejection.
+- Security: a rate-limit answer (429) from the Cap server or a proxy in front of it no longer counts as an outage. Cap limits `siteverify` per calling server, so anyone could push a site into that limit by posting made-up tokens and, on surfaces set to fail open, get past the CAPTCHA.
+- The classic WooCommerce checkout spent the CAPTCHA token before WooCommerce validated the form, so after a validation error (a missing phone number, say) the next "Place order" failed the CAPTCHA check. The token is now verified on `woocommerce_after_checkout_validation` at the last priority, only when the form has no other errors and is not an "Update totals" submit, and a failure is added to WooCommerce's validation errors. The errors of a form rejected before Cap was asked carry an empty `cap-captcha-kept` span (added on `woocommerce_add_error`); on every other `checkout_error`, including a declined payment or a server error without a notice, `assets/js/woocommerce-checkout.js` resets the widget, or in programmatic mode solves a new token and holds "Place order" until it is there.
 - The status panel kept showing the previous site key for up to five minutes after the settings were saved.
+- In programmatic mode, a form submitted before the token was ready went out without its submit button.
+- In programmatic mode, a challenge that could not be solved left the submit button dead: the form was sent again and again without ever leaving the page, and nothing was shown. The form now shows "CAPTCHA could not be started. Please try again." under the hidden field, and the next submit solves again. The message carries the `cap-captcha-error` class.
+
+## [1.8.2] - 2026-11-25
+
+### Security
+
+- The login and registration forms on `wp-login.php` could be sent without solving the CAPTCHA, and orders placed through the WooCommerce Store API checkout were never checked. Every POST that `wp-login.php` handles on these forms is now checked (also when a plugin serves it under another URL, via `login_init`), and so are Store API checkouts while checkout protection is on, each checkout of a batch request with its own token. Reported by D3strukt0r.
+
+### Changed
+
+- Store API checkouts are left unchecked on shops whose checkout uses the Checkout block, and for orders paid with a gateway whose express buttons order through the Store API (WooPayments, Stripe), since the plugin shows no widget there yet. The `cap_captcha_protect_store_api_checkout` filter overrides that in either direction.
+- Login and registration checks apply to requests handled by `wp-login.php`, not to every request that carries its submit button. A login form of a theme or another plugin that posts to its own page is no longer checked; it never showed the widget. A form that posts to `wp-login.php` without showing the widget is now refused; `cap_captcha_protect_login` lets a site exempt it.
 
 ## [1.8.1] - 2026-11-17
 

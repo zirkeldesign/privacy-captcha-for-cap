@@ -108,19 +108,12 @@ final class Login implements Integration
             return $user;
         }
 
-        // WooCommerce My Account logins also flow through wp_authenticate_user.
-        // Let the WooCommerce integration's woocommerce_login surface own those
-        // so we don't double-handle them (and so they obey their own toggle).
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Only detecting which form is posting; WooCommerce verifies its own login nonce before this runs.
-        if (isset($_POST['woocommerce-login-nonce'])) {
-            return $user;
-        }
-
-        // wp_authenticate_user also fires for XML-RPC, the REST API and any
-        // membership/page-builder login form we never rendered the widget into.
-        // Those requests cannot carry a token; gating them would lock people out
-        // rather than stop bots. `wp-submit` is wp-login.php's own submit input.
-        if (! RequestContext::isFormPost('wp-submit')) {
+        // wp_authenticate_user also fires for XML-RPC, the REST API, the
+        // WooCommerce My Account login (its own woocommerce_login surface) and
+        // any membership/page-builder login form we never rendered the widget
+        // into. Those requests cannot carry a token; gating them would lock
+        // people out rather than stop bots.
+        if (! RequestContext::isLoginScreenPost()) {
             return $user;
         }
 

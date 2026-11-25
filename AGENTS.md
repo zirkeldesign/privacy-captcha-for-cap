@@ -28,6 +28,18 @@ composer test:integration
 Point `CAP_WP_ROOT` and `CAP_WP_VERSION` elsewhere to provision a second fixture
 on a different core without disturbing the cached `.wp-integration` one.
 
+## Rules for every check
+
+Each of these was a bug that shipped. Go through them for a new integration and for any change to when a token is verified.
+
+- **Protect the action, not the form.** List every way a request reaches the handler behind the form: the form's POST, admin-ajax, REST and the Store API (versioned, unversioned, batch), XML-RPC, other plugins calling the same function. For each, either the check runs or the readme says it does not. 1.8.1 claimed to protect the WooCommerce checkout and never saw a Store API order.
+- **No field of the request decides whether the check runs**, unless the handler itself refuses the request without that field. Read the handler's source to find out, do not go by what the form sends. 1.8.1 skipped the login check when `wp-submit` was missing, and core logged the user in anyway. `tests/Unit/RequestFieldGateTest.php` lists every field an integration reads and fails on a new one.
+- **Write the test from the handler's side:** the smallest request it accepts, without a token, must be refused.
+- **A token is single-use.** Verify it as late as possible, after the host plugin's own validation, so a form with a field error keeps its token. On a form that stays on the page (AJAX), renew the token after every failure the script cannot place.
+- **Test against what the Cap server really answers**, not against an assumed response. Its status codes and bodies for a refused token, a rate limit and an internal error differ, and only an unreachable server may fail open.
+- **A fake in a test has to behave like the real thing.** A form stub whose `requestSubmit()` does not fire `submit` hid an endless resubmit loop.
+- **A release cut from a tag goes back into `main` the same day.** 1.8.2 was not, and `main` kept the hole.
+
 ## Surfaces to smoke test
 
 Static checks never execute the plugin. After any change to asset loading, and on

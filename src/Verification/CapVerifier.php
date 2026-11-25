@@ -26,7 +26,10 @@ final class CapVerifier
      * server. An empty token or missing configuration is reported as
      * Unreachable (we cannot verify), so the caller's fail-open policy decides.
      * A request the sender can cause to fail (oversized token, a 4xx from a
-     * proxy in front of Cap) is a rejection, never a reason to fail open.
+     * proxy in front of Cap) is a rejection, never a reason to fail open. A 5xx
+     * or 408 is an outage, whether or not its body is JSON. A 429 is not: Cap
+     * rate-limits siteverify per caller, the caller is this WordPress server,
+     * and any visitor can drive it there by posting made-up tokens.
      */
     public function check(string $token): VerificationResult
     {
@@ -55,14 +58,20 @@ final class CapVerifier
             return VerificationResult::Unreachable;
         }
 
+        $status = (int) wp_remote_retrieve_response_code($response);
+
+        // Cap answers its own internal errors with a JSON body, so an outage
+        // is told by the status before the body is read.
+        if ($status >= 500 || $status === 408) {
+            return VerificationResult::Unreachable;
+        }
+
         $body = json_decode((string) wp_remote_retrieve_body($response), true);
 
         if (! is_array($body)) {
             // A 4xx without JSON is a proxy refusing this request, not an outage,
-            // so it must not open the form. Timeouts and rate limits are outages.
-            $status = (int) wp_remote_retrieve_response_code($response);
-
-            return $status >= 400 && $status < 500 && ! in_array($status, [408, 429], true)
+            // so it must not open the form.
+            return $status >= 400
                 ? VerificationResult::Rejected
                 : VerificationResult::Unreachable;
         }

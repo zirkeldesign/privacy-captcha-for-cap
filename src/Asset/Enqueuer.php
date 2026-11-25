@@ -172,6 +172,7 @@ final class Enqueuer
                 $globals['CAP_CAPTCHA_PROGRAMMATIC'] = [
                     'apiEndpoint' => $endpoint,
                     'tokenField' => 'cap-token',
+                    'errorMessage' => __('CAPTCHA could not be started. Please try again.', 'privacy-captcha-for-cap'),
                 ];
             }
         }
