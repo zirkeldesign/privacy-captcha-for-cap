@@ -193,42 +193,43 @@ body.login .cap-captcha-floating-trigger[data-cap-progress="done"] {
 }
 
 /*
- * WooCommerce Checkout block: the widget sits between the terms and the
- * "Place order" button. The block spaces its own parts by 24px; without the
- * same margin the widget touches the button.
+ * WooCommerce Checkout block. The widget is printed in front of the actions
+ * block, between the terms and the "Place order" button.
+ *
+ * The block spaces its own parts by 24px; without the same margin the widget
+ * touches the button.
+ *
+ * On narrow screens WooCommerce shows the order summary inside the actions
+ * block, above the button, which would put it between the widget and the
+ * button. The actions block's children are laid out as children of the form
+ * instead, so the widget can be ordered in right above the button. The row
+ * takes over the block's bottom margin.
+ *
+ * Layered and at zero specificity like the rest: WooCommerce sets no display
+ * on either element, and a theme that lays the form out itself wins. A
+ * browser without :has() keeps the widget above the summary.
  */
 @layer components {
     :where(.wc-block-checkout__form) > :where(.cap-captcha--inline) {
+        order: 2;
         margin-block-end: 24px;
     }
-}
 
-/*
- * On narrow screens WooCommerce shows the order summary inside the actions
- * block, above the button, which puts it between the widget and "Place
- * order". The actions block's children are laid out as children of the form
- * instead, so the widget can be ordered in right above the button. The row
- * takes over the block's bottom margin. Unlayered, because WooCommerce's own
- * rules are. A browser without :has() keeps the widget above the summary.
- */
-.wc-block-checkout__form:has(> .cap-captcha--inline) {
-    display: flex;
-    flex-direction: column;
-}
+    :where(.wc-block-checkout__form:has(> .cap-captcha--inline)) {
+        display: flex;
+        flex-direction: column;
 
-.wc-block-checkout__form:has(> .cap-captcha--inline) > .wc-block-checkout__actions {
-    display: contents;
-}
+        > :where(.wc-block-checkout__actions) {
+            display: contents;
 
-.wc-block-checkout__form:has(> .cap-captcha--inline) > .wc-block-checkout__actions > * {
-    order: 1;
-}
+            > * {
+                order: 1;
+            }
 
-.wc-block-checkout__form > .cap-captcha--inline {
-    order: 2;
-}
-
-.wc-block-checkout__form:has(> .cap-captcha--inline) > .wc-block-checkout__actions > .wc-block-checkout__actions_row {
-    order: 3;
-    margin-block-end: 36px;
+            > :where(.wc-block-checkout__actions_row) {
+                order: 3;
+                margin-block-end: 36px;
+            }
+        }
+    }
 }
