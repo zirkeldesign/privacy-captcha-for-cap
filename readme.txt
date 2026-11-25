@@ -4,11 +4,11 @@ Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.8.2
+Stable tag: 1.9.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Privacy-friendly spam protection for comments, login, registration, WooCommerce, and Gravity Forms, powered by your own Cap server.
+Privacy-friendly spam protection for login, comments, WooCommerce, form and membership plugins, powered by your own Cap server.
 
 == Description ==
 
@@ -46,7 +46,9 @@ Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof
 
 = More from zirkel.design =
 
+* [Course Embed for Viona](https://wordpress.org/plugins/course-embed-for-viona/): embed the Viona course list of your IBB partner account with a block or a shortcode.
 * [Regex Validation for Gravity Forms](https://wordpress.org/plugins/regex-validation-for-gravity-forms/): regular expression validation for Gravity Forms fields, with Unicode support and ready-made presets.
+* [Zirkel AI Image Disclosure](https://wordpress.org/plugins/zirkel-ai-image-disclosure/): a small, accessible label for AI-generated images, set automatically from their IPTC or C2PA metadata on upload.
 * [Zirkel Virtual IBAN for WooCommerce](https://wordpress.org/plugins/zirkel-iban-for-woocommerce/): unique virtual bank details per order for bank transfers in WooCommerce, reconciled automatically via Stripe.
 
 == Installation ==
@@ -140,6 +142,19 @@ Please open an issue on [GitHub](https://github.com/zirkeldesign/privacy-captcha
 4. Each form you can protect has its own switch. Integrations for plugins that are not active are shown but cannot be switched on.
 
 == Changelog ==
+
+= 1.9.0 =
+* Added: protection for the Ultimate Member login, registration and password reset forms.
+* Added: protection for the WordPress "Lost password" form, so bots can no longer make your site send password reset emails. Off until you switch it on.
+* Added: support for Cap 4 servers.
+* Added: "Isolate the Cap check from the page" under Privacy, on by default. It keeps the Cap server's bot check from reading the page, as up to 1.7.0. Site keys that block on behavior or on automated interactions need it switched off.
+* Improved: "Test connection" now checks the secret key, explains why the Cap server refuses a key, tests the settings before they are saved and works without an API key.
+* Improved: the status panel says when the Cap server no longer accepts the secret.
+* Improved: forms switch to the visible widget on their own when the site key requires a click on it, which the floating and invisible modes cannot give. The settings page says when that happens.
+* Fixed: with "let submissions through when the Cap server is unreachable" switched on, an outage of the Cap server still blocked every form.
+* Fixed: after a validation error at the classic WooCommerce checkout, such as a missing phone number, the next "Place order" failed the CAPTCHA check.
+* Fixed: in the invisible mode, a challenge that could not be solved left the submit button dead. The form now shows a message and tries again on the next click.
+* Fixed: the status panel showed the previous site key for up to five minutes after saving.
 
 = 1.8.2 =
 * Security: the CAPTCHA on the WordPress login and registration forms could be skipped, and orders placed through the WooCommerce Store API were never checked. Every login and registration that wp-login.php handles is now checked, and so are Store API orders on shops with the classic checkout, except orders paid through a gateway's express buttons. Sites with these forms protected should update. Thanks to D3strukt0r for reporting.

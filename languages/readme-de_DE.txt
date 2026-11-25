@@ -4,8 +4,7 @@ diese Datei dient nur als Vorlage zum Einfügen in GlotPress.
 
 == Kurzbeschreibung ==
 
-Datenschutzfreundlicher Spamschutz für Kommentare, Anmeldung, Registrierung,
-WooCommerce und Gravity Forms – betrieben über deinen eigenen Cap-Server.
+Datenschutzfreundlicher Spamschutz für Anmeldung, Kommentare, WooCommerce, Formular- und Mitglieder-Plugins über deinen eigenen Cap-Server.
 
 == Beschreibung ==
 

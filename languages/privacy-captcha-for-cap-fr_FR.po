@@ -7,7 +7,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-25T08:37:00+00:00\n"
+"POT-Creation-Date: 2026-11-25T08:39:44+00:00\n"
 "PO-Revision-Date: 2026-09-22T13:38:00+1100\n"
 "Language: fr_FR\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
@@ -36,8 +36,8 @@ msgstr "https://github.com/zirkeldesign/privacy-captcha-for-cap"
 
 #. Description of the plugin
 #: privacy-captcha-for-cap.php
-msgid "Privacy-friendly spam protection for WordPress comments, login, registration, WooCommerce checkout, and Gravity Forms, powered by your own Cap (trycap.dev) server."
-msgstr "Protection anti-spam respectueuse de la vie privée pour les commentaires, la connexion, l’inscription, la commande WooCommerce et Gravity Forms, propulsée par votre propre serveur Cap (trycap.dev)."
+msgid "Privacy-friendly spam protection for login, comments, WooCommerce, form and membership plugins, powered by your own Cap (trycap.dev) server."
+msgstr "Protection anti-spam respectueuse de la vie privée pour la connexion, les commentaires, WooCommerce et les extensions de formulaires et d’adhésion, propulsée par votre propre serveur Cap (trycap.dev)."
 
 #. Author of the plugin
 #: privacy-captcha-for-cap.php
