@@ -163,7 +163,8 @@ final class WpForms implements Integration
             'settings',
             self::MODE_KEY,
             $formData,
-            __('Protection', 'privacy-captcha-for-cap'),
+            // Not "Protection": WPForms heads its own anti-spam switches with that word right above.
+            __('Protect this form', 'privacy-captcha-for-cap'),
             [
                 'default' => 'default',
                 'options' => [

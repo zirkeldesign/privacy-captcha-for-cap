@@ -21,7 +21,7 @@ msgstr ""
 #: src/Integration/GravityForms.php:155
 #: src/Integration/GravityForms/Field.php:18
 #: src/Integration/GravityForms/Field.php:106
-#: src/Integration/WpForms.php:182
+#: src/Integration/WpForms.php:183
 #: src/Settings.php:150
 #: src/Settings.php:151
 #: src/Settings.php:305
@@ -63,7 +63,7 @@ msgstr "Einstellungen & vollständiger Status →"
 #: src/Asset/Enqueuer.php:175
 #: src/Integration/FluentForms.php:124
 #: src/Integration/WpDiscuz.php:85
-#: src/Integration/WpForms.php:267
+#: src/Integration/WpForms.php:268
 msgid "CAPTCHA could not be started. Please try again."
 msgstr "CAPTCHA konnte nicht gestartet werden. Bitte versuchen Sie es erneut."
 
@@ -146,28 +146,27 @@ msgstr "CAPTCHA-Prüfung fehlgeschlagen"
 #: src/Integration/WooCommerce.php:314
 #: src/Integration/WooCommerce.php:423
 #: src/Integration/WpDiscuz.php:130
-#: src/Integration/WpForms.php:210
+#: src/Integration/WpForms.php:211
 msgid "CAPTCHA verification failed. Please try again."
 msgstr "CAPTCHA-Prüfung fehlgeschlagen. Bitte versuchen Sie es erneut."
 
 #: src/Integration/GravityForms.php:122
-#: src/Integration/WpForms.php:166
 msgid "Protection"
 msgstr "Schutz"
 
 #: src/Integration/GravityForms.php:125
-#: src/Integration/WpForms.php:170
+#: src/Integration/WpForms.php:171
 #: src/Settings.php:776
 msgid "Default (use the global setting)"
 msgstr "Standard (globale Einstellung verwenden)"
 
 #: src/Integration/GravityForms.php:126
-#: src/Integration/WpForms.php:171
+#: src/Integration/WpForms.php:172
 msgid "Always protect this form"
 msgstr "Dieses Formular immer schützen"
 
 #: src/Integration/GravityForms.php:127
-#: src/Integration/WpForms.php:172
+#: src/Integration/WpForms.php:173
 msgid "Never protect this form"
 msgstr "Dieses Formular nie schützen"
 
@@ -256,11 +255,11 @@ msgstr "WooCommerce-Registrierung"
 msgid "WooCommerce lost password"
 msgstr "WooCommerce-Passwort-vergessen"
 
-#: src/Integration/WpForms.php:174
+#: src/Integration/WpForms.php:175
 msgid "Default follows “Automatically protect every WPForms form” in Settings → Privacy CAPTCHA for Cap."
 msgstr "„Standard“ folgt der Einstellung „Jedes WPForms-Formular automatisch schützen“ unter Einstellungen → Privacy CAPTCHA for Cap."
 
-#: src/Integration/WpForms.php:183
+#: src/Integration/WpForms.php:184
 msgid "Whether visitors solve a Cap challenge before this form is sent."
 msgstr "Ob Besucher vor dem Absenden dieses Formulars eine Cap-Prüfung lösen."
 
@@ -768,3 +767,7 @@ msgstr "Stundenweise Lösungen"
 #, php-format
 msgid "%1$s — %2$d verified"
 msgstr "%1$s — %2$d bestätigt"
+
+#: src/Integration/WpForms.php:167
+msgid "Protect this form"
+msgstr "Dieses Formular schützen"
