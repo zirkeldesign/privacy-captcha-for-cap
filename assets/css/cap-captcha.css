@@ -202,3 +202,33 @@ body.login .cap-captcha-floating-trigger[data-cap-progress="done"] {
         margin-block-end: 24px;
     }
 }
+
+/*
+ * On narrow screens WooCommerce shows the order summary inside the actions
+ * block, above the button, which puts it between the widget and "Place
+ * order". The actions block's children are laid out as children of the form
+ * instead, so the widget can be ordered in right above the button. The row
+ * takes over the block's bottom margin. Unlayered, because WooCommerce's own
+ * rules are. A browser without :has() keeps the widget above the summary.
+ */
+.wc-block-checkout__form:has(> .cap-captcha--inline) {
+    display: flex;
+    flex-direction: column;
+}
+
+.wc-block-checkout__form:has(> .cap-captcha--inline) > .wc-block-checkout__actions {
+    display: contents;
+}
+
+.wc-block-checkout__form:has(> .cap-captcha--inline) > .wc-block-checkout__actions > * {
+    order: 1;
+}
+
+.wc-block-checkout__form > .cap-captcha--inline {
+    order: 2;
+}
+
+.wc-block-checkout__form:has(> .cap-captcha--inline) > .wc-block-checkout__actions > .wc-block-checkout__actions_row {
+    order: 3;
+    margin-block-end: 36px;
+}
