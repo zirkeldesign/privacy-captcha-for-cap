@@ -137,6 +137,15 @@
         --cap-invalid-border-color: var(--gf-ctrl-border-color-error);
     }
 
+    /*
+     * The message the programmatic script puts under its hidden field when
+     * the challenge could not be solved. `:where()` keeps it at 0,0,0: any
+     * theme rule on the class restyles it.
+     */
+    :where(.cap-captcha-error) {
+        margin-block: 0.5em;
+        color: #d63638;
+    }
 }
 
 /*
