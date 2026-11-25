@@ -37,6 +37,7 @@ final class StatsClient
         $body = $this->read();
         if ($body !== null) {
             set_transient(self::CACHE_KEY, $body, self::CACHE_TTL);
+            (new StoredKeyPolicy)->remember($body);
         }
 
         return $body;
@@ -79,9 +80,14 @@ final class StatsClient
         return $this->failure;
     }
 
+    /**
+     * Drops what was read with the previous settings: the cached payload and
+     * the rules of the key kept from it.
+     */
     public function flush(): void
     {
         delete_transient(self::CACHE_KEY);
+        (new StoredKeyPolicy)->forget();
     }
 
     /**
