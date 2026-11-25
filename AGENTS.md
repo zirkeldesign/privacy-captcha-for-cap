@@ -52,6 +52,7 @@ every WordPress core release, confirm the widget still renders on:
 | Multisite signup | `/wp-signup.php` | needs a network with registration on. Both steps (account, then site) show the widget and each needs its own token |
 | Lost password | `/wp-login.php?action=lostpassword` | a failed check answers only with the CAPTCHA error, for known and unknown accounts alike |
 | Comments | any single post | |
+| WooCommerce Checkout block | the checkout page of a block shop, in all three modes | The widget must still stand above "Place order" once the block has loaded: WooCommerce rebuilds the markup in the browser. An order without a token shows the CAPTCHA error and resets the widget. With a gateway that has express buttons on, product and cart pages must load `woocommerce-express-pass.js`, and an express order must pass twice in a row |
 | WooCommerce | checkout, order-pay (`/checkout/order-pay/<id>/?pay_for_order=true&key=...`), login, registration, lost password | needs WooCommerce active. A failed order-pay check redirects back to the page with the CAPTCHA error |
 | Gravity Forms | field settings panel in the form editor | the integration suite covers submission flow. With the REST API v2 on, `POST /wp-json/gf/v2/forms/<id>/submissions` to a protected form must fail without `cap-token` |
 | Contact Form 7 | a form with the automatic mode on | |

@@ -37,9 +37,7 @@ Infrastruktur.
   Einstellungsseite aktivierbar. In einem Multisite-Netzwerk schützt der Schalter „Registrierung“ die Signup-Seite (`wp-signup.php`).
 * **WooCommerce** – Kasse sowie die Formulare „Mein Konto“ für Anmeldung,
   Registrierung und Passwort vergessen, jeweils einzeln schaltbar. Wird nur
-  geladen, wenn WooCommerce aktiv ist. Der Kassenschutz gilt für die klassische Kasse und für die Zahlung einer bereits bestehenden Bestellung (Seite „Bestellung bezahlen“); der Kassen-Block und
-  Bestellungen über Express-Zahlknöpfe der Store API zeigen noch kein CAPTCHA
-  und bleiben ungeprüft.
+  geladen, wenn WooCommerce aktiv ist. Der Kassenschutz gilt für die klassische Kasse, den Kassen-Block, die Zahlung einer bereits bestehenden Bestellung (Seite „Bestellung bezahlen“) und Bestellungen über Express-Zahlknöpfe wie Apple Pay und Google Pay. Im Kassen-Block löst der schwebende Modus im Hintergrund. Express-Zahlknöpfe sichert eine Prüfung im Hintergrund ab, die ein Session-Cookie von WooCommerce setzt; mit einem Site-Key, der einen Klick aufs Widget verlangt, können sie die Prüfung nicht bestehen und ihre Bestellungen werden abgelehnt.
 * **Dashboard-Widget** – Cap-Server-Statistiken auf einen Blick (Challenges,
   bestätigt, fehlgeschlagen, stündliches Diagramm) direkt im WordPress-Dashboard.
 * **Granulare Schalter pro Oberfläche** und **Entwickler-Filter**
