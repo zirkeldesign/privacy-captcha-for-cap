@@ -205,14 +205,13 @@ body.login .cap-captcha-floating-trigger[data-cap-progress="done"] {
  * instead, so the widget can be ordered in right above the button. The row
  * takes over the block's bottom margin.
  *
- * Layered and at zero specificity like the rest: WooCommerce sets no display
- * on either element, and a theme that lays the form out itself wins. A
- * browser without :has() keeps the widget above the summary.
+ * The layout is layered and at zero specificity like the rest: WooCommerce
+ * sets no display on either element, and a theme that lays the form out
+ * itself wins. A browser without :has() keeps the widget above the summary.
  */
 @layer components {
     :where(.wc-block-checkout__form) > :where(.cap-captcha--inline) {
         order: 2;
-        margin-block-end: 24px;
     }
 
     :where(.wc-block-checkout__form:has(> .cap-captcha--inline)) {
@@ -228,8 +227,23 @@ body.login .cap-captcha-floating-trigger[data-cap-progress="done"] {
 
             > :where(.wc-block-checkout__actions_row) {
                 order: 3;
-                margin-block-end: 36px;
             }
         }
+    }
+}
+
+/*
+ * The two margins stay outside the layer and carry class weight. A theme with
+ * a classic reset (`div { margin: 0 }`, unlayered, as OceanWP ships) beats
+ * anything layered or at zero specificity, and the widget then touches the
+ * button again. WooCommerce's own margins are unlayered class rules too.
+ */
+.wc-block-checkout__form {
+    > .cap-captcha--inline {
+        margin-block-end: 24px;
+    }
+
+    &:has(> .cap-captcha--inline) > .wc-block-checkout__actions > .wc-block-checkout__actions_row {
+        margin-block-end: 36px;
     }
 }
