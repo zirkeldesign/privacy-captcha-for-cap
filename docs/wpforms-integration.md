@@ -25,7 +25,7 @@ The integration was exercised with WordPress 7.1.4 and WPForms Lite 2.0.5.2 from
 | `wpforms_ajax_submit_errors_response` | Add `cap_captcha_kept: true` to the response when the token never went to Cap. |
 | `wpforms_process_entry_saved` | After a fail-open pass, add a `cap_captcha_fail_open` entry meta row where WPForms stores entries (Pro), and fire `cap_captcha_fail_open_pass` with `form_id` and `entry_id`. WPForms Lite stores no entries; `entry_id` is 0 there. |
 
-`wpforms_process` fires after WPForms' field validation, its honeypot, its token, time-limit and spam checks and its own CAPTCHA, and it fires even when those added errors. A submission they refused is not sent to Cap, so the token stays valid for the corrected try. Priority 5 puts the check before WPForms' Stripe, Square and PayPal Commerce handlers at 10, so a failed check charges nothing; anything later on the hook that refuses the submission leaves a spent token behind, which the script then renews.
+`wpforms_process` fires after WPForms' field validation, its honeypot, its token, time-limit and spam checks and its own CAPTCHA, and it fires even when those added errors. A submission they refused is not sent to Cap, so the token stays valid for the corrected try. Priority 5 puts the check before WPForms' Stripe, Square and PayPal Commerce handlers at 10, so a failed check charges nothing (the second request of a 3-D Secure payment is the exception handled below); anything later on the hook that refuses the submission leaves a spent token behind, which the script then renews.
 
 The token is read from the top-level `cap-token` field, outside `wpforms[...]`, through `TokenVerifier::verifyCurrentRequest()`. Missing or rejected tokens fail; fail-open applies to an unreachable Cap server only. An unconfigured integration renders no widget and does not block submissions.
 
@@ -41,6 +41,14 @@ Cap tokens are single-use, and an AJAX form stays on the page after a refused su
 A visible widget (inline, floating) is never solved by the script. The visitor presses it, and a form sent without it gets the server's "CAPTCHA verification failed", as on every other form. A site key that requires a press on the widget, which forces inline mode, would reject a solve the script started.
 
 Non-AJAX forms reload the page after a submit, which renders a fresh widget.
+
+## Stripe and 3-D Secure
+
+A Stripe payment that needs 3-D Secure reaches `wpforms_process` twice. Stripe answers the first request with `action_required`, the buyer confirms and is charged, and Stripe's script posts the form again through `wpforms.formSubmitAjax()` with the same token and the intent id (`wpforms[payment_intent_id]`, or `setup_intent_id` for a trial). That call skips `wpformsBeforeFormSubmit`, so the script cannot renew the token in between, and Cap has spent it. WPForms lets its own CAPTCHA pass on that second request; ours would refuse it after the money was taken.
+
+So a check that passed on a form with Stripe payments leaves a pass: a transient keyed by a hash of the token and the form id, kept for 30 minutes. One later request for the same form with the same token and an intent id redeems it and is not sent to Cap. The intent id opens nothing on its own: without the pass the token is checked as usual. Whether the intent is real, confirmed and unused stays Stripe's check in `Process::process_entry()`, which runs after ours.
+
+This path is covered by unit tests and has not been run against Stripe. PayPal Commerce and Square showed no second request in the source of WPForms Lite 2.0.5.2 and are untested as well.
 
 ## Floating mode
 

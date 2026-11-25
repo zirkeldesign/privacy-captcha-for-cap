@@ -42,6 +42,7 @@ beforeEach(function (): void {
     $GLOBALS['__cap_wpforms_pro'] = false;
     $GLOBALS['__cap_wpforms_panel_fields'] = [];
     $GLOBALS['__cap_wpforms_objects'] = ['process' => new CapWpFormsProcessStub];
+    $GLOBALS['__cap_transients'] = [];
 });
 
 /** @param array<string, mixed> $extra */
@@ -384,4 +385,56 @@ it('verifies a submission that claims to come from an AMP page', function (): vo
     capWpForms()->verify([], [], capWpFormData());
 
     expect(capWpFormsProcess()->errors)->toBe([5 => ['footer' => 'CAPTCHA verification failed. Please try again.']]);
+});
+
+function capWpStripeFormData(int $id = 5): array
+{
+    return ['payments' => ['stripe' => ['enable_one_time' => '1']]] + capWpFormData('always', $id);
+}
+
+// Each verify() below stands for one PHP request, so each gets a fresh integration:
+// the verifier remembers a token's result for the rest of a request.
+it('accepts the second request of a Stripe 3-D Secure payment with the token the first one spent', function (): void {
+    $_POST['cap-token'] = 'solved';
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
+    capWpForms()->verify([], ['id' => '5'], capWpStripeFormData());
+    $calls = $GLOBALS['__cap_remote_post_count'];
+
+    // Cap has spent the token by now; the buyer confirmed and was charged.
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
+    capWpForms()->verify([], ['id' => '5', 'payment_intent_id' => 'pi_123'], capWpStripeFormData());
+
+    expect(capWpFormsProcess()->errors)->toBe([])
+        ->and($GLOBALS['__cap_remote_post_count'])->toBe($calls);
+
+    // The pass is good for one request.
+    capWpForms()->verify([], ['id' => '5', 'payment_intent_id' => 'pi_123'], capWpStripeFormData());
+
+    expect(capWpFormsProcess()->errors)->toHaveKey(5);
+});
+
+it('checks a request that names a payment intent as usual when no check passed before', function (array $entry, array $formData): void {
+    $_POST['cap-token'] = 'solved';
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
+
+    capWpForms()->verify([], $entry, $formData);
+
+    expect(capWpFormsProcess()->errors)->toHaveKey(5);
+})->with([
+    'no earlier request' => [['id' => '5', 'payment_intent_id' => 'pi_123'], capWpStripeFormData()],
+    'a setup intent' => [['id' => '5', 'setup_intent_id' => 'seti_123'], capWpStripeFormData()],
+]);
+
+it('leaves no pass on a form without Stripe payments, or for another form', function (): void {
+    $_POST['cap-token'] = 'solved';
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
+    capWpForms()->verify([], ['id' => '5'], capWpFormData('always', 5));
+    capWpForms()->verify([], ['id' => '6'], capWpStripeFormData(6));
+
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
+    capWpForms()->verify([], ['id' => '5', 'payment_intent_id' => 'pi_123'], capWpFormData('always', 5));
+    capWpForms()->verify([], ['id' => '7', 'payment_intent_id' => 'pi_123'], capWpStripeFormData(7));
+
+    expect(capWpFormsProcess()->errors)->toHaveKey(5)
+        ->and(capWpFormsProcess()->errors)->toHaveKey(7);
 });

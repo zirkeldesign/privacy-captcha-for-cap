@@ -26,6 +26,9 @@ final class WpForms implements Integration
     /** Before payment handlers on the same hook at 10, so a failed check charges nothing. */
     private const PROCESS_PRIORITY = 5;
 
+    /** How long a verified token may come back with a confirmed Stripe payment; 3-D Secure takes its time. */
+    private const PAYMENT_PASS_TTL = 1800;
+
     private bool $lastFailOpen = false;
 
     /** Whether this request's token went to Cap; it is spent then. */
@@ -209,6 +212,11 @@ final class WpForms implements Integration
         }
 
         $this->tokenSpent = true;
+        $token = $this->verifier->currentToken();
+        if ($this->redeemPaymentPass($token, $formId, $entry, $formData)) {
+            return;
+        }
+
         if (! $this->verifier->verifyCurrentRequest($this->id())) {
             $process->errors[$formId]['footer'] = __('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap');
 
@@ -216,6 +224,56 @@ final class WpForms implements Integration
         }
 
         $this->lastFailOpen = $this->verifier->wasLastFailOpen();
+        if ($token !== '' && $this->takesStripePayments($formData)) {
+            set_transient($this->paymentPassKey($token, $formId), 1, self::PAYMENT_PASS_TTL);
+        }
+    }
+
+    /**
+     * A Stripe payment that needs 3-D Secure is sent twice: Stripe answers the
+     * first request with "action required", the buyer confirms and is charged,
+     * and Stripe's script posts the form again with the same, by then spent,
+     * token. Refusing that second request would keep the money and drop the
+     * submission. So a check that passed on a form with Stripe payments leaves
+     * a pass for that token and form, good for one more request that names the
+     * confirmed intent. The intent id alone opens nothing: without the pass
+     * the token is checked as usual, and Stripe verifies the intent itself.
+     *
+     * @param  array<string, mixed>  $formData
+     */
+    private function redeemPaymentPass(string $token, int $formId, mixed $entry, array $formData): bool
+    {
+        if ($token === '' || ! is_array($entry) || ! $this->takesStripePayments($formData)) {
+            return false;
+        }
+
+        $intent = $entry['payment_intent_id'] ?? ($entry['setup_intent_id'] ?? null);
+        if (! is_string($intent) || preg_match('/^(?:pi|seti)_/', $intent) !== 1) {
+            return false;
+        }
+
+        $key = $this->paymentPassKey($token, $formId);
+        if (get_transient($key) === false) {
+            return false;
+        }
+
+        delete_transient($key);
+
+        return true;
+    }
+
+    /** @param array<string, mixed> $formData */
+    private function takesStripePayments(array $formData): bool
+    {
+        $stripe = $formData['payments']['stripe'] ?? null;
+
+        return is_array($stripe)
+            && (! empty($stripe['enable']) || ! empty($stripe['enable_one_time']) || ! empty($stripe['enable_recurring']));
+    }
+
+    private function paymentPassKey(string $token, int $formId): string
+    {
+        return 'cap_captcha_wpf_'.hash('sha256', $token.'|'.$formId);
     }
 
     /**

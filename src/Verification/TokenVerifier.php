@@ -31,11 +31,18 @@ final class TokenVerifier
 
     public function verifyCurrentRequest(string $context = ''): bool
     {
+        return $this->verifyToken($this->currentToken(), $context);
+    }
+
+    /**
+     * The token the current request carries, or an empty string.
+     */
+    public function currentToken(): string
+    {
         // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Caller (login/register/comment/checkout/GF/CF7 flow) enforces its own nonce on the surrounding form; value is unslashed here and sanitized via sanitize_text_field() on the next line.
         $raw = isset($_POST['cap-token']) ? wp_unslash($_POST['cap-token']) : '';
-        $token = is_string($raw) ? sanitize_text_field($raw) : '';
 
-        return $this->verifyToken($token, $context);
+        return is_string($raw) ? sanitize_text_field($raw) : '';
     }
 
     public function verifyToken(string $token, string $context = ''): bool
