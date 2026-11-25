@@ -144,6 +144,7 @@ Please open an issue on [GitHub](https://github.com/zirkeldesign/privacy-captcha
 == Changelog ==
 
 = 1.9.0 =
+* Security: the WooCommerce My Account registration and lost-password forms could be sent without solving the CAPTCHA. Shops that protect these two forms should update. The checkout, login and all other forms were not affected.
 * Added: protection for the Ultimate Member login, registration and password reset forms.
 * Added: protection for the WordPress "Lost password" form, so bots can no longer make your site send password reset emails. Off until you switch it on.
 * Added: support for Cap 4 servers.

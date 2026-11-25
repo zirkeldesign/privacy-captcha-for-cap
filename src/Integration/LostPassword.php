@@ -40,7 +40,8 @@ final class LostPassword implements Integration
 
     public function enqueueAssets(): void
     {
-        if (! Login::isScreen('lostpassword') || ! $this->settings->isProtected('lost_password') || ! $this->settings->isConfigured()) {
+        // Core serves the same form for both actions.
+        if ((! Login::isScreen('lostpassword') && ! Login::isScreen('retrievepassword')) || ! $this->settings->isProtected('lost_password') || ! $this->settings->isConfigured()) {
             return;
         }
 

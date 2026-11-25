@@ -19,6 +19,7 @@ use ZirkelDesign\CapCaptcha\Integration\UltimateMember;
 use ZirkelDesign\CapCaptcha\Integration\WooCommerce;
 use ZirkelDesign\CapCaptcha\Integration\WpDiscuz;
 use ZirkelDesign\CapCaptcha\Status\StatsClient;
+use ZirkelDesign\CapCaptcha\Status\StoredKeyPolicy;
 use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
 
 /**
@@ -62,6 +63,9 @@ final class Plugin
 
         if (is_admin()) {
             (new DashboardWidget($settings))->register();
+
+            // Seeds the option so it is autoloaded before any rule was read.
+            add_option(StoredKeyPolicy::OPTION, []);
 
             if (! wp_next_scheduled(self::REFRESH_KEY_POLICY_HOOK)) {
                 wp_schedule_event(time(), 'hourly', self::REFRESH_KEY_POLICY_HOOK);

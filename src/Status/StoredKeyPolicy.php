@@ -46,8 +46,12 @@ final class StoredKeyPolicy
         return is_array($stored) && array_key_exists('requires_interaction', $stored);
     }
 
+    /**
+     * Stored empty rather than deleted: a missing option is not autoloaded and
+     * would cost a query on every page that resolves the display mode.
+     */
     public function forget(): void
     {
-        delete_option(self::OPTION);
+        update_option(self::OPTION, []);
     }
 }

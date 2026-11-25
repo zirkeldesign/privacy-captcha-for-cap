@@ -20,9 +20,15 @@
 
     var ERROR_CLASS = 'cap-captcha-error';
 
+    var waited = 0;
+
     function start() {
         if (typeof window.Cap === 'undefined') {
-            // Widget script not loaded yet; retry on the next tick.
+            // Widget script not loaded yet; retry on the next tick. A blocked
+            // script (CSP, a content blocker) ends the wait: the form then goes
+            // out without a token and the server answers with its own error.
+            waited += 50;
+            if (waited > 10000) return;
             setTimeout(start, 50);
             return;
         }
@@ -30,6 +36,8 @@
         var fieldName = cfg.tokenField || 'cap-token';
         // The solve in flight or the one that succeeded, null after a failure.
         var attempt = null;
+        // Forms whose submit is being held, so a second click sends nothing twice.
+        var held = new WeakSet();
 
         // Fluent Forms and wpDiscuz fields belong to their own scripts, which
         // need one single-use token per form and show their own error.
@@ -104,10 +112,13 @@
             if (!isOwned(field)) return;
 
             event.preventDefault();
+            if (held.has(form)) return;
+            held.add(form);
             // Without it the form goes out without the name and value of the
             // button, which wp-login.php (`wp-submit`) and others read.
             var submitter = event.submitter;
             (attempt || solve()).then(function (result) {
+                held.delete(form);
                 field.value = result.token;
                 if (typeof form.requestSubmit === 'function') {
                     form.requestSubmit(submitter || undefined);
@@ -115,6 +126,7 @@
                     form.submit();
                 }
             }, function () {
+                held.delete(form);
                 // Submitting again would fire this listener on a field that
                 // is still empty. The message is up, the form stays put.
             });

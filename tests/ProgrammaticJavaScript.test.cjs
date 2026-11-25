@@ -107,6 +107,15 @@ test('an early submit is held for ordinary forms and left alone for Fluent Forms
     assert.equal(context.fluent.submissions, 0);
 });
 
+test('two clicks while one token is being solved send the form once', async () => {
+    const context = fixture();
+    context.handlers.submit(submitOf(context.plain));
+    context.handlers.submit(submitOf(context.plain));
+    await settle();
+
+    assert.equal(context.plain.submissions, 1);
+});
+
 test('a held submit is sent with the button that was pressed', async () => {
     const context = fixture();
     const button = { name: 'wp-submit' };
