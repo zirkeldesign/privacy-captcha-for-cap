@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ZirkelDesign\CapCaptcha\Integration;
 
 use Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils;
+use Exception;
 use WP_Error;
 use WP_REST_Request;
 use ZirkelDesign\CapCaptcha\Asset\Enqueuer;
@@ -39,14 +40,27 @@ final class WooCommerce implements Integration
 
     public const LOST_PASSWORD_WIDGET_ID = 'cap-captcha-wc-lost-password';
 
+    /**
+     * Class on an empty span appended to the errors of a checkout that never
+     * sent its token to Cap. The checkout script renews the token after every
+     * other failed checkout, including ones that carry no notice at all.
+     */
+    public const KEPT_TOKEN_MARKER = 'cap-captcha-kept';
+
     private bool $lastCheckoutFailOpen = false;
+
+    private bool $checkoutTokenKept = false;
 
     public function register(): void
     {
         // Checkout.
         add_action('woocommerce_after_checkout_billing_form', [$this, 'renderWidget']);
         add_filter('woocommerce_order_button_html', [$this, 'attachFloatingAttrsToSubmit']);
-        add_action('woocommerce_checkout_process', [$this, 'verifyCheckout']);
+        // Last, so a plugin that removes a field error after us cannot let an
+        // order through whose token was never checked.
+        add_action('woocommerce_after_checkout_validation', [$this, 'verifyCheckout'], PHP_INT_MAX, 2);
+        add_filter('woocommerce_add_error', [$this, 'markKeptTokenError']);
+        add_action('woocommerce_checkout_create_order', [$this, 'refuseUncheckedOrder']);
         add_action('woocommerce_checkout_order_processed', [$this, 'annotateCheckoutFailOpen']);
         add_action('init', [$this, 'registerStoreApiTokenField']);
         add_filter('rest_request_before_callbacks', [$this, 'verifyStoreApiCheckout'], 10, 3);
@@ -79,6 +93,13 @@ final class WooCommerce implements Integration
 
         $mode = $this->settings->getDisplayMode();
         $this->enqueuer->enqueueForMode($mode);
+        wp_enqueue_script(
+            'cap-captcha-woocommerce-checkout',
+            CAP_CAPTCHA_URL.'assets/js/woocommerce-checkout.js',
+            ['jquery'],
+            CAP_CAPTCHA_VERSION,
+            ['in_footer' => true]
+        );
         $this->enqueuer->printGlobals();
 
         // WC hooks woocommerce_order_button_html (below) so the existing
@@ -96,19 +117,33 @@ final class WooCommerce implements Integration
         return Renderer::addFloatingAttrsToSubmit($button, self::WIDGET_ID);
     }
 
-    public function verifyCheckout(): void
+    /**
+     * Runs once WooCommerce has validated the form. Cap tokens are single use,
+     * so a form with errors keeps its token for the corrected submission.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public function verifyCheckout(array $data, WP_Error $errors): void
     {
         if (! $this->settings->isProtected('woocommerce_checkout')) {
             return;
         }
 
+        // "Update totals" (no-JS checkout) validates the form but places no order.
+        if (! empty($data['woocommerce_checkout_update_totals'])
+            || $errors->has_errors()
+            || (function_exists('wc_notice_count') && wc_notice_count('error') > 0)
+        ) {
+            $this->checkoutTokenKept = true;
+
+            return;
+        }
+
         if (! $this->verifier->verifyCurrentRequest('woocommerce_checkout')) {
-            if (function_exists('wc_add_notice')) {
-                wc_add_notice(
-                    esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'),
-                    'error'
-                );
-            }
+            $errors->add(
+                'cap_captcha_failed',
+                esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap')
+            );
 
             return;
         }
@@ -251,6 +286,36 @@ final class WooCommerce implements Integration
         }
 
         return $ids;
+    }
+
+    /**
+     * The token is skipped only because the form had errors, so WooCommerce
+     * should place no order. An error that never became a notice (an empty
+     * message, or a filter that blanked it) would let one through unchecked.
+     *
+     * @throws Exception
+     */
+    public function refuseUncheckedOrder(): void
+    {
+        if (! $this->checkoutTokenKept) {
+            return;
+        }
+
+        throw new Exception(esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'));
+    }
+
+    /**
+     * WooCommerce passes the error HTML to the checkout's `checkout_error`
+     * event. A form rejected by its own validation never reached Cap and keeps
+     * its token; every other failure may have spent it.
+     */
+    public function markKeptTokenError(mixed $message): mixed
+    {
+        if (! $this->checkoutTokenKept || ! is_string($message) || str_contains($message, self::KEPT_TOKEN_MARKER)) {
+            return $message;
+        }
+
+        return $message.'<span class="'.self::KEPT_TOKEN_MARKER.'"></span>';
     }
 
     /**
