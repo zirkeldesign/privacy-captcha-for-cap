@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-11-25
+
 ### Security
 
 - Store API checkouts named their own exemption. On a classic-checkout shop the check was waived when the request's `payment_method` was a gateway with express buttons on (Stripe, WooPayments), a value the sender chooses, and on a shop with the Checkout block the Store API was not checked at all. Both exceptions are gone: every `POST` to `/wc/store/v1/checkout` and `/wc/store/v1/checkout/<id>` now needs a token in `extensions['cap-captcha']['token']` or a pass in the session.

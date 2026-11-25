@@ -19,8 +19,8 @@ msgstr ""
 #: src/Admin/DashboardWidget.php:36
 #: src/Integration/FluentForms.php:62
 #: src/Integration/FluentForms.php:66
-#: src/Integration/GravityForms.php:117
-#: src/Integration/GravityForms.php:155
+#: src/Integration/GravityForms.php:119
+#: src/Integration/GravityForms.php:157
 #: src/Integration/GravityForms/Field.php:18
 #: src/Integration/GravityForms/Field.php:106
 #: src/Settings.php:149
@@ -135,38 +135,40 @@ msgid "CAPTCHA verification failed"
 msgstr "Échec de la vérification CAPTCHA"
 
 #: src/Integration/FluentForms.php:211
-#: src/Integration/GravityForms/Validator.php:75
+#: src/Integration/GravityForms/Validator.php:108
 #: src/Integration/Login.php:123
-#: src/Integration/LostPassword.php:96
-#: src/Integration/Registration.php:86
+#: src/Integration/LostPassword.php:97
+#: src/Integration/Registration.php:113
+#: src/Integration/Registration.php:150
 #: src/Integration/UltimateMember.php:255
 #: src/Integration/UltimateMember.php:280
-#: src/Integration/WooCommerce.php:145
-#: src/Integration/WooCommerce.php:214
-#: src/Integration/WooCommerce.php:304
-#: src/Integration/WooCommerce.php:420
+#: src/Integration/WooCommerce.php:183
+#: src/Integration/WooCommerce.php:215
+#: src/Integration/WooCommerce.php:293
+#: src/Integration/WooCommerce.php:500
+#: src/Integration/WooCommerce.php:609
 #: src/Integration/WpDiscuz.php:130
 msgid "CAPTCHA verification failed. Please try again."
 msgstr "La vérification CAPTCHA a échoué. Veuillez réessayer."
 
-#: src/Integration/GravityForms.php:122
+#: src/Integration/GravityForms.php:124
 msgid "Protection"
 msgstr "Protection"
 
-#: src/Integration/GravityForms.php:125
+#: src/Integration/GravityForms.php:127
 #: src/Settings.php:766
 msgid "Default (use the global setting)"
 msgstr "Par défaut (utiliser le réglage global)"
 
-#: src/Integration/GravityForms.php:126
+#: src/Integration/GravityForms.php:128
 msgid "Always protect this form"
 msgstr "Toujours protéger ce formulaire"
 
-#: src/Integration/GravityForms.php:127
+#: src/Integration/GravityForms.php:129
 msgid "Never protect this form"
 msgstr "Ne jamais protéger ce formulaire"
 
-#: src/Integration/GravityForms.php:129
+#: src/Integration/GravityForms.php:131
 msgid "Adding the \"Privacy CAPTCHA for Cap\" field to the form always protects it regardless of this setting."
 msgstr "L’ajout du champ « Privacy CAPTCHA for Cap » au formulaire le protège toujours, quel que soit ce réglage."
 
@@ -202,7 +204,7 @@ msgstr "Invisible, résolu en arrière-plan (programmatique)"
 msgid "Gravity Forms"
 msgstr "Gravity Forms"
 
-#: src/Integration/GravityForms/Validator.php:114
+#: src/Integration/GravityForms/Validator.php:147
 msgid "Please complete the CAPTCHA before submitting."
 msgstr "Veuillez compléter le CAPTCHA avant d’envoyer le formulaire."
 
@@ -211,13 +213,13 @@ msgstr "Veuillez compléter le CAPTCHA avant d’envoyer le formulaire."
 msgid "Login"
 msgstr "Connexion"
 
-#: src/Integration/LostPassword.php:57
+#: src/Integration/LostPassword.php:58
 #: src/Settings.php:633
 #: src/Settings.php:658
 msgid "Lost password"
 msgstr "Mot de passe perdu"
 
-#: src/Integration/Registration.php:59
+#: src/Integration/Registration.php:86
 #: src/Settings.php:628
 msgid "Registration"
 msgstr "Inscription"
@@ -227,27 +229,28 @@ msgstr "Inscription"
 msgid "Ultimate Member"
 msgstr ""
 
-#: src/Integration/WooCommerce.php:89
+#: src/Integration/WooCommerce.php:120
+#: src/Integration/WooCommerce.php:194
 msgid "WooCommerce checkout"
 msgstr "Commande WooCommerce"
 
-#: src/Integration/WooCommerce.php:168
+#: src/Integration/WooCommerce.php:236
 msgid "Cap token proving the CAPTCHA was solved."
 msgstr "Jeton Cap prouvant que le CAPTCHA a été résolu."
 
-#: src/Integration/WooCommerce.php:338
+#: src/Integration/WooCommerce.php:534
 msgid "Placed during a Cap outage — CAPTCHA verification was skipped (fail-open)."
 msgstr "Commande passée pendant une indisponibilité de Cap : la vérification CAPTCHA a été ignorée (mode tolérant)."
 
-#: src/Integration/WooCommerce.php:347
+#: src/Integration/WooCommerce.php:543
 msgid "WooCommerce login"
 msgstr "Connexion WooCommerce"
 
-#: src/Integration/WooCommerce.php:352
+#: src/Integration/WooCommerce.php:548
 msgid "WooCommerce registration"
 msgstr "Inscription WooCommerce"
 
-#: src/Integration/WooCommerce.php:357
+#: src/Integration/WooCommerce.php:553
 msgid "WooCommerce lost password"
 msgstr "Mot de passe perdu WooCommerce"
 
