@@ -81,7 +81,7 @@ The real-plugin tests cover rendering (inline, floating, two forms and the same 
 
 ## Version updates and debugging
 
-1. Reproduce the failure with the affected WordPress, PHP, and WPForms versions, Lite or Pro. Record the configured display mode and the form's *Protection* setting. Verify the endpoint, site key, secret, integration toggle and protect-all option before diagnosing a missing widget.
+1. Reproduce the failure with the affected WordPress, PHP, and WPForms versions, Lite or Pro. Record the configured display mode and the form's *Protect this form* setting. Verify the endpoint, site key, secret, integration toggle and protect-all option before diagnosing a missing widget.
 2. Inspect the WPForms release for the hooks above and their arguments, `WPForms_Process::process()` (where `wpforms_process` fires relative to the error checks), `ajax_process_errors()`, `Frontend::foot()` and the submit button markup, and the `wpformsBeforeFormSubmit`, `wpformsAjaxSubmitFailed` and `wpformsAjaxSubmitError` events and `wpforms.formSubmit()` in `assets/js/frontend/wpforms.js`.
 3. Run the unit, JavaScript, and real-plugin tests. The CI command must report a test count, not just exit successfully.
 4. In a real browser, exercise inline, floating and programmatic modes on an AJAX and a non-AJAX form: a missing required field (token kept), a corrected submit, a failure after the check (widget renewed), two forms on one page, and per-form *Never* / *Always* with protect-all on and off. The Node tests do not exercise WPForms' JavaScript or a Cap server.
