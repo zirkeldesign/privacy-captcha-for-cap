@@ -130,13 +130,17 @@ function passFixture({ ok = true } = {}) {
             observe() {}
         },
     };
-    const document = { addEventListener: (type, handler) => { listeners[type] = handler; } };
+    const document = { hidden: false, addEventListener: (type, handler) => { listeners[type] = handler; } };
+    // The renewal timer, fired by hand.
+    const timers = [];
+    const setTimeout = (callback, delay) => timers.push({ callback, delay });
+    const clearTimeout = () => {};
 
-    vm.runInNewContext(read('woocommerce-express-pass.js'), { window, document, URLSearchParams, Date });
+    vm.runInNewContext(read('woocommerce-express-pass.js'), { window, document, URLSearchParams, Date, setTimeout, clearTimeout });
 
     const request = (name) => observer({ getEntries: () => [{ name }] });
 
-    return { counter, posts, listeners, request };
+    return { counter, posts, listeners, request, timers, document };
 }
 
 test('pass: nothing is solved until the visitor touches the page', async () => {
@@ -192,4 +196,43 @@ test('pass: a refused token is tried again on the next interaction', async () =>
     await tick();
 
     assert.equal(posts.length, 2);
+});
+
+test('pass: a pass is renewed before it runs out, without the visitor touching the page', async () => {
+    const { posts, listeners, timers } = passFixture();
+    listeners.pointerdown();
+    await tick();
+
+    assert.equal(timers.length, 1);
+    assert.equal(timers[0].delay, 480000);
+
+    timers[0].callback();
+    await tick();
+
+    assert.equal(posts.length, 2);
+    assert.equal(timers.length, 2);
+});
+
+test('pass: a hidden tab does not renew until the visitor comes back', async () => {
+    const { posts, listeners, timers, document } = passFixture();
+    listeners.pointerdown();
+    await tick();
+
+    document.hidden = true;
+    timers[0].callback();
+    await tick();
+    assert.equal(posts.length, 1);
+
+    document.hidden = false;
+    listeners.pointermove();
+    await tick();
+    assert.equal(posts.length, 2);
+});
+
+test('pass: no timer runs for a visitor who never earned a pass', async () => {
+    const { timers, listeners } = passFixture({ ok: false });
+    listeners.pointerdown();
+    await tick();
+
+    assert.equal(timers.length, 0);
 });
