@@ -104,10 +104,13 @@
             if (!isOwned(field)) return;
 
             event.preventDefault();
+            // Without it the form goes out without the name and value of the
+            // button, which wp-login.php (`wp-submit`) and others read.
+            var submitter = event.submitter;
             (attempt || solve()).then(function (result) {
                 field.value = result.token;
                 if (typeof form.requestSubmit === 'function') {
-                    form.requestSubmit();
+                    form.requestSubmit(submitter || undefined);
                 } else {
                     form.submit();
                 }

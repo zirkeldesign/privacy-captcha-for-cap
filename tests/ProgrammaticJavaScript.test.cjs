@@ -46,9 +46,10 @@ function fixture(solves = []) {
         // As in a browser, requestSubmit() fires the submit event again. The
         // cap turns a handler that resubmits an empty field into a failure
         // rather than an endless run.
-        requestSubmit() {
+        requestSubmit(submitter) {
             if (++this.submissions > 5) return;
-            handlers.submit(submitOf(this));
+            this.submitter = submitter;
+            handlers.submit(submitOf(this, submitter));
         }
     }
 
@@ -76,8 +77,8 @@ function fixture(solves = []) {
     return { plain, fluent, wpdiscuz, handlers };
 }
 
-function submitOf(form) {
-    return { target: form, preventDefault() { this.prevented = true; } };
+function submitOf(form, submitter = null) {
+    return { target: form, submitter, preventDefault() { this.prevented = true; } };
 }
 
 async function settle() {
@@ -104,6 +105,15 @@ test('an early submit is held for ordinary forms and left alone for Fluent Forms
     assert.equal(context.plain.submissions, 1);
     assert.equal(untouched.prevented, undefined);
     assert.equal(context.fluent.submissions, 0);
+});
+
+test('a held submit is sent with the button that was pressed', async () => {
+    const context = fixture();
+    const button = { name: 'wp-submit' };
+    context.handlers.submit(submitOf(context.plain, button));
+    await settle();
+
+    assert.equal(context.plain.submitter, button);
 });
 
 test('a failed solve shows the message under ordinary fields only', async () => {

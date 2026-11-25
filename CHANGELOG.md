@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - The status panel kept showing the previous site key for up to five minutes after the settings were saved.
+- In programmatic mode, a form submitted before the token was ready went out without its submit button. On `wp-login.php` the request then lacked `wp-submit`, so the token it carried was not checked.
 - In programmatic mode, a challenge that could not be solved left the submit button dead: the form was sent again and again without ever leaving the page, and nothing was shown. The form now shows "CAPTCHA could not be started. Please try again." under the hidden field, and the next submit solves again. The message carries the `cap-captcha-error` class.
 
 ## [1.8.1] - 2026-11-17
