@@ -191,3 +191,14 @@ body.login .cap-captcha-floating-trigger {
 body.login .cap-captcha-floating-trigger[data-cap-progress="done"] {
     display: none;
 }
+
+/*
+ * WooCommerce Checkout block: the widget sits between the terms and the
+ * "Place order" button. The block spaces its own parts by 24px; without the
+ * same margin the widget touches the button.
+ */
+@layer components {
+    :where(.wc-block-checkout__form) > :where(.cap-captcha--inline) {
+        margin-block-end: 24px;
+    }
+}
