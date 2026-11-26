@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace ZirkelDesign\CapCaptcha\Integration\GravityForms;
 
 use GFFormDisplay;
+use WP_REST_Request;
 use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
 
 final class Validator
 {
     private bool $lastFailOpen = false;
+
+    private bool $restSubmission = false;
 
     public function __construct(private readonly TokenVerifier $verifier) {}
 
@@ -20,6 +23,36 @@ final class Validator
     public function wasLastFailOpen(): bool
     {
         return $this->lastFailOpen;
+    }
+
+    /**
+     * Gravity Forms' REST API v2 lets anyone post to forms/<id>/submissions.
+     * Hooked on rest_request_before_callbacks; never reset, so a nested
+     * dispatch cannot clear it.
+     */
+    public function noteRestRoute(mixed $response, mixed $handler, WP_REST_Request $request): mixed
+    {
+        // Route matching is case-insensitive.
+        $this->restSubmission = $this->restSubmission
+            || preg_match('#^/gf/v\d+/forms/\d+/submissions/?$#i', $request->get_route()) === 1;
+
+        return $response;
+    }
+
+    /**
+     * A submission that came in over one of Gravity Forms' own API routes from
+     * nobody: REST API v2, or Web API v1, which serves its submissions route
+     * (`gravityformsapi/forms/<id>/submissions`) without authentication. The
+     * token travels as the input value `cap-token`.
+     */
+    private function isPublicApiSubmission(): bool
+    {
+        if (is_user_logged_in()) {
+            return false;
+        }
+
+        return $this->restSubmission
+            || (string) get_query_var(defined('GFWEBAPI_ROUTE_VAR') ? \GFWEBAPI_ROUTE_VAR : 'gfapi_route') !== '';
     }
 
     /**
@@ -39,10 +72,10 @@ final class Validator
         $this->lastFailOpen = false;
         $form = $result['form'];
 
-        // GFAPI::submit_form() and the validation-only REST route never post a
-        // token — there is no browser to solve a challenge. Only real web form
-        // submissions are gated.
-        if ($context !== 'form-submit') {
+        // GFAPI::submit_form() called from PHP and the validation-only REST
+        // route never post a token, there is no browser to solve a challenge.
+        // Gated are web form submissions and the public API routes.
+        if ($context !== 'form-submit' && ! ($context === 'api-submit' && $this->isPublicApiSubmission())) {
             return $result;
         }
 

@@ -12,6 +12,7 @@ beforeEach(function (): void {
     cap_reset_remote_stub();
     cap_reset_filters();
     cap_reset_transients();
+    unset($GLOBALS['__cap_logged_in'], $GLOBALS['__cap_query_vars']);
 });
 
 function capFakeSettings(bool $failOpen = false): Settings
@@ -194,10 +195,59 @@ it('skips a Cap field hidden by conditional logic', function (): void {
     expect($validator->validate(capForm($field))['is_valid'])->toBeTrue();
 });
 
-it('ignores submissions that did not come from a web form', function (): void {
+it('ignores GFAPI::submit_form() called from PHP', function (): void {
     $field = capCaptchaField();
     $validator = new Validator(new TokenVerifier(capFakeSettings()));
 
     expect($validator->validate(capForm($field), 'api-submit')['is_valid'])->toBeTrue();
     expect($field->failed_validation)->toBeFalse();
+});
+
+/**
+ * A validator that saw the REST route being dispatched, as GravityForms wires it.
+ */
+function capGfRestValidator(string $route = '/gf/v2/forms/1/submissions'): Validator
+{
+    $validator = new Validator(new TokenVerifier(capFakeSettings()));
+    $validator->noteRestRoute(null, [], new WP_REST_Request('POST', $route));
+
+    return $validator;
+}
+
+// create_item_permissions_check() returns true, and the smallest request the
+// route accepts is the form's own input values.
+it('refuses an anonymous REST submission without a token', function (string $route): void {
+    $_POST = ['input_1' => 'spam'];
+    $field = capCaptchaField();
+
+    expect(capGfRestValidator($route)->validate(capForm($field), 'api-submit')['is_valid'])->toBeFalse()
+        ->and($field->failed_validation)->toBeTrue();
+})->with(['/gf/v2/forms/1/submissions', '/GF/V2/Forms/1/Submissions/']);
+
+it('lets an anonymous REST submission with a valid token through', function (): void {
+    $_POST = ['input_1' => 'hello', 'cap-token' => 'tok'];
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
+
+    expect(capGfRestValidator()->validate(capForm(capCaptchaField()), 'api-submit')['is_valid'])->toBeTrue();
+});
+
+it('refuses an anonymous Web API v1 submission without a token', function (): void {
+    $GLOBALS['__cap_query_vars'] = ['gfapi_route' => 'forms/1/submissions'];
+    $validator = new Validator(new TokenVerifier(capFakeSettings()));
+
+    expect($validator->validate(capForm(capCaptchaField()), 'api-submit')['is_valid'])->toBeFalse();
+});
+
+it('leaves a signed-in REST submission alone', function (): void {
+    $GLOBALS['__cap_logged_in'] = true;
+
+    expect(capGfRestValidator()->validate(capForm(capCaptchaField()), 'api-submit')['is_valid'])->toBeTrue();
+});
+
+it('leaves the validation-only REST route alone', function (): void {
+    expect(capGfRestValidator()->validate(capForm(capCaptchaField()), 'api-validate')['is_valid'])->toBeTrue();
+});
+
+it('leaves GFAPI::submit_form() called inside another REST route alone', function (): void {
+    expect(capGfRestValidator('/my-app/v1/contact')->validate(capForm(capCaptchaField()), 'api-submit')['is_valid'])->toBeTrue();
 });

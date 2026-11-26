@@ -57,8 +57,10 @@ final class GravityForms implements Integration
 
         $this->validator = new Validator($this->verifier);
         // Two args: GF passes the submission context (form-submit / api-submit
-        // / api-validate) and the validator only gates real web submissions.
+        // / api-validate). The validator gates web submissions and the API
+        // routes anyone can post to.
         add_filter('gform_validation', [$this->validator, 'validate'], 10, 2);
+        add_filter('rest_request_before_callbacks', [$this->validator, 'noteRestRoute'], 10, 3);
         add_filter('gform_entry_post_save', [$this, 'annotateFailOpen'], 10, 2);
 
         add_action('gform_enqueue_scripts', [$this, 'enqueueWidget'], 10, 2);

@@ -39,6 +39,12 @@ final class Registration implements Integration
         add_action('login_footer', [Login::class, 'printScriptModulesOnLogin']);
         add_filter('registration_errors', [$this, 'verifyRegistration']);
         add_action('user_register', [$this, 'annotateFailOpen']);
+
+        // A multisite network registers through wp-signup.php, which never
+        // applies registration_errors. Both of its forms validate the account.
+        add_action('signup_extra_fields', [$this, 'renderSignupWidget']);
+        add_action('signup_blogform', [$this, 'renderSignupWidget']);
+        add_filter('wpmu_validate_user_signup', [$this, 'verifySignup']);
     }
 
     public function enqueueAssets(): void
@@ -50,6 +56,27 @@ final class Registration implements Integration
     }
 
     public function renderWidget(): void
+    {
+        $this->printWidget('cap-captcha-register');
+    }
+
+    public function renderSignupWidget(): void
+    {
+        // A signed-in user adding another site registers no account, and
+        // wpmu_validate_user_signup never runs for that form.
+        if (is_user_logged_in()) {
+            return;
+        }
+
+        // wp-signup.php is a front-end page: wp_footer prints what is enqueued here.
+        if ($this->settings->isProtected('registration') && $this->settings->isConfigured()) {
+            $this->enqueuer->enqueueForMode($this->settings->getDisplayMode());
+        }
+
+        $this->printWidget('cap-captcha-signup');
+    }
+
+    private function printWidget(string $widgetId): void
     {
         if (! $this->settings->isProtected('registration')) {
             return;
@@ -65,7 +92,7 @@ final class Registration implements Integration
         $this->enqueuer->printGlobals();
 
         // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Renderer returns a <cap-widget> custom element with dynamic data-cap-i18n-* attributes wp_kses cannot allowlist; every interpolated value is escaped via esc_attr()/esc_html() inside Renderer.
-        echo $this->renderer->renderForMode('cap-captcha-register', $mode);
+        echo $this->renderer->renderForMode($widgetId, $mode);
     }
 
     public function verifyRegistration(WP_Error $errors): WP_Error
@@ -92,6 +119,38 @@ final class Registration implements Integration
         $this->lastFailOpen = $this->verifier->wasLastFailOpen();
 
         return $errors;
+    }
+
+    /**
+     * wp-signup.php validates the account on each of its two steps and stores
+     * the signup when the result carries no error. The same filter runs for
+     * users added in wp-admin and over REST, which show no widget.
+     *
+     * @param  array<string, mixed>  $result
+     * @return array<string, mixed>
+     */
+    public function verifySignup(array $result): array
+    {
+        if (! $this->settings->isProtected('registration') || ! RequestContext::isSignupScreenPost()) {
+            return $result;
+        }
+
+        // shortcut: no fail-open mark, the account is only created on activation in a later request; carry it in the signup meta if that review is needed.
+        if ($this->verifier->verifyCurrentRequest('registration')) {
+            return $result;
+        }
+
+        if (! ($result['errors'] ?? null) instanceof WP_Error) {
+            $result['errors'] = new WP_Error;
+        }
+
+        // 'generic' is the one code the signup form prints without a field.
+        $result['errors']->add(
+            'generic',
+            esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap')
+        );
+
+        return $result;
     }
 
     /**

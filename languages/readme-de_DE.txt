@@ -28,17 +28,16 @@ Infrastruktur.
 * **Erstklassiges Gravity-Forms-Feld** – ziehe ein „Privacy CAPTCHA for Cap“
   aus der Gruppe „Erweiterte Felder“ in jedes Formular. Anzeigemodus pro Feld
   überschreibbar.
+  Einträge, die ohne Anmeldung über die REST-API oder die Web-API von Gravity Forms an ein geschütztes Formular gehen, brauchen ebenfalls ein Token, als Eingabewert `cap-token`.
 * **Contact Form 7** – schützt automatisch jedes CF7-Formular.
 * **Fluent Forms** – füge jedem regulären Formular, das geschützt werden soll, ein „Privacy CAPTCHA for Cap“-Feld hinzu.
 * **wpDiscuz**: schützt das Kommentarformular von wpDiscuz und jedes Antwortformular. Kommentare über die Inline-Feedback-Formulare von wpDiscuz (Feedback-Shortcode) werden nicht geprüft.
 * **Ultimate Member**: schützt die Formulare von Ultimate Member für Anmeldung, Registrierung und Passwort-Zurücksetzen.
 * **WordPress-Kommentare, wp-login, Registrierung, Passwort vergessen**: über eine zentrale
-  Einstellungsseite aktivierbar.
+  Einstellungsseite aktivierbar. In einem Multisite-Netzwerk schützt der Schalter „Registrierung“ die Signup-Seite (`wp-signup.php`).
 * **WooCommerce** – Kasse sowie die Formulare „Mein Konto“ für Anmeldung,
   Registrierung und Passwort vergessen, jeweils einzeln schaltbar. Wird nur
-  geladen, wenn WooCommerce aktiv ist. Der Kassenschutz gilt für die klassische Kasse; der Kassen-Block und
-  Bestellungen über Express-Zahlknöpfe der Store API zeigen noch kein CAPTCHA
-  und bleiben ungeprüft.
+  geladen, wenn WooCommerce aktiv ist. Der Kassenschutz gilt für die klassische Kasse, den Kassen-Block, die Zahlung einer bereits bestehenden Bestellung (Seite „Bestellung bezahlen“) und Bestellungen über Express-Zahlknöpfe wie Apple Pay und Google Pay. Im Kassen-Block löst der schwebende Modus im Hintergrund. Express-Zahlknöpfe sichert eine Prüfung im Hintergrund ab, die ein Session-Cookie von WooCommerce setzt; mit einem Site-Key, der einen Klick aufs Widget verlangt, können sie die Prüfung nicht bestehen und ihre Bestellungen werden abgelehnt.
 * **Dashboard-Widget** – Cap-Server-Statistiken auf einen Blick (Challenges,
   bestätigt, fehlgeschlagen, stündliches Diagramm) direkt im WordPress-Dashboard.
 * **Granulare Schalter pro Oberfläche** und **Entwickler-Filter**
