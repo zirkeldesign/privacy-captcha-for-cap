@@ -4,7 +4,7 @@ Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.9.0
+Stable tag: 1.9.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -20,14 +20,14 @@ Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof
 
 = Features =
 
-* **First-class Gravity Forms field** — drag a "Privacy CAPTCHA for Cap" into any form from the Advanced Fields group. Per-field display-mode override.
+* **First-class Gravity Forms field** — drag a "Privacy CAPTCHA for Cap" into any form from the Advanced Fields group. Per-field display-mode override. Entries sent to a protected form through the Gravity Forms REST API or Web API without signing in need a token too, as the input value `cap-token`.
 * **Contact Form 7** integration — protects every CF7 form automatically.
 * **Fluent Forms** integration — add a "Privacy CAPTCHA for Cap" field to each regular form you want to protect.
 * **wpDiscuz** integration: protects the wpDiscuz comment form and every reply form. Comments sent through wpDiscuz's inline feedback forms (the feedback shortcode) are not checked.
 * **Ultimate Member** integration: protects the Ultimate Member login, registration and password reset forms.
 * **WPForms** integration: protects every WPForms form, or only those set to "Always" in the form builder. Each form has its own Default / Always / Never setting.
-* **WordPress comments, wp-login, registration, lost password** integrations, togglable from one settings page.
-* **WooCommerce** integration — checkout plus the My Account login, registration, and lost-password forms, each its own toggle. Only loads when WooCommerce is active. Checkout protection covers the classic checkout; the Checkout block and orders through Store API express buttons show no CAPTCHA yet and stay unchecked.
+* **WordPress comments, wp-login, registration, lost password** integrations, togglable from one settings page. On a multisite network the Registration switch protects the signup page (`wp-signup.php`).
+* **WooCommerce** integration — checkout plus the My Account login, registration, and lost-password forms, each its own toggle. Only loads when WooCommerce is active. Checkout protection covers the classic checkout, the Checkout block, the payment of an order that already exists (the order-pay page) and orders through express buttons such as Apple Pay and Google Pay. In the Checkout block the floating mode solves in the background. Express buttons are covered by a check in the background that stores a WooCommerce session cookie; with a site key that requires a press on the widget they cannot pass it and their orders are refused.
 * **Dashboard widget** — at-a-glance Cap server stats (challenges, verified, failed, hourly chart) right on the WordPress dashboard.
 * **Granular per-surface toggles** and **developer filters** (`cap_captcha_protect`) to enable/disable protection on any form, even conditionally.
 * **Three display modes**: inline widget, floating popover, or fully programmatic (auto-solves silently).
@@ -143,6 +143,13 @@ Please open an issue on [GitHub](https://github.com/zirkeldesign/privacy-captcha
 4. Each form you can protect has its own switch. Integrations for plugins that are not active are shown but cannot be switched on.
 
 == Changelog ==
+
+= 1.9.1 =
+* Security: several ways to send a protected form or order without solving the CAPTCHA are closed. Affected were shops with checkout protection on (orders through the Checkout block, through express buttons such as Apple Pay and Google Pay, and payments for an order that already exists), multisite networks with the Registration switch on, and sites that protect a Gravity Forms form while the Gravity Forms REST API or Web API is switched on. Sites that use none of these were not affected. Found in a review of 1.9.0.
+* Added: the CAPTCHA now shows in the WooCommerce Checkout block and on the page where a customer pays for an existing order.
+* Added: the CAPTCHA now shows on the signup page of a multisite network.
+* Changed: orders through express payment buttons are checked in the background. Visitors get a WooCommerce session cookie for it. With a site key that requires a press on the widget, express orders are refused.
+* Changed: entries sent to a protected Gravity Forms form through its API without signing in need a CAPTCHA token. If your own app or website sends entries this way, see "Gravity Forms from a front end of your own" in the README on GitHub, or set the form to "Never protect this form".
 
 = 1.9.0 =
 * Security: the WooCommerce My Account registration and lost-password forms could be sent without solving the CAPTCHA. Shops that protect these two forms should update. The checkout, login and all other forms were not affected.

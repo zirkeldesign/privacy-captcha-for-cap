@@ -65,13 +65,37 @@ Each surface is an independent on/off toggle in **Settings → Privacy CAPTCHA f
 Beyond the on/off surface toggle, form placement controls let you keep a CAPTCHA off legally required or accessibility-sensitive forms:
 
 - **Contact Form 7** — *Automatic* protects every form (add the `[cap_captcha]` form-tag for custom placement, or `cap_captcha: off` in a form's Additional Settings to skip it); *Manual* protects only forms containing the `[cap_captcha]` tag. Verification is scoped to the same set, so an unprotected form is never blocked.
-- **Gravity Forms** — add the "Privacy CAPTCHA for Cap" field for precise placement, and/or enable "protect all Gravity Forms" globally. Each form has a **Default / Always / Never** override in its settings; an auto-protected form without the field gets a synthetic `cap_captcha` field injected at runtime.
+- **Gravity Forms** — add the "Privacy CAPTCHA for Cap" field for precise placement, and/or enable "protect all Gravity Forms" globally. Each form has a **Default / Always / Never** override in its settings; an auto-protected form without the field gets a synthetic `cap_captcha` field injected at runtime. A submission that reaches a protected form through `POST /wp-json/gf/v2/forms/<id>/submissions` or the Web API v1 submissions route from nobody signed in needs a token as the input value `cap-token`; `GFAPI::submit_form()` called from PHP, signed-in API calls and the validation-only route are left alone.
 - **Fluent Forms** — enable the integration, then add one "Privacy CAPTCHA for Cap" field from Advanced Fields to each regular form you want to protect. Forms without the field are not protected. On multi-step forms place the field on the final step, and do not hide it with conditional logic. Conversational forms are not supported. Failed AJAX submissions reset the widget or start a new programmatic challenge.
 - **wpDiscuz**: enable the integration; the main comment form and every reply form are protected. wpDiscuz posts comments by AJAX, so the widget is reset (or a new programmatic token solved) after each post. Direct posts to `wp-comments-post.php` on posts that use a wpDiscuz form are checked as well. wpDiscuz' inline feedback forms are not covered.
 - **Ultimate Member**: enable the integration; every Ultimate Member login, registration and password reset form is protected, with one switch for all three. In floating mode the form's own submit button opens the check, except on the password reset form, whose button is printed by the template and keeps a separate one. Profile and account forms are not covered. The core Login and Registration switches do not apply to Ultimate Member forms.
 - **WPForms**: enable the integration, then either turn on "Automatically protect every WPForms form" in its options or set a form to *Always*. Each form has a **Default / Always / Never** select in the form builder under Settings → Spam Protection and Security; *Default* follows the global option. The widget renders above the submit button, and in floating mode that button opens the check. After a failed AJAX submit the widget is reset (or a new programmatic token solved), except when WPForms refused the form before the token was checked. AMP pages are not covered, and WPForms Pro and its add-ons are untested.
 
 For maintenance, hook contracts, test setup, and version updates, see the [Fluent Forms integration guide](docs/fluent-forms-integration.md) and the [WPForms integration guide](docs/wpforms-integration.md).
+
+### Gravity Forms from a front end of your own
+
+Gravity Forms takes submissions from anyone on `POST /wp-json/gf/v2/forms/<id>/submissions` once its REST API is on, and on the older Web API route `gravityformsapi/forms/<id>/submissions`. A submission to a protected form that arrives there from nobody signed in needs a Cap token, sent as the input value `cap-token` next to the form's own values. Each token buys one submission.
+
+In a browser, load the widget from the `cap-widget` package yourself, because Gravity Forms renders nothing there, and point it at your Cap server and site key:
+
+```html
+<cap-widget data-cap-api-endpoint="https://cap.example.com/<site-key>/"></cap-widget>
+```
+
+```js
+document.querySelector('cap-widget').addEventListener('solve', async (event) => {
+    await fetch('/wp-json/gf/v2/forms/3/submissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input_1: 'Hello', 'cap-token': event.detail.token }),
+    });
+});
+```
+
+Without a visible widget, `new Cap({ apiEndpoint }).solve()` resolves to an object with the same `token`. After a submission that failed, solve again: the token is spent.
+
+A server that submits for itself has no browser to solve with and should sign in instead. The REST API v2 accepts a Gravity Forms API key (Basic authentication over HTTPS, OAuth 1.0a otherwise), and a signed-in call needs no token. The Web API v1 submissions route checks no authentication at all, so there the choice is a token, the v2 route, or setting the form to "Never" in its settings. `GFAPI::submit_form()` called from PHP is never checked.
 
 ## Styling
 

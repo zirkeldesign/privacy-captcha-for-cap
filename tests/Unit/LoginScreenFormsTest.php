@@ -118,3 +118,36 @@ it('skips a registration made outside wp-login.php', function (): void {
 
     expect(capLoginScreenRegistration()->verifyRegistration(new WP_Error)->has_errors())->toBeFalse();
 });
+
+// wp-signup.php writes the signup for any POST whose validation result carries
+// no error; `stage` only picks which of its two steps runs.
+it('refuses a multisite signup without a token', function (): void {
+    capPostTo('wp-signup.php');
+    $_POST = ['stage' => 'validate-user-signup', 'signup_for' => 'user', 'user_name' => 'bot', 'user_email' => 'bot@example.com'];
+
+    $result = capLoginScreenRegistration()->verifySignup(['user_name' => 'bot', 'errors' => new WP_Error]);
+
+    expect($result['errors']->get_error_codes())->toBe(['generic']);
+});
+
+it('refuses the site step of a multisite signup without a token', function (): void {
+    capPostTo('wp-signup.php');
+    $_POST = ['stage' => 'validate-blog-signup', 'user_name' => 'bot', 'user_email' => 'bot@example.com', 'blogname' => 'spam'];
+
+    expect(capLoginScreenRegistration()->verifySignup(['errors' => new WP_Error])['errors']->has_errors())->toBeTrue();
+});
+
+it('lets a multisite signup with a valid token through', function (): void {
+    capPostTo('wp-signup.php');
+    $_POST = ['stage' => 'validate-user-signup', 'signup_for' => 'user', 'cap-token' => 'tok'];
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
+
+    expect(capLoginScreenRegistration()->verifySignup(['errors' => new WP_Error])['errors']->has_errors())->toBeFalse();
+});
+
+it('skips a user validated outside wp-signup.php', function (): void {
+    // wp-admin/user-new.php and the REST users route run the same filter.
+    capPostTo('user-new.php');
+
+    expect(capLoginScreenRegistration()->verifySignup(['errors' => new WP_Error])['errors']->has_errors())->toBeFalse();
+});

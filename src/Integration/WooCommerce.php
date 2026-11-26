@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace ZirkelDesign\CapCaptcha\Integration;
 
-use Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils;
 use Exception;
 use WP_Error;
 use WP_REST_Request;
@@ -41,6 +40,20 @@ final class WooCommerce implements Integration
 
     public const LOST_PASSWORD_WIDGET_ID = 'cap-captcha-wc-lost-password';
 
+    public const ORDER_PAY_WIDGET_ID = 'cap-captcha-order-pay';
+
+    public const BLOCK_WIDGET_ID = 'cap-captcha-checkout-block';
+
+    private const PASS_SESSION_KEY = 'cap_captcha_pass';
+
+    private const PASS_TRANSIENT = 'cap_captcha_pass_';
+
+    /**
+     * Seconds a pass stays valid: long enough for a wallet sheet, short
+     * enough that a solved challenge cannot be banked.
+     */
+    private const PASS_TTL = 600;
+
     /**
      * Class on an empty span appended to the errors of a checkout that never
      * sent its token to Cap. The checkout script renews the token after every
@@ -66,6 +79,21 @@ final class WooCommerce implements Integration
         add_action('init', [$this, 'registerStoreApiTokenField']);
         add_filter('rest_request_before_callbacks', [$this, 'verifyStoreApiCheckout'], 10, 3);
         add_action('woocommerce_store_api_checkout_order_processed', [$this, 'annotateCheckoutFailOpen']);
+
+        // Checkout block: the widget sits above "Place order", its token
+        // travels in the request's `extensions`.
+        add_filter('render_block_woocommerce/checkout-actions-block', [$this, 'renderBlockWidget']);
+
+        // Express buttons build their Store API request in the gateway's own
+        // script, which carries no token. A solved challenge is banked as a
+        // one-time pass in the session instead.
+        add_action('wp_enqueue_scripts', [$this, 'enqueueExpressPass']);
+        add_action('wc_ajax_cap_captcha_pass', [$this, 'issuePass']);
+
+        // Paying for an order that exists: each attempt is a payment of its
+        // own, whoever placed the order.
+        add_action('woocommerce_pay_order_before_submit', [$this, 'renderOrderPayWidget']);
+        add_action('woocommerce_before_pay_action', [$this, 'verifyOrderPay']);
 
         // My Account — login.
         add_action('woocommerce_login_form', [$this, 'renderLoginWidget']);
@@ -161,6 +189,36 @@ final class WooCommerce implements Integration
         $this->lastCheckoutFailOpen = $this->verifier->wasLastFailOpen();
     }
 
+    public function renderOrderPayWidget(): void
+    {
+        $this->renderAccountWidget('woocommerce_checkout', self::ORDER_PAY_WIDGET_ID, __('WooCommerce checkout', 'privacy-captcha-for-cap'));
+    }
+
+    /**
+     * WC_Form_Handler::pay_action() goes on to the gateway's process_payment()
+     * unless an error notice exists by then. A notice can be blanked by a
+     * filter, so a refused payment ends the request here.
+     */
+    public function verifyOrderPay(mixed $order): void
+    {
+        if (! $this->settings->isProtected('woocommerce_checkout') || $this->verifier->verifyCurrentRequest('woocommerce_checkout')) {
+            return;
+        }
+
+        // A visitor without a session cookie would lose the notice on the redirect.
+        $session = function_exists('WC') ? (WC()->session ?? null) : null;
+        if (is_object($session) && method_exists($session, 'has_session') && ! $session->has_session()) {
+            $session->set_customer_session_cookie(true);
+        }
+
+        if (function_exists('wc_add_notice')) {
+            wc_add_notice(esc_html__('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'), 'error');
+        }
+
+        wp_safe_redirect(is_object($order) && method_exists($order, 'get_checkout_payment_url') ? $order->get_checkout_payment_url() : home_url('/'));
+        exit;
+    }
+
     /**
      * The Store API drops `extensions` data of a namespace without a schema.
      */
@@ -184,10 +242,10 @@ final class WooCommerce implements Integration
     }
 
     /**
-     * The block checkout places its order through the Store API, where
-     * woocommerce_checkout_process never fires. While checkout protection is on,
-     * such an order needs a token in `extensions['cap-captcha']['token']`; the
-     * block checkout renders no widget yet, so it is refused.
+     * The block checkout and the express buttons of some gateways place their
+     * orders through the Store API, where woocommerce_checkout_process never
+     * fires. While checkout protection is on, such an order needs a token in
+     * `extensions['cap-captcha']['token']` or a pass in the session.
      *
      * @param  array<string, mixed>  $handler
      */
@@ -198,8 +256,9 @@ final class WooCommerce implements Integration
         }
 
         // Route matching is case-insensitive, and the Store API also answers
-        // under the unversioned `wc/store` namespace.
-        if (preg_match('#^/wc/store(?:/v\d+)?/checkout/?$#i', $request->get_route()) !== 1) {
+        // under the unversioned `wc/store` namespace. `checkout/<id>` pays for
+        // an order that exists.
+        if (preg_match('#^/wc/store(?:/v\d+)?/checkout(?:/\d+)?/?$#i', $request->get_route()) !== 1) {
             return $response;
         }
 
@@ -211,6 +270,16 @@ final class WooCommerce implements Integration
         $token = is_array($extensions) && is_string($extensions['cap-captcha']['token'] ?? null)
             ? sanitize_text_field($extensions['cap-captcha']['token'])
             : '';
+
+        if ($token === '' && $this->settings->isConfigured()) {
+            $pass = $this->redeemPass();
+
+            if ($pass !== null) {
+                $this->lastCheckoutFailOpen = $pass;
+
+                return $response;
+            }
+        }
 
         $verified = $this->verifier->verifyToken($token, 'woocommerce_checkout');
 
@@ -231,42 +300,159 @@ final class WooCommerce implements Integration
         return $response;
     }
 
-    /**
-     * The block checkout and the express buttons of some gateways place their
-     * orders through the Store API but render no widget, so enforcing there
-     * would refuse every such order. Until the block checkout has a widget,
-     * the Store API is checked except on block-checkout shops and for orders
-     * paid with a gateway whose express buttons are on; an order naming that
-     * gateway still has to pass the gateway's own payment.
-     */
     private function protectsStoreApiCheckout(WP_REST_Request $request): bool
     {
-        $paymentMethod = $request->get_param('payment_method');
-        $exempt = $this->usesCheckoutBlock()
-            || (is_string($paymentMethod) && in_array($paymentMethod, $this->storeApiExpressGateways(), true));
-
         /**
-         * Whether this Store API checkout must carry a Cap token.
+         * Whether this Store API checkout must carry a Cap token or redeem a
+         * pass. For shops whose own front end orders through the Store API.
          *
-         * @param  bool  $protect  False on block-checkout shops and for express-button gateways.
+         * @param  bool  $protect
          * @param  WP_REST_Request  $request
          */
-        return (bool) apply_filters('cap_captcha_protect_store_api_checkout', ! $exempt, $request);
+        return (bool) apply_filters('cap_captcha_protect_store_api_checkout', true, $request);
     }
 
-    private function usesCheckoutBlock(): bool
+    /**
+     * The widget for the Checkout block. WooCommerce keeps markup it finds
+     * next to the inner block when it builds the form in the browser.
+     */
+    public function renderBlockWidget(mixed $content): mixed
     {
-        if (class_exists(CartCheckoutUtils::class)) {
-            return CartCheckoutUtils::is_checkout_block_default();
+        if (! is_string($content) || ! $this->settings->isProtected('woocommerce_checkout') || ! $this->settings->isConfigured()) {
+            return $content;
         }
 
-        return function_exists('wc_get_page_id') && has_block('woocommerce/checkout', wc_get_page_id('checkout'));
+        $inline = $this->settings->getDisplayMode() === Settings::MODE_INLINE;
+
+        // The button belongs to the block's script, so nothing can be attached
+        // to it: floating solves in the background here, like programmatic.
+        $this->enqueuer->enqueueCore();
+        $this->enqueueStoreScript('cap-captcha-checkout-block', 'woocommerce-checkout-block.js', ['wp-data'], 'CAP_CAPTCHA_CHECKOUT_BLOCK', [
+            'apiEndpoint' => $this->settings->getWidgetEndpoint(),
+            'widgetId' => $inline ? self::BLOCK_WIDGET_ID : '',
+        ]);
+
+        return $inline ? $this->renderer->renderForMode(self::BLOCK_WIDGET_ID, Settings::MODE_INLINE).$content : $content;
+    }
+
+    /**
+     * Loads the script that banks a pass on pages where a gateway shows
+     * express buttons: product, cart, classic checkout and order-pay.
+     */
+    public function enqueueExpressPass(): void
+    {
+        if (! $this->settings->isProtected('woocommerce_checkout') || ! $this->settings->isConfigured()) {
+            return;
+        }
+
+        // A site key that wants a press on the widget rejects a background
+        // solve, so no pass can be earned and express orders are refused.
+        if ($this->settings->isInlineForced() || $this->storeApiExpressGateways() === []) {
+            return;
+        }
+
+        $onShopPage = (function_exists('is_product') && is_product())
+            || (function_exists('is_cart') && is_cart())
+            || (function_exists('is_checkout') && is_checkout());
+        $payingOrder = function_exists('is_wc_endpoint_url') && is_wc_endpoint_url('order-pay');
+
+        // The Checkout block sends the widget's token with its express orders.
+        if (! $onShopPage || (! $payingOrder && function_exists('is_checkout') && is_checkout() && has_block('woocommerce/checkout'))) {
+            return;
+        }
+
+        $this->enqueuer->enqueueCore();
+        $this->enqueueStoreScript('cap-captcha-express-pass', 'woocommerce-express-pass.js', [], 'CAP_CAPTCHA_EXPRESS_PASS', [
+            'apiEndpoint' => $this->settings->getWidgetEndpoint(),
+            'url' => class_exists('WC_AJAX') ? \WC_AJAX::get_endpoint('cap_captcha_pass') : '',
+            'ttl' => self::PASS_TTL,
+        ]);
+    }
+
+    /**
+     * @param  array<int, string>  $deps
+     * @param  array<string, mixed>  $config
+     */
+    private function enqueueStoreScript(string $handle, string $file, array $deps, string $global, array $config): void
+    {
+        wp_enqueue_script($handle, CAP_CAPTCHA_URL.'assets/js/'.$file, $deps, CAP_CAPTCHA_VERSION, ['in_footer' => true]);
+
+        // Not printGlobals(): nothing may be echoed while a block renders.
+        $lines = '';
+        foreach ($this->enqueuer->globals() + [$global => $config] as $name => $value) {
+            $lines .= sprintf('window.%s=%s;', $name, wp_json_encode($value));
+        }
+
+        wp_add_inline_script($handle, $lines, 'before');
+    }
+
+    /**
+     * Trades a solved challenge for a pass: one Store API checkout attempt by
+     * this session. The pass is a transient under a random id that only the
+     * session knows, so no field of the later request can claim it.
+     */
+    public function issuePass(): void
+    {
+        $session = function_exists('WC') ? (WC()->session ?? null) : null;
+
+        if (! is_object($session)
+            || ! $this->settings->isProtected('woocommerce_checkout')
+            || ! $this->settings->isConfigured()
+            || ! $this->verifier->verifyCurrentRequest('woocommerce_checkout')
+        ) {
+            wp_send_json_error(null, 400);
+        }
+
+        if (method_exists($session, 'has_session') && ! $session->has_session()) {
+            $session->set_customer_session_cookie(true);
+        }
+
+        $id = wp_generate_password(32, false);
+        set_transient(self::PASS_TRANSIENT.$id, ['fail_open' => $this->verifier->wasLastFailOpen()], self::PASS_TTL);
+        $session->set(self::PASS_SESSION_KEY, $id);
+
+        wp_send_json_success();
+    }
+
+    /**
+     * Spends the session's pass. Null when there is none, otherwise whether
+     * it was earned through fail-open.
+     */
+    private function redeemPass(): ?bool
+    {
+        if (! function_exists('WC')) {
+            return null;
+        }
+
+        // The Store API loads the session only inside its route callback.
+        if (! is_object(WC()->session ?? null) && method_exists(WC(), 'initialize_session')) {
+            WC()->initialize_session();
+        }
+
+        $session = WC()->session ?? null;
+        $id = is_object($session) ? $session->get(self::PASS_SESSION_KEY) : null;
+
+        if (! is_string($id) || $id === '') {
+            return null;
+        }
+
+        $session->set(self::PASS_SESSION_KEY, null);
+        $pass = get_transient(self::PASS_TRANSIENT.$id);
+
+        // Of two requests that arrive together, only the one whose delete
+        // removed the record holds the pass.
+        if (! is_array($pass) || ! delete_transient(self::PASS_TRANSIENT.$id)) {
+            return null;
+        }
+
+        return ! empty($pass['fail_open']);
     }
 
     /**
      * Ids of enabled gateways whose express buttons (Apple Pay, Google Pay,
-     * Link) order through the Store API checkout, also on the classic
-     * checkout: Stripe and WooPayments.
+     * Link) order through the Store API checkout, also on classic pages:
+     * Stripe and WooPayments. Decides where the pass script loads, never
+     * whether a request is checked.
      *
      * @return array<int, string>
      */

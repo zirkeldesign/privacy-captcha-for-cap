@@ -17,11 +17,11 @@ msgstr ""
 #: src/Admin/DashboardWidget.php:36
 #: src/Integration/FluentForms.php:62
 #: src/Integration/FluentForms.php:66
-#: src/Integration/GravityForms.php:117
-#: src/Integration/GravityForms.php:155
+#: src/Integration/GravityForms.php:119
+#: src/Integration/GravityForms.php:157
 #: src/Integration/GravityForms/Field.php:18
 #: src/Integration/GravityForms/Field.php:106
-#: src/Integration/WpForms.php:183
+#: src/Integration/WpForms.php:186
 #: src/Settings.php:150
 #: src/Settings.php:151
 #: src/Settings.php:305
@@ -63,7 +63,7 @@ msgstr "Einstellungen & vollständiger Status →"
 #: src/Asset/Enqueuer.php:175
 #: src/Integration/FluentForms.php:124
 #: src/Integration/WpDiscuz.php:85
-#: src/Integration/WpForms.php:268
+#: src/Integration/WpForms.php:328
 msgid "CAPTCHA could not be started. Please try again."
 msgstr "CAPTCHA konnte nicht gestartet werden. Bitte versuche es erneut."
 
@@ -135,42 +135,44 @@ msgid "CAPTCHA verification failed"
 msgstr "CAPTCHA-Prüfung fehlgeschlagen"
 
 #: src/Integration/FluentForms.php:211
-#: src/Integration/GravityForms/Validator.php:75
+#: src/Integration/GravityForms/Validator.php:108
 #: src/Integration/Login.php:123
 #: src/Integration/LostPassword.php:97
-#: src/Integration/Registration.php:86
+#: src/Integration/Registration.php:113
+#: src/Integration/Registration.php:150
 #: src/Integration/UltimateMember.php:255
 #: src/Integration/UltimateMember.php:280
-#: src/Integration/WooCommerce.php:155
-#: src/Integration/WooCommerce.php:224
-#: src/Integration/WooCommerce.php:314
-#: src/Integration/WooCommerce.php:423
+#: src/Integration/WooCommerce.php:183
+#: src/Integration/WooCommerce.php:215
+#: src/Integration/WooCommerce.php:293
+#: src/Integration/WooCommerce.php:500
+#: src/Integration/WooCommerce.php:609
 #: src/Integration/WpDiscuz.php:130
-#: src/Integration/WpForms.php:211
+#: src/Integration/WpForms.php:221
 msgid "CAPTCHA verification failed. Please try again."
 msgstr "CAPTCHA-Prüfung fehlgeschlagen. Bitte versuche es erneut."
 
-#: src/Integration/GravityForms.php:122
+#: src/Integration/GravityForms.php:124
 msgid "Protection"
 msgstr "Schutz"
 
-#: src/Integration/GravityForms.php:125
-#: src/Integration/WpForms.php:171
+#: src/Integration/GravityForms.php:127
+#: src/Integration/WpForms.php:174
 #: src/Settings.php:776
 msgid "Default (use the global setting)"
 msgstr "Standard (globale Einstellung verwenden)"
 
-#: src/Integration/GravityForms.php:126
-#: src/Integration/WpForms.php:172
+#: src/Integration/GravityForms.php:128
+#: src/Integration/WpForms.php:175
 msgid "Always protect this form"
 msgstr "Dieses Formular immer schützen"
 
-#: src/Integration/GravityForms.php:127
-#: src/Integration/WpForms.php:173
+#: src/Integration/GravityForms.php:129
+#: src/Integration/WpForms.php:176
 msgid "Never protect this form"
 msgstr "Dieses Formular nie schützen"
 
-#: src/Integration/GravityForms.php:129
+#: src/Integration/GravityForms.php:131
 msgid "Adding the \"Privacy CAPTCHA for Cap\" field to the form always protects it regardless of this setting."
 msgstr "Wird das Feld „Privacy CAPTCHA for Cap“ zum Formular hinzugefügt, ist es unabhängig von dieser Einstellung immer geschützt."
 
@@ -206,7 +208,7 @@ msgstr "Unsichtbar, im Hintergrund gelöst (programmatisch)"
 msgid "Gravity Forms"
 msgstr "Gravity Forms"
 
-#: src/Integration/GravityForms/Validator.php:114
+#: src/Integration/GravityForms/Validator.php:147
 msgid "Please complete the CAPTCHA before submitting."
 msgstr "Bitte löse das CAPTCHA, bevor du das Formular absendest."
 
@@ -221,7 +223,7 @@ msgstr "Anmeldung"
 msgid "Lost password"
 msgstr "Passwort vergessen"
 
-#: src/Integration/Registration.php:59
+#: src/Integration/Registration.php:86
 #: src/Settings.php:638
 msgid "Registration"
 msgstr "Registrierung"
@@ -231,35 +233,36 @@ msgstr "Registrierung"
 msgid "Ultimate Member"
 msgstr ""
 
-#: src/Integration/WooCommerce.php:92
+#: src/Integration/WooCommerce.php:120
+#: src/Integration/WooCommerce.php:194
 msgid "WooCommerce checkout"
 msgstr "WooCommerce-Kasse"
 
-#: src/Integration/WooCommerce.php:178
+#: src/Integration/WooCommerce.php:236
 msgid "Cap token proving the CAPTCHA was solved."
 msgstr "Cap-Token als Nachweis, dass das CAPTCHA gelöst wurde."
 
-#: src/Integration/WooCommerce.php:348
+#: src/Integration/WooCommerce.php:534
 msgid "Placed during a Cap outage — CAPTCHA verification was skipped (fail-open)."
 msgstr "Während eines Cap-Ausfalls aufgegeben — die CAPTCHA-Prüfung wurde übersprungen (Fail-open)."
 
-#: src/Integration/WooCommerce.php:357
+#: src/Integration/WooCommerce.php:543
 msgid "WooCommerce login"
 msgstr "WooCommerce-Anmeldung"
 
-#: src/Integration/WooCommerce.php:362
+#: src/Integration/WooCommerce.php:548
 msgid "WooCommerce registration"
 msgstr "WooCommerce-Registrierung"
 
-#: src/Integration/WooCommerce.php:367
+#: src/Integration/WooCommerce.php:553
 msgid "WooCommerce lost password"
 msgstr "WooCommerce-Passwort-vergessen"
 
-#: src/Integration/WpForms.php:175
+#: src/Integration/WpForms.php:178
 msgid "Default follows “Automatically protect every WPForms form” in Settings → Privacy CAPTCHA for Cap."
 msgstr "„Standard“ folgt der Einstellung „Jedes WPForms-Formular automatisch schützen“ unter Einstellungen → Privacy CAPTCHA for Cap."
 
-#: src/Integration/WpForms.php:184
+#: src/Integration/WpForms.php:187
 msgid "Whether visitors solve a Cap challenge before this form is sent."
 msgstr "Ob Besucher vor dem Absenden dieses Formulars eine Cap-Prüfung lösen."
 
@@ -768,6 +771,6 @@ msgstr "Stundenweise Lösungen"
 msgid "%1$s — %2$d verified"
 msgstr "%1$s — %2$d bestätigt"
 
-#: src/Integration/WpForms.php:167
+#: src/Integration/WpForms.php:170
 msgid "Protect this form"
 msgstr "Dieses Formular schützen"
