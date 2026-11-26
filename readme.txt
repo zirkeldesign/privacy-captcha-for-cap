@@ -41,8 +41,8 @@ Unlike third-party CAPTCHAs (reCAPTCHA, hCaptcha, Turnstile), Cap runs the proof
 * WordPress 6.5 or later
 * PHP 8.3 or later
 * A reachable Cap server (see https://trycap.dev/)
-* Gravity Forms 2.5+ (only if you enable the Gravity Forms integration)
-* WooCommerce (only if you enable the WooCommerce integration)
+
+Each integration needs its own plugin and loads only when that plugin is active. Gravity Forms needs version 2.5 or later.
 
 = More from zirkel.design =
 
