@@ -266,6 +266,25 @@ it('rejects a real submission without a token', function (): void {
         ->and($GLOBALS['cap_wpforms_verified'])->toBe(0);
 });
 
+it('rejects a submission that names the form by an id WPForms reads differently', function (string $prefix): void {
+    $this->formIds[] = $formId = capWpFormsCreate();
+    $completed = 0;
+    $count = static function () use (&$completed): void {
+        $completed++;
+    };
+    add_action('wpforms_process_complete', $count);
+
+    // WPForms loads the form by absint() of this value.
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_POST = ['wpforms' => ['id' => $prefix.$formId, 'fields' => [1 => 'Ada Lovelace']]];
+    $process = wpforms()->obj('process');
+    $process->process($_POST['wpforms']);
+    remove_action('wpforms_process_complete', $count);
+
+    expect($completed)->toBe(0)
+        ->and($process->errors[$formId]['footer'] ?? null)->toBe('CAPTCHA verification failed. Please try again.');
+})->with(['-', ' -']);
+
 it('rejects a token Cap refuses', function (): void {
     $this->formIds[] = $formId = capWpFormsCreate();
     remove_filter('pre_http_request', $this->capStub, 10);

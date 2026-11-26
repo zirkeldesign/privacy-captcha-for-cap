@@ -205,8 +205,8 @@ final class WpForms implements Integration
 
         $process = wpforms()->obj('process');
         // WPForms' own last error check reads the id it loaded the form by,
-        // not the one stored inside the form.
-        $formId = (int) (is_array($entry) && isset($entry['id']) ? $entry['id'] : ($formData['id'] ?? 0));
+        // absint() of the posted value, not the one stored inside the form.
+        $formId = absint(is_array($entry) && isset($entry['id']) ? $entry['id'] : ($formData['id'] ?? 0));
         if (! is_object($process) || ! empty($process->errors[$formId])) {
             return;
         }
