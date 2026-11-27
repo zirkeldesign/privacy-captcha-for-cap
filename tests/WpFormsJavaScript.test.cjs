@@ -49,6 +49,7 @@ function fixture({ count = 1, mode = 'programmatic', ...overrides } = {}) {
     const forms = Array.from({ length: count }, () => new Form());
     const document = {
         querySelectorAll: () => forms.filter((form) => form.field).map((form) => form.field),
+        addEventListener: (name, handler) => { handlers['dom:' + name] = handler; },
     };
     const jquery = (value) => {
         if (typeof value === 'function') {
@@ -271,4 +272,17 @@ test('an empty token counts as a failed solve and is never submitted', async () 
     context.trigger('wpformsBeforeFormSubmit', form);
     await settle();
     assert.equal(form.submits, 0);
+});
+
+test('a solved widget clears the CAPTCHA error of the last attempt and leaves other errors alone', () => {
+    const context = fixture();
+    const removed = [];
+    const container = (text) => ({ textContent: text, remove() { removed.push(text); } });
+    const form = { querySelectorAll: () => [container('Form error message CAPTCHA verification failed. Please try again.'), container('Form error message Payment declined.')] };
+    const wrapper = { closest: () => form, getAttribute: () => 'CAPTCHA verification failed. Please try again.' };
+
+    context.handlers['dom:solve']({ target: { closest: () => wrapper } });
+    context.handlers['dom:solve']({ target: { closest: () => null } });
+
+    assert.deepEqual(removed, ['Form error message CAPTCHA verification failed. Please try again.']);
 });

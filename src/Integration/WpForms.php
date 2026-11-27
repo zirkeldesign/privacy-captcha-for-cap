@@ -224,7 +224,7 @@ final class WpForms implements Integration
         }
 
         if (! $this->verifier->verifyCurrentRequest($this->id())) {
-            $process->errors[$formId]['footer'] = __('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap');
+            $process->errors[$formId]['footer'] = $this->failedMessage();
 
             return;
         }
@@ -346,11 +346,17 @@ final class WpForms implements Integration
         do_action('cap_captcha_fail_open_pass', $this->id(), ['form_id' => $formId, 'entry_id' => $entryId]);
     }
 
+    /** The message a refused check puts into WPForms' error list; the script removes it once the widget is solved. */
+    private function failedMessage(): string
+    {
+        return __('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap');
+    }
+
     private function printWidget(string $widget): void
     {
         $error = esc_html__('CAPTCHA could not be started. Please try again.', 'privacy-captcha-for-cap');
 
         // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Renderer escapes the widget attributes and text.
-        echo '<div class="cap-captcha--wpforms">'.$widget.'<div class="cap-captcha-wpforms-error cap-captcha-error wpforms-error" role="alert" hidden>'.$error.'</div></div>';
+        echo '<div class="cap-captcha--wpforms" data-cap-failed="'.esc_attr($this->failedMessage()).'">'.$widget.'<div class="cap-captcha-wpforms-error cap-captcha-error wpforms-error" role="alert" hidden>'.$error.'</div></div>';
     }
 }

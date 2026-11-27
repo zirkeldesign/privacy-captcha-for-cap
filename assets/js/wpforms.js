@@ -130,6 +130,17 @@
         });
     });
 
+    // A solved widget under "verification failed" from the last attempt reads as a contradiction.
+    document.addEventListener('solve', function (event) {
+        var wrapper = event.target && event.target.closest ? event.target.closest(WRAPPER) : null;
+        var form = wrapper && wrapper.closest('form');
+        var failed = wrapper && wrapper.getAttribute('data-cap-failed');
+        if (!form || !failed) return;
+        form.querySelectorAll('.wpforms-error-container').forEach(function (container) {
+            if (container.textContent.indexOf(failed) !== -1) container.remove();
+        });
+    }, true);
+
     $(document).on('wpformsAjaxSubmitFailed', function (event, json) {
         var form = ownForm(event);
         if (!form || (json && json.data && json.data.cap_captcha_kept)) return;

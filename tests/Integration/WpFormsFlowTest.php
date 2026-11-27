@@ -217,7 +217,7 @@ it('renders the widget above the submit button of a real WPForms form', function
 
     $html = do_shortcode('[wpforms id="'.$formId.'"]');
 
-    expect($html)->toMatch('#<div class="cap-captcha--wpforms"><div class="cap-captcha cap-captcha--inline"><cap-widget id="cap-captcha-wpforms-\d+"#')
+    expect($html)->toMatch('#<div class="cap-captcha--wpforms" data-cap-failed="[^"]+"><div class="cap-captcha cap-captcha--inline"><cap-widget id="cap-captcha-wpforms-\d+"#')
         ->and(strpos($html, 'cap-captcha--wpforms'))->toBeLessThan(strpos($html, 'name="wpforms[submit]"'))
         ->and(wp_script_is('cap-captcha-wpforms', 'enqueued'))->toBeTrue();
 });

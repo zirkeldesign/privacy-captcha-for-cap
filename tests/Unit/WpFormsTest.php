@@ -172,7 +172,7 @@ it('defaults to off with protect-all off', function (): void {
 it('renders an inline widget with its own error message above the submit button', function (): void {
     $html = capWpFormsFoot(capWpForms());
 
-    expect($html)->toMatch('#</script><div class="cap-captcha--wpforms"><div class="cap-captcha cap-captcha--inline"><cap-widget id="cap-captcha-wpforms-\d+"#')
+    expect($html)->toMatch('#</script><div class="cap-captcha--wpforms" data-cap-failed="CAPTCHA verification failed. Please try again."><div class="cap-captcha cap-captcha--inline"><cap-widget id="cap-captcha-wpforms-\d+"#')
         ->and($html)->toContain('<div class="cap-captcha-wpforms-error cap-captcha-error wpforms-error" role="alert" hidden>CAPTCHA could not be started. Please try again.</div>')
         ->and($html)->toEndWith('<button type="submit" name="wpforms[submit]" id="wpforms-submit-5" class="wpforms-submit" aria-live="assertive" value="wpforms-submit">Submit</button>')
         ->and($GLOBALS['__cap_modules'])->toBe([Enqueuer::WIDGET_MODULE_ID])
@@ -225,7 +225,7 @@ it('ignores the after-submit hook of a page break or a form it did not render', 
 it('renders a token field of its own in programmatic mode, outside the shared programmatic script', function (): void {
     $html = capWpFormsFoot(capWpForms(mode: Settings::MODE_PROGRAMMATIC));
 
-    expect($html)->toContain('</script><div class="cap-captcha--wpforms"><input type="hidden" name="cap-token" class="cap-captcha cap-captcha--programmatic" data-cap-programmatic="1">')
+    expect($html)->toContain('</script><div class="cap-captcha--wpforms" data-cap-failed="CAPTCHA verification failed. Please try again."><input type="hidden" name="cap-token" class="cap-captcha cap-captcha--programmatic" data-cap-programmatic="1">')
         ->and($GLOBALS['__cap_modules'])->toBe([Enqueuer::WIDGET_MODULE_ID])
         ->and($GLOBALS['__cap_scripts'])->toHaveKey('cap-captcha-wpforms');
 });
