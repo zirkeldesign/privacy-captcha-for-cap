@@ -31,6 +31,8 @@ final class Enqueuer
 
     private bool $globalsPrinted = false;
 
+    private bool $latePrintHooked = false;
+
     public function __construct(private readonly Settings $settings) {}
 
     public function enqueueForMode(string $mode): void
@@ -59,6 +61,7 @@ final class Enqueuer
         );
 
         wp_enqueue_script_module(self::WIDGET_MODULE_ID, $src, [], CAP_CAPTCHA_VERSION);
+        $this->printModulesLate();
 
         $styleSrc = (string) apply_filters(
             'cap_captcha_style_src',
@@ -90,6 +93,7 @@ final class Enqueuer
         );
 
         wp_enqueue_script_module(self::FLOATING_AUTOSUBMIT_MODULE_ID, $autosubmitSrc, [], CAP_CAPTCHA_VERSION);
+        $this->printModulesLate();
     }
 
     public function enqueueProgrammatic(): void
@@ -105,6 +109,31 @@ final class Enqueuer
         );
 
         wp_enqueue_script_module(self::PROGRAMMATIC_MODULE_ID, $src, [], CAP_CAPTCHA_VERSION);
+        $this->printModulesLate();
+    }
+
+    /**
+     * A block theme prints script modules in the head. A widget rendered after
+     * that, such as a form in a popup printed in the footer, enqueues too late
+     * and would stay a dead element: print the modules again in the footer.
+     * A module URL the head already loaded is not run a second time.
+     */
+    private function printModulesLate(): void
+    {
+        if ($this->latePrintHooked
+            || ! function_exists('wp_is_block_theme')
+            || ! function_exists('wp_script_modules')
+            || ! wp_is_block_theme()
+            || did_action('wp_head') === 0
+            || doing_action('wp_head')
+        ) {
+            return;
+        }
+
+        $this->latePrintHooked = true;
+        add_action('wp_footer', static function (): void {
+            wp_script_modules()->print_enqueued_script_modules();
+        }, 20);
     }
 
     /**
