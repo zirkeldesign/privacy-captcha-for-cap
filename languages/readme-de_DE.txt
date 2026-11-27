@@ -34,7 +34,7 @@ Infrastruktur.
 * **wpDiscuz**: schützt das Kommentarformular von wpDiscuz und jedes Antwortformular. Kommentare über die Inline-Feedback-Formulare von wpDiscuz (Feedback-Shortcode) werden nicht geprüft.
 * **Ultimate Member**: schützt die Formulare von Ultimate Member für Anmeldung, Registrierung und Passwort-Zurücksetzen.
 * **WPForms**: schützt jedes WPForms-Formular oder nur die, die im Formular-Builder auf „Immer“ stehen. Jedes Formular hat eine eigene Einstellung Standard / Immer / Nie.
-* **Elementor Pro**: füge jedem Formular-Widget, das geschützt werden soll, ein „Privacy CAPTCHA for Cap“-Feld hinzu. Das atomare Formular-Element von Elementor 4 wird nicht abgedeckt.
+* **Elementor Pro**: füge jedem Formular-Widget, das geschützt werden soll, ein „Privacy CAPTCHA for Cap“-Feld hinzu. Die atomaren Formulare von Elementor 4 (ab Elementor 4.4) haben einen eigenen Schalter: Sie werden im Hintergrund geprüft, ohne Widget.
 * **WordPress-Kommentare, wp-login, Registrierung, Passwort vergessen**: über eine zentrale
   Einstellungsseite aktivierbar. In einem Multisite-Netzwerk schützt der Schalter „Registrierung“ die Signup-Seite (`wp-signup.php`).
 * **WooCommerce** – Kasse sowie die Formulare „Mein Konto“ für Anmeldung,

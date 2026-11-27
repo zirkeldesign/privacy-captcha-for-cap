@@ -9,6 +9,7 @@ use ZirkelDesign\CapCaptcha\Asset\Enqueuer;
 use ZirkelDesign\CapCaptcha\Asset\Renderer;
 use ZirkelDesign\CapCaptcha\Integration\Comments;
 use ZirkelDesign\CapCaptcha\Integration\ContactForm7;
+use ZirkelDesign\CapCaptcha\Integration\ElementorAtomicForm;
 use ZirkelDesign\CapCaptcha\Integration\ElementorPro;
 use ZirkelDesign\CapCaptcha\Integration\FluentForms;
 use ZirkelDesign\CapCaptcha\Integration\GravityForms;
@@ -96,6 +97,7 @@ final class Plugin
         yield new UltimateMember($settings, $renderer, $enqueuer, $verifier);
         yield new WpForms($settings, $renderer, $enqueuer, $verifier);
         yield new ElementorPro($settings, $renderer, $enqueuer, $verifier);
+        yield new ElementorAtomicForm($settings, $enqueuer, $verifier);
         yield new Comments($settings, $renderer, $enqueuer, $verifier);
         yield new Login($settings, $renderer, $enqueuer, $verifier);
         yield new Registration($settings, $renderer, $enqueuer, $verifier);

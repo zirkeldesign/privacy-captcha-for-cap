@@ -45,6 +45,7 @@ class Settings
         'ultimate_member',
         'wpforms',
         'elementor_pro',
+        'elementor_atomic',
         'comments',
         'login',
         'registration',
@@ -577,7 +578,7 @@ class Settings
             [
                 'label' => __('Form plugins', 'privacy-captcha-for-cap'),
                 'description' => __('Protect form-builder plugin submissions.', 'privacy-captcha-for-cap'),
-                'items' => array_intersect_key($all, array_flip(['gravity_forms', 'contact_form_7', 'fluent_forms', 'wpdiscuz', 'ultimate_member', 'wpforms', 'elementor_pro'])),
+                'items' => array_intersect_key($all, array_flip(['gravity_forms', 'contact_form_7', 'fluent_forms', 'wpdiscuz', 'ultimate_member', 'wpforms', 'elementor_pro', 'elementor_atomic'])),
             ],
             [
                 'label' => __('WooCommerce', 'privacy-captcha-for-cap'),
@@ -629,6 +630,11 @@ class Settings
                 'label' => __('Elementor Pro', 'privacy-captcha-for-cap'),
                 'description' => __('Adds a "Privacy CAPTCHA for Cap" field to the Elementor Pro form widget.', 'privacy-captcha-for-cap'),
                 'available' => defined('ELEMENTOR_PRO_VERSION'),
+            ],
+            'elementor_atomic' => [
+                'label' => __('Elementor atomic form', 'privacy-captcha-for-cap'),
+                'description' => __('Protects every atomic form of Elementor 4 (Elementor Pro). No widget is shown: the browser solves in the background when the form is sent. With a site key that requires a press on the widget, every submission is refused.', 'privacy-captcha-for-cap'),
+                'available' => defined('ELEMENTOR_PRO_VERSION') && defined('ELEMENTOR_VERSION') && version_compare((string) constant('ELEMENTOR_VERSION'), '4.4', '>='),
             ],
             'comments' => [
                 'label' => __('Comments', 'privacy-captcha-for-cap'),
@@ -1242,6 +1248,7 @@ class Settings
                 'ultimate_member' => false,
                 'wpforms' => false,
                 'elementor_pro' => false,
+                'elementor_atomic' => false,
                 'comments' => false,
                 'login' => false,
                 'registration' => false,
