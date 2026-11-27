@@ -71,6 +71,21 @@ test('holds a submit without a token and sends the form once the token is there'
     assert.equal(form.submissions, 1);
 });
 
+test('clears Elementor\'s message on the field once the widget is solved', () => {
+    const { handlers } = fixture();
+    let removed = 0;
+    const classes = new Set(['elementor-error']);
+    const group = {
+        classList: { remove: (name) => classes.delete(name) },
+        querySelectorAll: () => [{ remove: () => { removed++; } }],
+    };
+    handlers.solve({ target: { closest: () => ({ parentElement: group }) } });
+    handlers.solve({ target: { closest: () => null } });
+
+    assert.equal(removed, 1);
+    assert.equal(classes.has('elementor-error'), false);
+});
+
 test('renews the token after a failed and after a successful submission', async () => {
     const { form, jqueryHandlers, state } = fixture();
     await tick();

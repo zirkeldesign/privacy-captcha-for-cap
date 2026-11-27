@@ -83,6 +83,16 @@
         }, true);
     });
 
+    // A solved widget next to "verification failed" from the last attempt reads as a contradiction.
+    document.addEventListener('solve', function (event) {
+        var wrapper = event.target && event.target.closest ? event.target.closest('.cap-captcha--elementor') : null;
+        if (!wrapper || !wrapper.parentElement) return;
+        wrapper.parentElement.classList.remove('elementor-error');
+        wrapper.parentElement.querySelectorAll('.elementor-form-help-inline').forEach(function (message) {
+            message.remove();
+        });
+    }, true);
+
     // Elementor triggers both on the form through jQuery, without the response.
     // shortcut: every failed attempt renews the token, also one Elementor refused
     // before the check; pass the server's verdict along if visitors notice.
