@@ -113,12 +113,13 @@ final class Enqueuer
     }
 
     /**
-     * WordPress prints script modules once: in the head on a block theme, at
-     * `wp_footer` priority 10 on a classic one. A widget rendered after that,
-     * such as a form in a popup that is printed in the footer, enqueues too
-     * late and would stay a dead element: print the modules again further
-     * down the footer. From WordPress 6.9 on that pass prints only what is
-     * missing; before, a module is printed twice and still runs once.
+     * WordPress prints script modules at fixed points: in the head and at
+     * `wp_footer` priority 10, depending on theme type and core version. A
+     * widget first rendered after the last of them, such as a form in a popup
+     * that is printed in the footer, enqueues too late and would stay a dead
+     * element: print the modules again further down the footer. From
+     * WordPress 6.9 on that pass prints only what is missing; before, a
+     * module is printed twice and still runs once.
      */
     private function printModulesLate(): void
     {

@@ -15,8 +15,10 @@ beforeEach(function (): void {
     $_POST = [];
     $GLOBALS['__cap_modules'] = [];
     $GLOBALS['__cap_scripts'] = [];
-    $GLOBALS['__cap_posts'] = [];
+    // Page 5 is the published page the form sits on; Elementor refuses a request that names no post.
+    $GLOBALS['__cap_posts'] = [5 => ['post_status' => 'publish', 'post_type' => 'page', 'post_parent' => 0]];
     $GLOBALS['__cap_caps'] = [];
+    $GLOBALS['__cap_public_statuses'] = [];
 });
 
 function capElementor(bool $enabled = true, string $mode = Settings::MODE_INLINE, bool $failOpen = false): ElementorPro
@@ -40,7 +42,7 @@ function capElementor(bool $enabled = true, string $mode = Settings::MODE_INLINE
  *
  * @param  array<int, array<string, mixed>>|null  $fields  Defaults to a form holding a text field and the CAPTCHA field.
  */
-function capElementorRecord(?array $fields = null, int $postId = 0): object
+function capElementorRecord(?array $fields = null, int $postId = 5): object
 {
     $fields ??= [
         ['custom_id' => 'name', 'field_type' => 'text'],
@@ -58,7 +60,8 @@ function capElementorRecord(?array $fields = null, int $postId = 0): object
         public function get_form_settings(string $setting): mixed
         {
             // Elementor copies the request's post_id here, unchecked.
-            return ['form_fields' => $this->fields, 'id' => 'abc123', 'edit_post_id' => $this->postId ?: null][$setting] ?? null;
+            // As Elementor passes it: the raw request string.
+            return ['form_fields' => $this->fields, 'id' => 'abc123', 'edit_post_id' => (string) $this->postId, 'form_post_id' => (string) $this->postId][$setting] ?? null;
         }
 
         public function remove_field(string $id): void
@@ -95,6 +98,14 @@ function capElementorHandler(array $errors = []): object
         public function set_success(bool $success): void
         {
             $this->is_success = $success;
+        }
+
+        public function add_admin_error_message(string $message): static
+        {
+            $this->messages['admin_error'][] = $message;
+            $this->is_success = false;
+
+            return $this;
         }
     };
 }
@@ -198,6 +209,35 @@ it('refuses a copy of the page that visitors cannot see, with or without the fie
     'a page in the trash' => [['post_status' => 'trash', 'post_type' => 'page', 'post_parent' => 0], [['custom_id' => 'name', 'field_type' => 'text']]],
 ]);
 
+it('accepts a status the site registered as public, and refuses a private page to a visitor', function (): void {
+    $GLOBALS['__cap_public_statuses'] = ['archived'];
+    $GLOBALS['__cap_posts'] = [
+        20 => ['post_status' => 'archived', 'post_type' => 'page', 'post_parent' => 0],
+        21 => ['post_status' => 'private', 'post_type' => 'page', 'post_parent' => 0],
+    ];
+    $plain = [['custom_id' => 'name', 'field_type' => 'text']];
+    $public = capElementorHandler();
+    capElementor()->validate(capElementorRecord($plain, 20), $public);
+    $private = capElementorHandler();
+    capElementor()->validate(capElementorRecord($plain, 21), $private);
+    $GLOBALS['__cap_public_statuses'] = [];
+
+    expect($public->errors)->toBe([])
+        ->and($private->errors)->toHaveKey(ElementorPro::FIELD_TYPE)
+        ->and($private->messages['admin_error'])->toHaveCount(1);
+});
+
+it('refuses nothing while the plugin is switched on but not configured', function (): void {
+    $GLOBALS['__cap_posts'] = [14 => ['post_status' => 'inherit', 'post_type' => 'revision', 'post_parent' => 5]];
+    update_option(Settings::OPTION_KEY, ['endpoint_base' => '', 'integrations' => ['elementor_pro' => true]]);
+    $settings = new Settings;
+    $integration = new ElementorPro($settings, new Renderer($settings), new Enqueuer($settings), new TokenVerifier($settings));
+    $handler = capElementorHandler();
+    $integration->validate(capElementorRecord([['custom_id' => 'name', 'field_type' => 'text']], 14), $handler);
+
+    expect($handler->errors)->toBe([]);
+});
+
 it('lets someone who may see the hidden copy submit it, and checks the published page as usual', function (): void {
     $GLOBALS['__cap_posts'] = [
         5 => ['post_status' => 'publish', 'post_type' => 'page', 'post_parent' => 0],
@@ -261,25 +301,35 @@ it('treats a second CAPTCHA field in the form like the first', function (): void
         ->and($record->removed)->toBe(['captcha', 'captcha_two']);
 });
 
-it('renders a widget for the first CAPTCHA field of a form only', function (): void {
+it('renders a widget for the first CAPTCHA field of a form only, also when both share an id', function (string $firstId, string $secondId): void {
     $integration = capElementor();
-    $widget = new class
+    $widget = new class($firstId, $secondId)
     {
+        public function __construct(private string $first, private string $second) {}
+
         public function get_settings(string $key): mixed
         {
-            return [['custom_id' => 'one', 'field_type' => ElementorPro::FIELD_TYPE], ['custom_id' => 'two', 'field_type' => ElementorPro::FIELD_TYPE]];
+            return [
+                ['custom_id' => 'name', 'field_type' => 'text'],
+                ['custom_id' => $this->first, 'field_type' => ElementorPro::FIELD_TYPE],
+                ['custom_id' => $this->second, 'field_type' => ElementorPro::FIELD_TYPE],
+            ];
         }
     };
-    $render = static function (string $id) use ($integration, $widget): string {
+    $render = static function (string $id, int $index) use ($integration, $widget): string {
         ob_start();
-        $integration->render(['custom_id' => $id, 'field_type' => ElementorPro::FIELD_TYPE], 0, $widget);
+        $integration->render(['custom_id' => $id, 'field_type' => ElementorPro::FIELD_TYPE], $index, $widget);
 
         return (string) ob_get_clean();
     };
 
-    expect($render('one'))->toContain('<cap-widget')
-        ->and($render('two'))->toBe('');
-});
+    expect($render($firstId, 1))->toContain('<cap-widget')
+        ->and($render($secondId, 2))->toBe('');
+})->with([
+    'two ids' => ['one', 'two'],
+    'the same id twice' => ['captcha', 'captcha'],
+    'no ids' => ['', ''],
+]);
 
 it('leaves a form without the field, and a switched-off integration, alone', function (): void {
     $plain = capElementorHandler();

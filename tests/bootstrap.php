@@ -148,6 +148,14 @@ if (! function_exists('get_post')) {
     }
 }
 
+if (! function_exists('is_post_status_viewable')) {
+    /** Test stub. "publish" is public as in WordPress; a site's own public statuses go in $GLOBALS['__cap_public_statuses']. */
+    function is_post_status_viewable(mixed $status): bool
+    {
+        return in_array($status, ['publish', ...($GLOBALS['__cap_public_statuses'] ?? [])], true);
+    }
+}
+
 if (! function_exists('wp_is_post_revision')) {
     function wp_is_post_revision(mixed $post): int|false
     {

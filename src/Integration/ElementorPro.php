@@ -131,10 +131,11 @@ final class ElementorPro implements Integration
         }
 
         // Two widgets in one form post two token fields, and PHP keeps the empty one.
+        // Decided by position: two fields can share an id, or have none.
         $fieldId = is_array($item) && is_scalar($item['custom_id'] ?? null) ? (string) $item['custom_id'] : '';
         $settings = [$widget, 'get_settings'];
-        $all = is_callable($settings) ? self::captchaFieldIds($settings('form_fields')) : [];
-        if ($all !== [] && $all[0] !== $fieldId) {
+        $first = is_callable($settings) ? self::firstCaptchaIndex($settings('form_fields')) : null;
+        if ($first !== null && is_numeric($itemIndex) && (int) $itemIndex !== $first) {
             return;
         }
 
@@ -246,8 +247,14 @@ final class ElementorPro implements Integration
         }
 
         $protected = $this->settings->isProtected($this->id());
-        if ($protected && $this->addressesHiddenCopy($record)) {
+        // An unconfigured plugin verifies nothing and must not refuse anything either.
+        if ($protected && $this->settings->isConfigured() && $this->addressesHiddenCopy($record)) {
             $ajaxHandler->add_error(self::FIELD_TYPE, __('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'));
+            // Elementor shows this one to people who can edit the page, so the cause can be found.
+            $admin = [$ajaxHandler, 'add_admin_error_message'];
+            if (is_callable($admin)) {
+                $admin(__('Privacy CAPTCHA for Cap refused this submission: the page or template the form belongs to is not published.', 'privacy-captcha-for-cap'));
+            }
 
             return;
         }
@@ -316,7 +323,8 @@ final class ElementorPro implements Integration
             return ! current_user_can('edit_post', (int) $parent);
         }
 
-        return $post->post_status !== 'publish' && ! current_user_can('read_post', $postId);
+        // "publish" and any status a site registered as public: visitors see those.
+        return ! is_post_status_viewable($post->post_status) && ! current_user_can('read_post', $postId);
     }
 
     /**
@@ -328,6 +336,17 @@ final class ElementorPro implements Integration
     private function fieldIds(object $record): array
     {
         return self::captchaFieldIds($record->get_form_settings('form_fields'));
+    }
+
+    private static function firstCaptchaIndex(mixed $fields): ?int
+    {
+        foreach (is_array($fields) ? array_values($fields) : [] as $index => $field) {
+            if (is_array($field) && ($field['field_type'] ?? '') === self::FIELD_TYPE) {
+                return $index;
+            }
+        }
+
+        return null;
     }
 
     /** @return array<int, string> */
