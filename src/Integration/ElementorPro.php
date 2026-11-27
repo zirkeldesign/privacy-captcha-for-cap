@@ -13,7 +13,9 @@ use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
  * Protects Elementor Pro's form widget. A form is protected when the editor
  * added the "Privacy CAPTCHA for Cap" field to it. Every submission reaches
  * Elementor through one admin-ajax action, and whether the form holds the
- * field is read from the stored widget, never from the request.
+ * field is read from the stored widget, never from the request's fields. The
+ * request does name the post the widget is read from, so a copy of the page
+ * that visitors cannot see is not accepted from them: see addressesHiddenCopy().
  */
 final class ElementorPro implements Integration
 {
@@ -180,7 +182,7 @@ final class ElementorPro implements Integration
 
             unset($this->pendingFloating[$index]);
             $wired = (string) preg_replace_callback(
-                '/<button\b[^>]*\btype=(["\'])submit\1[^>]*>/i',
+                '/<button\b[^>]*(?<![\w-])type=(["\'])submit\1[^>]*>/i',
                 static fn (array $match): string => Renderer::addFloatingAttrsToSubmit($match[0], $widgetId),
                 $content,
                 1,
@@ -224,6 +226,12 @@ final class ElementorPro implements Integration
             return;
         }
 
+        if ($this->addressesHiddenCopy($record)) {
+            $ajaxHandler->add_error(self::FIELD_TYPE, __('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'));
+
+            return;
+        }
+
         $fieldId = $this->fieldId($record);
         if ($fieldId === null) {
             return;
@@ -244,7 +252,9 @@ final class ElementorPro implements Integration
             return;
         }
 
-        if ($flaggedByElementor) {
+        // Another validator may have failed the submission with a message and no field error.
+        $messages = is_array($ajaxHandler->messages ?? null) ? $ajaxHandler->messages : [];
+        if ($flaggedByElementor && empty($messages['error']) && empty($messages['admin_error'])) {
             $ajaxHandler->set_success(true);
         }
 
@@ -262,6 +272,29 @@ final class ElementorPro implements Integration
         $this->lastFailOpen = false;
         $formId = is_object($record) ? $record->get_form_settings('id') : '';
         do_action('cap_captcha_fail_open_pass', $this->id(), ['form_id' => is_scalar($formId) ? (string) $formId : '']);
+    }
+
+    /**
+     * Elementor loads the form from whichever post the request names, in any
+     * status and without a capability check: a revision saved before the field
+     * was added, a draft copy of the page, a page in the trash. Each still
+     * carries the form's actions. No visitor's form posts to such a copy, so
+     * only someone who may see it gets to submit it.
+     */
+    private function addressesHiddenCopy(object $record): bool
+    {
+        $postId = absint($record->get_form_settings('edit_post_id') ?: $record->get_form_settings('form_post_id'));
+        $post = $postId > 0 ? get_post($postId) : null;
+        if (! is_object($post)) {
+            return false;
+        }
+
+        $parent = wp_is_post_revision($postId);
+        if ($parent) {
+            return ! current_user_can('edit_post', (int) $parent);
+        }
+
+        return $post->post_status !== 'publish' && ! current_user_can('read_post', $postId);
     }
 
     /** The id of the CAPTCHA field in the stored form, or null when the form has none. */

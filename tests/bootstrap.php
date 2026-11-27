@@ -128,6 +128,35 @@ if (! function_exists('did_action')) {
     }
 }
 
+if (! function_exists('current_user_can')) {
+    /** Test stub. Granted capabilities are listed in $GLOBALS['__cap_caps'] as "cap" or "cap:object id". */
+    function current_user_can(string $capability, mixed ...$args): bool
+    {
+        $key = $args === [] ? $capability : $capability.':'.$args[0];
+
+        return in_array($key, $GLOBALS['__cap_caps'] ?? [], true);
+    }
+}
+
+if (! function_exists('get_post')) {
+    /** Test stub. Posts live in $GLOBALS['__cap_posts'] as id => ['post_status' => ..., 'post_parent' => ...]. */
+    function get_post(mixed $post = null): ?object
+    {
+        $row = $GLOBALS['__cap_posts'][(int) $post] ?? null;
+
+        return is_array($row) ? (object) $row : null;
+    }
+}
+
+if (! function_exists('wp_is_post_revision')) {
+    function wp_is_post_revision(mixed $post): int|false
+    {
+        $row = $GLOBALS['__cap_posts'][(int) $post] ?? [];
+
+        return ($row['post_type'] ?? '') === 'revision' ? (int) $row['post_parent'] : false;
+    }
+}
+
 if (! function_exists('doing_action')) {
     function doing_action(?string $hook_name = null): bool
     {

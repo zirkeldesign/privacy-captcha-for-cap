@@ -15,6 +15,8 @@ beforeEach(function (): void {
     $_POST = [];
     $GLOBALS['__cap_modules'] = [];
     $GLOBALS['__cap_scripts'] = [];
+    $GLOBALS['__cap_posts'] = [];
+    $GLOBALS['__cap_caps'] = [];
 });
 
 function capElementor(bool $enabled = true, string $mode = Settings::MODE_INLINE, bool $failOpen = false): ElementorPro
@@ -38,24 +40,25 @@ function capElementor(bool $enabled = true, string $mode = Settings::MODE_INLINE
  *
  * @param  array<int, array<string, mixed>>|null  $fields  Defaults to a form holding a text field and the CAPTCHA field.
  */
-function capElementorRecord(?array $fields = null): object
+function capElementorRecord(?array $fields = null, int $postId = 0): object
 {
     $fields ??= [
         ['custom_id' => 'name', 'field_type' => 'text'],
         ['custom_id' => 'captcha', 'field_type' => ElementorPro::FIELD_TYPE],
     ];
 
-    return new class($fields)
+    return new class($fields, $postId)
     {
         /** @var array<int, string> */
         public array $removed = [];
 
         /** @param array<int, array<string, mixed>> $fields */
-        public function __construct(private array $fields) {}
+        public function __construct(private array $fields, private int $postId) {}
 
         public function get_form_settings(string $setting): mixed
         {
-            return ['form_fields' => $this->fields, 'id' => 'abc123'][$setting] ?? null;
+            // Elementor copies the request's post_id here, unchecked.
+            return ['form_fields' => $this->fields, 'id' => 'abc123', 'edit_post_id' => $this->postId ?: null][$setting] ?? null;
         }
 
         public function remove_field(string $id): void
@@ -71,6 +74,9 @@ function capElementorHandler(array $errors = []): object
     return new class($errors)
     {
         public bool $is_success = true;
+
+        /** @var array<string, array<int, string>> */
+        public array $messages = ['success' => [], 'error' => [], 'admin_error' => []];
 
         /** @param array<string, string> $errors */
         public function __construct(public array $errors)
@@ -170,6 +176,59 @@ it('reads the field from the stored form, so a request cannot leave it out', fun
     expect($handler->errors)->toHaveKey('captcha');
 });
 
+/*
+ * Elementor loads the form from whichever post the request names. A revision
+ * saved before the field was added still carries the form and its actions,
+ * and Elementor keeps one for every save.
+ */
+it('refuses a copy of the page that visitors cannot see, with or without the field in it', function (array $post, array $fields): void {
+    $GLOBALS['__cap_posts'] = [5 => ['post_status' => 'publish', 'post_type' => 'page', 'post_parent' => 0], 14 => $post];
+    $_POST['cap-token'] = 'solved';
+    $handler = capElementorHandler();
+    capElementor()->validate($record = capElementorRecord($fields, 14), $handler);
+
+    expect($handler->errors)->toHaveKey(ElementorPro::FIELD_TYPE)
+        ->and($handler->is_success)->toBeFalse()
+        ->and($record->removed)->toBe([])
+        ->and($GLOBALS['__cap_remote_post_count'] ?? 0)->toBe(0);
+})->with([
+    'a revision from before the field was added' => [['post_status' => 'inherit', 'post_type' => 'revision', 'post_parent' => 5], [['custom_id' => 'name', 'field_type' => 'text']]],
+    'a revision that has the field' => [['post_status' => 'inherit', 'post_type' => 'revision', 'post_parent' => 5], [['custom_id' => 'captcha', 'field_type' => ElementorPro::FIELD_TYPE]]],
+    'a draft copy' => [['post_status' => 'draft', 'post_type' => 'page', 'post_parent' => 0], [['custom_id' => 'name', 'field_type' => 'text']]],
+    'a page in the trash' => [['post_status' => 'trash', 'post_type' => 'page', 'post_parent' => 0], [['custom_id' => 'name', 'field_type' => 'text']]],
+]);
+
+it('lets someone who may see the hidden copy submit it, and checks the published page as usual', function (): void {
+    $GLOBALS['__cap_posts'] = [
+        5 => ['post_status' => 'publish', 'post_type' => 'page', 'post_parent' => 0],
+        14 => ['post_status' => 'inherit', 'post_type' => 'revision', 'post_parent' => 5],
+        15 => ['post_status' => 'draft', 'post_type' => 'page', 'post_parent' => 0],
+    ];
+    $GLOBALS['__cap_caps'] = ['edit_post:5', 'read_post:15'];
+    $plain = [['custom_id' => 'name', 'field_type' => 'text']];
+
+    $revision = capElementorHandler();
+    capElementor()->validate(capElementorRecord($plain, 14), $revision);
+    $draft = capElementorHandler();
+    capElementor()->validate(capElementorRecord($plain, 15), $draft);
+    $published = capElementorHandler();
+    capElementor()->validate(capElementorRecord(null, 5), $published);
+
+    expect($revision->errors)->toBe([])
+        ->and($draft->errors)->toBe([])
+        ->and($published->errors)->toHaveKey('captcha');
+});
+
+it('does not restore success over a validator that failed the submission with a message only', function (): void {
+    $_POST['cap-token'] = 'solved';
+    $handler = capElementorHandler(['captcha' => 'This field is required.']);
+    $handler->messages = ['error' => ['Blocked by another check.'], 'admin_error' => []];
+    capElementor()->validate(capElementorRecord(), $handler);
+
+    expect($handler->errors)->toBe([])
+        ->and($handler->is_success)->toBeFalse();
+});
+
 it('leaves a form without the field, and a switched-off integration, alone', function (): void {
     $plain = capElementorHandler();
     capElementor()->validate(capElementorRecord([['custom_id' => 'name', 'field_type' => 'text']]), $plain);
@@ -252,6 +311,15 @@ it('draws a placeholder instead of the widget wherever the editor renders the fo
     expect($html)->toContain('Privacy CAPTCHA for Cap')
         ->and($html)->not->toContain('<cap-widget');
 })->with(['elementor/editor/init', 'elementor/preview/enqueue_scripts', 'elementor/ajax/register_actions']);
+
+it('does not mistake a button that only names submit in a data attribute for the submit button', function (): void {
+    $integration = capElementor(true, Settings::MODE_FLOATING);
+    $field = capElementorRender($integration);
+    $content = $integration->wireSubmitButton('<form><button type="button" data-type="submit">Next</button>'.$field.'<button type="submit">Send</button></form>');
+
+    expect($content)->toContain('<button type="button" data-type="submit">Next</button>')
+        ->and($content)->toMatch('/<button[^>]*data-cap-floating[^>]*>Send|<button[^>]*type="submit"[^>]*data-cap-floating/');
+});
 
 it('turns the form\'s own submit button into the floating trigger', function (): void {
     $integration = capElementor(true, Settings::MODE_FLOATING);
