@@ -285,6 +285,40 @@ it('rejects a submission that names the form by an id WPForms reads differently'
         ->and($process->errors[$formId]['footer'] ?? null)->toBe('CAPTCHA verification failed. Please try again.');
 })->with(['-', ' -']);
 
+/*
+ * A form with Stripe payments whose card is optional: WPForms' Stripe handler
+ * returns without looking at any intent, so the second request below is the
+ * smallest one that would ride on a pass left behind by the first.
+ */
+it('does not accept a second submission with the spent token and a made-up payment intent', function (): void {
+    $this->formIds[] = $formId = capWpFormsCreate();
+    $data = wpforms_decode(get_post($formId)->post_content);
+    $data['payments'] = ['stripe' => ['enable_one_time' => '1']];
+    wp_update_post(['ID' => $formId, 'post_content' => wpforms_encode($data)]);
+
+    $first = capWpFormsSubmit($formId, token: 'solved-once');
+    $passes = array_filter(array_keys(wp_load_alloptions(true)), static fn (string $key): bool => str_contains($key, 'cap_captcha_wpf_'));
+
+    // Cap has spent the token by now. This process stands for two requests,
+    // so the verifier has to forget what it learned in the first.
+    remove_filter('pre_http_request', $this->capStub, 10);
+    $this->capStub = capWpFormsCap('bad');
+    foreach ($GLOBALS['wp_filter']['wpforms_process']->callbacks[5] ?? [] as $callback) {
+        $integration = is_array($callback['function']) ? $callback['function'][0] : null;
+        if ($integration instanceof WpForms) {
+            (new ReflectionProperty(WpForms::class, 'verifier'))->getValue($integration)->forget('solved-once');
+        }
+    }
+    $_SERVER['REQUEST_METHOD'] = 'POST';
+    $_POST = ['wpforms' => ['id' => (string) $formId, 'fields' => [1 => 'Ada Lovelace'], 'payment_intent_id' => 'pi_made_up'], 'cap-token' => 'solved-once'];
+    $process = wpforms()->obj('process');
+    $process->process($_POST['wpforms']);
+
+    expect($first)->toBe([])
+        ->and($passes)->toBe([])
+        ->and($process->errors[$formId]['footer'] ?? null)->toBe('CAPTCHA verification failed. Please try again.');
+});
+
 it('rejects a token Cap refuses', function (): void {
     $this->formIds[] = $formId = capWpFormsCreate();
     remove_filter('pre_http_request', $this->capStub, 10);

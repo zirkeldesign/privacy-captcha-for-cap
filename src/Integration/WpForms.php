@@ -34,6 +34,9 @@ final class WpForms implements Integration
     /** Whether this request's token went to Cap; it is spent then. */
     private bool $tokenSpent = false;
 
+    /** Key of the pass this request issued, until it is known whether Stripe interrupted the request. */
+    private ?string $issuedPass = null;
+
     /** Widget id waiting for the submit button WPForms prints next, in floating mode. */
     private ?string $pendingFloating = null;
 
@@ -61,6 +64,8 @@ final class WpForms implements Integration
         add_action('wpforms_display_submit_after', [$this, 'wireSubmitButton'], 1, 2);
         add_action('wpforms_admin_builder_anti_spam_panel_content', [$this, 'renderFormSetting'], 10, 1);
         add_action('wpforms_process', [$this, 'verify'], self::PROCESS_PRIORITY, 3);
+        // After the payment handlers at 10. Stripe ends a request that needs 3-D Secure inside its handler.
+        add_action('wpforms_process', [$this, 'dropPaymentPass'], 11, 0);
         add_filter('wpforms_ajax_submit_errors_response', [$this, 'markTokenKept'], 10, 3);
         add_action('wpforms_process_entry_saved', [$this, 'annotateFailOpen'], 10, 4);
     }
@@ -199,6 +204,7 @@ final class WpForms implements Integration
     {
         $this->tokenSpent = false;
         $this->lastFailOpen = false;
+        $this->issuedPass = null;
         if (! is_array($formData) || ! $this->isFormProtected($formData) || ! function_exists('wpforms')) {
             return;
         }
@@ -224,20 +230,37 @@ final class WpForms implements Integration
         }
 
         $this->lastFailOpen = $this->verifier->wasLastFailOpen();
-        if ($token !== '' && $this->takesStripePayments($formData)) {
-            set_transient($this->paymentPassKey($token, $formId), 1, self::PAYMENT_PASS_TTL);
+        // Only a token Cap really confirmed earns a pass: an unconfigured plugin
+        // or an unreachable Cap accepts any string, and each would leave a row.
+        if ($token !== '' && ! $this->lastFailOpen && $this->settings->isConfigured() && $this->takesStripePayments($formData)) {
+            $this->issuedPass = $this->paymentPassKey($token, $formId);
+            set_transient($this->issuedPass, 1, self::PAYMENT_PASS_TTL);
         }
     }
 
     /**
-     * A Stripe payment that needs 3-D Secure is sent twice: Stripe answers the
+     * A request that gets here was not interrupted by Stripe, so no second
+     * request will follow and the pass has no purpose. Left in place it made
+     * one token good for a second submission on a form where the card is
+     * optional or hidden, because Stripe checks no intent there.
+     */
+    public function dropPaymentPass(): void
+    {
+        if ($this->issuedPass !== null) {
+            delete_transient($this->issuedPass);
+            $this->issuedPass = null;
+        }
+    }
+
+    /**
+     * A Stripe payment that needs 3-D Secure is sent twice: Stripe ends the
      * first request with "action required", the buyer confirms and is charged,
      * and Stripe's script posts the form again with the same, by then spent,
      * token. Refusing that second request would keep the money and drop the
-     * submission. So a check that passed on a form with Stripe payments leaves
-     * a pass for that token and form, good for one more request that names the
-     * confirmed intent. The intent id alone opens nothing: without the pass
-     * the token is checked as usual, and Stripe verifies the intent itself.
+     * submission. So a check that Cap confirmed on a form with Stripe payments
+     * leaves a pass for that token and form, and dropPaymentPass() removes it
+     * again unless Stripe ended the request. The pass is good for one more
+     * request that names an intent. The intent id alone opens nothing.
      *
      * @param  array<string, mixed>  $formData
      */

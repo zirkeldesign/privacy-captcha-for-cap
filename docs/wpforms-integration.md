@@ -46,7 +46,14 @@ Non-AJAX forms reload the page after a submit, which renders a fresh widget.
 
 A Stripe payment that needs 3-D Secure reaches `wpforms_process` twice. Stripe answers the first request with `action_required`, the buyer confirms and is charged, and Stripe's script posts the form again through `wpforms.formSubmitAjax()` with the same token and the intent id (`wpforms[payment_intent_id]`, or `setup_intent_id` for a trial). That call skips `wpformsBeforeFormSubmit`, so the script cannot renew the token in between, and Cap has spent it. WPForms lets its own CAPTCHA pass on that second request; ours would refuse it after the money was taken.
 
-So a check that passed on a form with Stripe payments leaves a pass: a transient keyed by a hash of the token and the form id, kept for 30 minutes. One later request for the same form with the same token and an intent id redeems it and is not sent to Cap. The intent id opens nothing on its own: without the pass the token is checked as usual. Whether the intent is real, confirmed and unused stays Stripe's check in `Process::process_entry()`, which runs after ours.
+So a check that Cap confirmed on a form with Stripe payments leaves a pass: a transient keyed by a hash of the token and the form id, kept for 30 minutes. A token that only passed because the plugin is not configured or Cap was unreachable earns none. The pass is removed again on `wpforms_process` at priority 11, after the payment handlers: Stripe ends a request that needs 3-D Secure inside its own handler at 10, so the pass survives only when a second request is really coming. One later request for the same form with the same token and an intent id redeems it and is not sent to Cap. The intent id opens nothing on its own: without the pass the token is checked as usual.
+
+The pass must not outlive an ordinary submission, because Stripe does not always check the intent. With a card field that is optional, or hidden by conditional logic, `Process::process_entry()` returns without looking at it, and a pass left behind made one token good for a second submission with any string shaped like an intent id.
+
+Known limits of this path, neither involving a submission without a check:
+
+- If the visible widget's token runs out while the buyer is in the bank's challenge, the widget empties its field and the second request arrives without a token. It is refused although the payment went through. The programmatic mode is not affected.
+- After a challenge that failed or was abandoned, the next attempt is refused once: the first request spent the token and Stripe's script triggers neither of the events the script renews on. In the visible modes the visitor has to press the widget again.
 
 This path is covered by unit tests and has not been run against Stripe. PayPal Commerce and Square showed no second request in the source of WPForms Lite 2.0.5.2 and are untested as well.
 

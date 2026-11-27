@@ -413,6 +413,38 @@ it('accepts the second request of a Stripe 3-D Secure payment with the token the
     expect(capWpFormsProcess()->errors)->toHaveKey(5);
 });
 
+/*
+ * Stripe checks no intent when the card field is optional or hidden. A pass
+ * left behind by an ordinary submission made the same token good for a second
+ * one, with any string shaped like an intent id.
+ */
+it('drops the pass when Stripe did not interrupt the first request, so the token is not good twice', function (): void {
+    $_POST['cap-token'] = 'solved';
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":true}'];
+    $first = capWpForms();
+    $first->verify([], ['id' => '5'], capWpStripeFormData());
+    // The request went on past the payment handlers: no 3-D Secure, no second request to come.
+    $first->dropPaymentPass();
+
+    $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
+    capWpForms()->verify([], ['id' => '5', 'payment_intent_id' => 'pi_made_up'], capWpStripeFormData());
+
+    expect(capWpFormsProcess()->errors)->toHaveKey(5)
+        ->and($GLOBALS['__cap_transients'])->toBe([]);
+});
+
+it('issues no pass for a token Cap never confirmed', function (bool $configured, bool $failOpen, mixed $response): void {
+    $_POST['cap-token'] = 'anything';
+    $GLOBALS['__cap_remote_response'] = $response;
+    capWpForms(failOpen: $failOpen, configured: $configured)->verify([], ['id' => '5'], capWpStripeFormData());
+
+    expect(capWpFormsProcess()->errors)->toBe([])
+        ->and($GLOBALS['__cap_transients'])->toBe([]);
+})->with([
+    'the plugin is not configured' => [false, false, ['body' => '{"success":true}']],
+    'Cap is unreachable and fail-open lets it through' => [true, true, new WP_Error('unreachable', 'unreachable')],
+]);
+
 it('checks a request that names a payment intent as usual when no check passed before', function (array $entry, array $formData): void {
     $_POST['cap-token'] = 'solved';
     $GLOBALS['__cap_remote_response'] = ['body' => '{"success":false}'];
