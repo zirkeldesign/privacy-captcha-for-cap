@@ -49,6 +49,7 @@ final class ElementorPro implements Integration
         add_filter('elementor_pro/forms/field_types', [$this, 'addFieldType']);
         add_filter('elementor_pro/forms/render/item', [$this, 'prepareItem']);
         add_action('elementor_pro/forms/render_field/'.self::FIELD_TYPE, [$this, 'render'], 10, 1);
+        add_filter('elementor/element/is_dynamic_content', [$this, 'renderOnEveryRequest'], 10, 2);
         add_filter('elementor/widget/render_content', [$this, 'wireSubmitButton']);
         add_action('elementor/editor/after_enqueue_scripts', [$this, 'enqueueEditorPreview']);
         add_action('elementor_pro/forms/validation', [$this, 'validate'], self::VALIDATION_PRIORITY, 2);
@@ -82,6 +83,31 @@ final class ElementorPro implements Integration
         }
 
         return $item;
+    }
+
+    /**
+     * Elementor caches the HTML of a form widget and replays it without
+     * running the field's renderer: the widget's scripts would be missing from
+     * the second page view on. A form holding the field is rendered each time.
+     *
+     * @param  mixed  $dynamic
+     * @param  mixed  $element  The element's stored data.
+     * @return mixed
+     */
+    public function renderOnEveryRequest($dynamic, $element = [])
+    {
+        if ($dynamic || ! is_array($element) || ($element['widgetType'] ?? '') !== 'form') {
+            return $dynamic;
+        }
+
+        $fields = $element['settings']['form_fields'] ?? [];
+        foreach (is_array($fields) ? $fields : [] as $field) {
+            if (is_array($field) && ($field['field_type'] ?? '') === self::FIELD_TYPE) {
+                return true;
+            }
+        }
+
+        return $dynamic;
     }
 
     public function render(mixed $item = []): void

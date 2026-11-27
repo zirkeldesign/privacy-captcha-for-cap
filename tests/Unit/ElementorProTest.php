@@ -116,6 +116,7 @@ it('registers the field type, renderer and validation hooks', function (): void 
         'elementor_pro/forms/field_types',
         'elementor_pro/forms/render/item',
         'elementor_pro/forms/render_field/cap_captcha',
+        'elementor/element/is_dynamic_content',
         'elementor/widget/render_content',
         'elementor_pro/forms/validation',
         'elementor_pro/forms/new_record',
@@ -220,6 +221,17 @@ it('fires the fail-open action only for a submission that passed on an unreachab
 
     expect($handler->errors)->toBe([])
         ->and($GLOBALS['__cap_actions']['cap_captcha_fail_open_pass'])->toBe([['elementor_pro', ['form_id' => 'abc123']]]);
+});
+
+it('keeps a form holding the field out of Elementor\'s element cache, and only that', function (): void {
+    $integration = capElementor();
+    $form = static fn (string $type): array => ['widgetType' => 'form', 'settings' => ['form_fields' => [['field_type' => $type]]]];
+
+    expect($integration->renderOnEveryRequest(false, $form(ElementorPro::FIELD_TYPE)))->toBeTrue()
+        ->and($integration->renderOnEveryRequest(false, $form('text')))->toBeFalse()
+        ->and($integration->renderOnEveryRequest(false, ['widgetType' => 'heading', 'settings' => []]))->toBeFalse()
+        ->and($integration->renderOnEveryRequest(true, $form('text')))->toBeTrue()
+        ->and($integration->renderOnEveryRequest(false, null))->toBeFalse();
 });
 
 it('renders the inline widget with its error box, and nothing when switched off', function (): void {
