@@ -20,6 +20,8 @@ final class ElementorAtomicForm implements Integration
 {
     private const AJAX_ACTION = 'elementor_pro_atomic_forms_send_form';
 
+    private bool $enqueued = false;
+
     public function __construct(
         private readonly Settings $settings,
         private readonly Enqueuer $enqueuer,
@@ -65,10 +67,12 @@ final class ElementorAtomicForm implements Integration
     /** Elementor renders the element on every request: it is not held in the element cache. */
     public function enqueue(): void
     {
-        if (! $this->solvesInBackground()) {
+        // Once per page, however many forms it holds: the inline configuration would repeat.
+        if ($this->enqueued || ! $this->solvesInBackground()) {
             return;
         }
 
+        $this->enqueued = true;
         $this->enqueuer->enqueueCore();
         wp_enqueue_script('cap-captcha-elementor-atomic', CAP_CAPTCHA_URL.'assets/js/elementor-atomic-forms.js', [], CAP_CAPTCHA_VERSION, ['in_footer' => true]);
 

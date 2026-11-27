@@ -50,6 +50,9 @@ it('sits in front of Elementor on both ajax actions', function (): void {
     foreach (['wp_ajax_elementor_pro_atomic_forms_send_form', 'wp_ajax_nopriv_elementor_pro_atomic_forms_send_form'] as $hook) {
         expect($GLOBALS['__cap_filters'][$hook][0]['priority'] ?? null)->toBe(1);
     }
+
+    // Without the render hook no script loads, and every form would be refused.
+    expect($GLOBALS['__cap_filters'])->toHaveKey('elementor/frontend/e-form/before_render');
 });
 
 // The smallest request Elementor accepts names a post, a form and one field. None of them is read here.
@@ -111,4 +114,21 @@ it('loads nothing while the switch is off, and nothing for a site key that wants
     // No background solve is possible with such a key: the form stays closed instead of unprotected.
     expect($GLOBALS['__cap_scripts'])->toBe([])
         ->and(capAtomicVerdict($integration))->toStartWith('wp_send_json_error: ');
+});
+
+it('prints its configuration once on a page with several atomic forms', function (): void {
+    $calls = 0;
+    add_filter('cap_captcha_force_inline', function (bool $forced) use (&$calls): bool {
+        $calls++;
+
+        return $forced;
+    });
+    $integration = capAtomic();
+    $integration->enqueue();
+    $afterFirst = $calls;
+    $integration->enqueue();
+
+    // The second form returns before anything is looked up or printed again.
+    expect($afterFirst)->toBeGreaterThan(0)
+        ->and($calls)->toBe($afterFirst);
 });
