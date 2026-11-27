@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.9.2] - 2026-12-08
+
+### Changed
+
+- Tested with WordPress 7.2. Verified against 7.2-RC3: Pint, PHPStan, 351 unit tests, `build:check` for the vendored Cap assets, Plugin Check on the built zip (0 errors, 0 warnings), and the integration suite on a 7.2-RC3 fixture with Gravity Forms 3.2.1 (12 passed; the 40 skipped need plugins that fixture does not carry, CI runs them). No code changes.
+
 ## [1.9.1] - 2026-11-26
 
 ### Security

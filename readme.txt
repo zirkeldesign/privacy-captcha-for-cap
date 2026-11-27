@@ -2,9 +2,9 @@
 Contributors: zirkeldesign, d.sturm
 Tags: captcha, spam, proof-of-work, comments, woocommerce
 Requires at least: 6.5
-Tested up to: 7.1
+Tested up to: 7.2
 Requires PHP: 8.3
-Stable tag: 1.9.1
+Stable tag: 1.9.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -142,6 +142,9 @@ Please open an issue on [GitHub](https://github.com/zirkeldesign/privacy-captcha
 4. Each form you can protect has its own switch. Integrations for plugins that are not active are shown but cannot be switched on.
 
 == Changelog ==
+
+= 1.9.2 =
+* Improved: tested and confirmed compatible with WordPress 7.2.
 
 = 1.9.1 =
 * Security: several ways to send a protected form or order without solving the CAPTCHA are closed. Affected were shops with checkout protection on (orders through the Checkout block, through express buttons such as Apple Pay and Google Pay, and payments for an order that already exists), multisite networks with the Registration switch on, and sites that protect a Gravity Forms form while the Gravity Forms REST API or Web API is switched on. Sites that use none of these were not affected. Found in a review of 1.9.0.
