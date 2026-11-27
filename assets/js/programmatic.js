@@ -42,7 +42,7 @@
         // Fluent Forms and wpDiscuz fields belong to their own scripts, which
         // need one single-use token per form and show their own error.
         function isOwned(field) {
-            return !field.closest('.cap-captcha--fluent, .cap-captcha--wpdiscuz');
+            return !field.closest('.cap-captcha--fluent, .cap-captcha--wpdiscuz, .cap-captcha--elementor');
         }
 
         function ownedFields() {
