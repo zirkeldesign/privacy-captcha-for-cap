@@ -147,7 +147,8 @@ Please open an issue on [GitHub](https://github.com/zirkeldesign/privacy-captcha
 
 = 1.10.0 =
 * Added: protection for WPForms. Protect every WPForms form, or choose per form in the form builder under Settings → Spam Protection and Security. Off until you switch it on. Thanks to @D3strukt0r.
-* Added: protection for Elementor Pro forms. Add the "Privacy CAPTCHA for Cap" field to each Form widget you want to protect. Off until you switch it on. The atomic form element of Elementor 4 is not covered yet.
+* Added: protection for Elementor Pro forms. Add the "Privacy CAPTCHA for Cap" field to each Form widget you want to protect. Off until you switch it on.
+* Added: protection for the atomic form of Elementor 4 (Elementor 4.4 or later with Elementor Pro). One switch protects every atomic form; no widget is shown, the check runs in the background when the form is sent. Off until you switch it on.
 * Fixed: on block themes, a form that is only shown in the footer of the page, such as a form in a popup, showed the CAPTCHA without it ever starting.
 * Improved: tested and confirmed compatible with WordPress 7.2.
 

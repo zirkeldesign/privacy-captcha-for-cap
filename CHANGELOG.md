@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Tested with WordPress 7.2. Verified against 7.2-RC3: Pint, PHPStan, 433 unit tests, 64 JavaScript tests, `build:check` for the vendored Cap assets, Plugin Check on the built zip (0 errors, 0 warnings), and the real-plugin suites for Fluent Forms 6.2.17, wpDiscuz 7.6.67, Ultimate Member 2.14.2 and WPForms Lite 2.0.5.2 on a 7.2-RC3 fixture. Not run against 7.2-RC3: the Gravity Forms suite, Elementor Pro, the WooCommerce surfaces and a browser pass over the surfaces in `AGENTS.md`; those are due against the final 7.2 before the tag.
+- Tested with WordPress 7.2. Verified against 7.2-RC3: Pint, PHPStan, 443 unit tests, 68 JavaScript tests, `build:check` for the vendored Cap assets, Plugin Check on the built zip (0 errors, 0 warnings), and the real-plugin suites for Fluent Forms 6.2.17, wpDiscuz 7.6.67, Ultimate Member 2.14.2 and WPForms Lite 2.0.5.2 on a 7.2-RC3 fixture. Not run against 7.2-RC3: the Gravity Forms suite, Elementor Pro, the WooCommerce surfaces and a browser pass over the surfaces in `AGENTS.md`; those are due against the final 7.2 before the tag.
 
 ## [1.9.1] - 2026-11-26
 
