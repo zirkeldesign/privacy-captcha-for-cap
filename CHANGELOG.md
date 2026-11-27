@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-12-08
+
 ### Added
 
 - WPForms integration (`wpforms` context, off by default, listed with the form plugins). Each form gets a *Protect this form* select in the form builder under Settings → Spam Protection and Security: *Default*, *Always* or *Never*, with *Default* following the new "Automatically protect every WPForms form" option, which is off by default and kept while WPForms is inactive. The widget renders just above the submit button (`wpforms_display_submit_before`), with its own id per rendered form, so two forms on a page, or the same form twice, each get their own widget and token. The token is verified on `wpforms_process` at priority 5: after WPForms' field validation and its own spam checks, before its payment handlers at 10. A submission WPForms already refused is not sent to Cap, so its token stays valid for the corrected try; a failed check is shown above the submit button. The AJAX error response says when the token was kept (`cap_captcha_kept`); after any other failed AJAX submit, and after a transport error, the widget is reset, or in programmatic mode a new token is solved, and in that mode a submit is held until a usable token is there. A visible widget is left to the visitor: a form sent without it is refused by the server. Once the visitor solves it, the script removes the CAPTCHA error of the refused attempt. On a form with Stripe payments, the second request Stripe sends after a 3-D Secure confirmation is accepted once with the token the first request spent, so a buyer who was charged is not refused. The pass for that exists only for a token Cap confirmed and only while Stripe has ended the first request for the confirmation; after an ordinary submission it is removed, so one token is not good for two submissions. In floating mode WPForms' own submit button becomes the trigger, wired on the server. Submissions that only passed through fail-open fire `cap_captcha_fail_open_pass` with `form_id` and `entry_id`, and WPForms Pro entries get a `cap_captcha_fail_open` entry meta row. AMP pages render no widget, and a protected form submitted from one is refused. Tested with WPForms Lite; Pro and its add-ons are untested.
@@ -13,6 +15,10 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - A widget rendered after the head of a block theme never started. Block themes print script modules in the head, so a form that is only rendered in the footer, such as an Elementor form inside a popup, enqueued the widget module too late: the element was on the page without its script. `Asset/Enqueuer` now prints the enqueued modules again on `wp_footer` in that case, and likewise when a widget is first rendered inside the footer of a classic theme, where WordPress has printed its modules by then. Reproduced and tested with a popup on a block theme; with Elementor popups on a classic theme the widget loaded without the change. Found with the Elementor Pro integration; it applies to every integration whose form a theme or plugin renders in the footer.
+
+### Changed
+
+- Tested with WordPress 7.2. Verified against 7.2-RC3: Pint, PHPStan, 443 unit tests, 68 JavaScript tests, `build:check` for the vendored Cap assets, Plugin Check on the built zip (0 errors, 0 warnings), and the real-plugin suites for Fluent Forms 6.2.17, wpDiscuz 7.6.67, Ultimate Member 2.14.2 and WPForms Lite 2.0.5.2 on a 7.2-RC3 fixture. Not run against 7.2-RC3: the Gravity Forms suite, Elementor Pro, the WooCommerce surfaces and a browser pass over the surfaces in `AGENTS.md`; those are due against the final 7.2 before the tag.
 
 ## [1.9.1] - 2026-11-26
 
