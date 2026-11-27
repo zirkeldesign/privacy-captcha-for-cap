@@ -245,6 +245,9 @@ jobs:
           ini-values: memory_limit=512M
           coverage: none
 
+      - name: Make sure WP-CLI is there
+        run: ./scripts/ci-ensure-wp-cli.sh
+
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
 
