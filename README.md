@@ -1,6 +1,6 @@
 # Privacy CAPTCHA for Cap
 
-WordPress plugin that integrates the self-hosted [Cap](https://trycap.dev/) proof-of-work CAPTCHA into WordPress comments, login, registration, WooCommerce, Gravity Forms, Contact Form 7, Fluent Forms, wpDiscuz, and Ultimate Member — with server-side verification.
+WordPress plugin that integrates the self-hosted [Cap](https://trycap.dev/) proof-of-work CAPTCHA into WordPress comments, login, registration, WooCommerce, Gravity Forms, Contact Form 7, Fluent Forms, wpDiscuz, Ultimate Member, and Elementor Pro — with server-side verification.
 
 ## Requirements
 
@@ -50,6 +50,7 @@ Each surface is an independent on/off toggle in **Settings → Privacy CAPTCHA f
 | `fluent_forms` | Fluent Forms field |
 | `wpdiscuz` | wpDiscuz comment and reply forms |
 | `ultimate_member` | Ultimate Member login, registration and password reset forms |
+| `elementor_pro` | Elementor Pro form widget field |
 | `comments` | WordPress comment form |
 | `login` | wp-login.php / `login_form` |
 | `registration` | WordPress registration |
@@ -68,6 +69,7 @@ Beyond the on/off surface toggle, form placement controls let you keep a CAPTCHA
 - **Fluent Forms** — enable the integration, then add one "Privacy CAPTCHA for Cap" field from Advanced Fields to each regular form you want to protect. Forms without the field are not protected. On multi-step forms place the field on the final step, and do not hide it with conditional logic. Conversational forms are not supported. Failed AJAX submissions reset the widget or start a new programmatic challenge.
 - **wpDiscuz**: enable the integration; the main comment form and every reply form are protected. wpDiscuz posts comments by AJAX, so the widget is reset (or a new programmatic token solved) after each post. Direct posts to `wp-comments-post.php` on posts that use a wpDiscuz form are checked as well. wpDiscuz' inline feedback forms are not covered.
 - **Ultimate Member**: enable the integration; every Ultimate Member login, registration and password reset form is protected, with one switch for all three. In floating mode the form's own submit button opens the check, except on the password reset form, whose button is printed by the template and keeps a separate one. Profile and account forms are not covered. The core Login and Registration switches do not apply to Ultimate Member forms.
+- **Elementor Pro**: enable the integration, then add the "Privacy CAPTCHA for Cap" field to each form widget you want to protect. Forms without the field are not protected, and that holds for every published copy of a form: a saved template that still holds the form without the field has to get the field too. Submissions addressed to a revision, a draft or a trashed copy of the page are refused for visitors; that goes for every Form widget once the integration is on, so a form in an unpublished template embedded with the `[elementor-template]` shortcode stops working for them. The atomic form element of Elementor 4 is not covered, only the Form widget. The token is checked after Elementor's own field validation, so a form with a field error keeps it, and it is renewed after every attempt that was sent. In floating mode the form's own submit button opens the check. Tested by hand against Elementor Pro 3.18, 3.35 and 4.2; there is no real-plugin suite, because Elementor Pro cannot be installed in public CI.
 
 For maintenance, hook contracts, test setup, and version updates, see the [Fluent Forms integration guide](docs/fluent-forms-integration.md).
 
@@ -133,7 +135,7 @@ Setting it on `:root` does not reach Gravity Forms forms, because the presets si
 | Command | What it does |
 | --- | --- |
 | `composer test` | Run Pest unit tests (no WordPress needed) |
-| `bun run test:js` | Node tests for the programmatic, Fluent Forms and wpDiscuz scripts |
+| `bun run test:js` | Node tests for the programmatic, Fluent Forms, wpDiscuz and Elementor Pro scripts |
 | `composer test:integration:setup` | Provision a disposable WordPress fixture for integration tests |
 | `composer test:integration` | Run the integration suite against installed form plugins |
 | `composer phpstan` | Static analysis (level 6) |

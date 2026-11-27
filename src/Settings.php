@@ -43,6 +43,7 @@ class Settings
         'fluent_forms',
         'wpdiscuz',
         'ultimate_member',
+        'elementor_pro',
         'comments',
         'login',
         'registration',
@@ -571,7 +572,7 @@ class Settings
             [
                 'label' => __('Form plugins', 'privacy-captcha-for-cap'),
                 'description' => __('Protect form-builder plugin submissions.', 'privacy-captcha-for-cap'),
-                'items' => array_intersect_key($all, array_flip(['gravity_forms', 'contact_form_7', 'fluent_forms', 'wpdiscuz', 'ultimate_member'])),
+                'items' => array_intersect_key($all, array_flip(['gravity_forms', 'contact_form_7', 'fluent_forms', 'wpdiscuz', 'ultimate_member', 'elementor_pro'])),
             ],
             [
                 'label' => __('WooCommerce', 'privacy-captcha-for-cap'),
@@ -613,6 +614,11 @@ class Settings
                 'label' => __('Ultimate Member', 'privacy-captcha-for-cap'),
                 'description' => __('Protects the Ultimate Member login, registration and password reset forms.', 'privacy-captcha-for-cap'),
                 'available' => defined('UM_VERSION'),
+            ],
+            'elementor_pro' => [
+                'label' => __('Elementor Pro', 'privacy-captcha-for-cap'),
+                'description' => __('Adds a "Privacy CAPTCHA for Cap" field to the Elementor Pro form widget.', 'privacy-captcha-for-cap'),
+                'available' => defined('ELEMENTOR_PRO_VERSION'),
             ],
             'comments' => [
                 'label' => __('Comments', 'privacy-captcha-for-cap'),
@@ -1202,6 +1208,7 @@ class Settings
                 'fluent_forms' => false,
                 'wpdiscuz' => false,
                 'ultimate_member' => false,
+                'elementor_pro' => false,
                 'comments' => false,
                 'login' => false,
                 'registration' => false,
