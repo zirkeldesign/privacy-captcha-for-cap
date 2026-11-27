@@ -113,20 +113,21 @@ final class Enqueuer
     }
 
     /**
-     * A block theme prints script modules in the head. A widget rendered after
-     * that, such as a form in a popup printed in the footer, enqueues too late
-     * and would stay a dead element: print the modules again in the footer.
-     * A module URL the head already loaded is not run a second time.
+     * WordPress prints script modules once: in the head on a block theme, at
+     * `wp_footer` priority 10 on a classic one. A widget rendered after that,
+     * such as a form in a popup that is printed in the footer, enqueues too
+     * late and would stay a dead element: print the modules again further
+     * down the footer. From WordPress 6.9 on that pass prints only what is
+     * missing; before, a module is printed twice and still runs once.
      */
     private function printModulesLate(): void
     {
-        if ($this->latePrintHooked
-            || ! function_exists('wp_is_block_theme')
-            || ! function_exists('wp_script_modules')
-            || ! wp_is_block_theme()
-            || did_action('wp_head') === 0
-            || doing_action('wp_head')
-        ) {
+        if ($this->latePrintHooked || ! function_exists('wp_is_block_theme') || ! function_exists('wp_script_modules')) {
+            return;
+        }
+
+        $afterHead = wp_is_block_theme() && did_action('wp_head') > 0 && ! doing_action('wp_head');
+        if (! $afterHead && ! doing_action('wp_footer')) {
             return;
         }
 

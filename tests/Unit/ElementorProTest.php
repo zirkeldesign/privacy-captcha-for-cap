@@ -121,6 +121,7 @@ it('registers the field type, renderer and validation hooks', function (): void 
     expect($GLOBALS['__cap_filters'])->toHaveKeys([
         'elementor_pro/forms/field_types',
         'elementor_pro/forms/render/item',
+        'elementor_pro/forms/validation/skip_all_strip_types',
         'elementor_pro/forms/render_field/cap_captcha',
         'elementor/element/is_dynamic_content',
         'elementor/widget/render_content',
@@ -129,14 +130,13 @@ it('registers the field type, renderer and validation hooks', function (): void 
     ]);
 });
 
-it('adds the field type and strips label and required from its item only', function (): void {
+it('adds the field type, hides the label of its item only and joins the types Elementor strips', function (): void {
     $integration = capElementor();
 
     expect($integration->addFieldType(['text' => 'Text']))->toHaveKeys(['text', ElementorPro::FIELD_TYPE])
-        ->and($integration->prepareItem(['field_type' => ElementorPro::FIELD_TYPE, 'field_label' => 'x', 'required' => true]))
-        ->toMatchArray(['field_label' => false, 'required' => false])
-        ->and($integration->prepareItem(['field_type' => 'text', 'field_label' => 'x', 'required' => true]))
-        ->toMatchArray(['field_label' => 'x', 'required' => true]);
+        ->and($integration->prepareItem(['field_type' => ElementorPro::FIELD_TYPE, 'field_label' => 'x']))->toMatchArray(['field_label' => false])
+        ->and($integration->prepareItem(['field_type' => 'text', 'field_label' => 'x']))->toMatchArray(['field_label' => 'x'])
+        ->and($integration->addStripType(['recaptcha']))->toBe(['recaptcha', ElementorPro::FIELD_TYPE]);
 });
 
 it('refuses the smallest submission Elementor accepts when it carries no token', function (): void {
@@ -227,6 +227,58 @@ it('does not restore success over a validator that failed the submission with a 
 
     expect($handler->errors)->toBe([])
         ->and($handler->is_success)->toBeFalse();
+});
+
+/*
+ * The editor offers "Required" for the field, and Elementor then fails every
+ * submission for it, because the field never posts a value of its own.
+ */
+it('does not leave a form unsendable when the field is marked required and protection is switched off', function (): void {
+    $handler = capElementorHandler(['captcha' => 'This field is required.']);
+    capElementor(false)->validate($record = capElementorRecord(), $handler);
+
+    expect($handler->errors)->toBe([])
+        ->and($handler->is_success)->toBeTrue()
+        ->and($record->removed)->toBe(['captcha'])
+        ->and($GLOBALS['__cap_remote_post_count'] ?? 0)->toBe(0);
+});
+
+it('treats a second CAPTCHA field in the form like the first', function (): void {
+    $fields = [
+        ['custom_id' => 'captcha', 'field_type' => ElementorPro::FIELD_TYPE],
+        ['custom_id' => 'captcha_two', 'field_type' => ElementorPro::FIELD_TYPE],
+    ];
+    $refused = capElementorHandler(['captcha_two' => 'This field is required.']);
+    capElementor()->validate(capElementorRecord($fields), $refused);
+
+    $_POST['cap-token'] = 'solved';
+    $passed = capElementorHandler(['captcha_two' => 'This field is required.']);
+    capElementor()->validate($record = capElementorRecord($fields), $passed);
+
+    expect($refused->errors)->toBe(['captcha' => 'CAPTCHA verification failed. Please try again.'])
+        ->and($passed->errors)->toBe([])
+        ->and($passed->is_success)->toBeTrue()
+        ->and($record->removed)->toBe(['captcha', 'captcha_two']);
+});
+
+it('renders a widget for the first CAPTCHA field of a form only', function (): void {
+    $integration = capElementor();
+    $widget = new class
+    {
+        public function get_settings(string $key): mixed
+        {
+            return [['custom_id' => 'one', 'field_type' => ElementorPro::FIELD_TYPE], ['custom_id' => 'two', 'field_type' => ElementorPro::FIELD_TYPE]];
+        }
+    };
+    $render = static function (string $id) use ($integration, $widget): string {
+        ob_start();
+        $integration->render(['custom_id' => $id, 'field_type' => ElementorPro::FIELD_TYPE], 0, $widget);
+
+        return (string) ob_get_clean();
+    };
+
+    expect($render('one'))->toContain('<cap-widget')
+        ->and($render('two'))->toBe('');
 });
 
 it('leaves a form without the field, and a switched-off integration, alone', function (): void {

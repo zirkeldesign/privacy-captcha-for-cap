@@ -42,7 +42,16 @@ it('prints the modules in the footer when a block theme has already printed its 
         ->and($GLOBALS['__cap_modules_printed'])->toBe(1);
 });
 
-it('leaves printing to WordPress when the head is still to come', function (array $state): void {
+it('prints the modules again on a classic theme when the widget is rendered inside the footer', function (): void {
+    $GLOBALS['__cap_block_theme'] = false;
+    $GLOBALS['__cap_did_actions'] = [];
+    $GLOBALS['__cap_doing_actions'] = ['wp_footer'];
+    (new Enqueuer(new Settings))->enqueueForMode(Settings::MODE_INLINE);
+
+    expect(capLateFooterHooks())->toHaveCount(1);
+});
+
+it('leaves printing to WordPress when its own pass is still to come', function (array $state): void {
     foreach ($state as $key => $value) {
         $GLOBALS[$key] = $value;
     }
@@ -50,7 +59,7 @@ it('leaves printing to WordPress when the head is still to come', function (arra
 
     expect(capLateFooterHooks())->toBe([]);
 })->with([
-    'a classic theme prints modules in the footer itself' => [['__cap_block_theme' => false]],
+    'a classic theme, before its footer' => [['__cap_block_theme' => false]],
     'the head has not run yet' => [['__cap_did_actions' => []]],
     'enqueued from inside the head' => [['__cap_doing_actions' => ['wp_head']]],
 ]);

@@ -50,7 +50,8 @@ final class ElementorPro implements Integration
     {
         add_filter('elementor_pro/forms/field_types', [$this, 'addFieldType']);
         add_filter('elementor_pro/forms/render/item', [$this, 'prepareItem']);
-        add_action('elementor_pro/forms/render_field/'.self::FIELD_TYPE, [$this, 'render'], 10, 1);
+        add_filter('elementor_pro/forms/validation/skip_all_strip_types', [$this, 'addStripType']);
+        add_action('elementor_pro/forms/render_field/'.self::FIELD_TYPE, [$this, 'render'], 10, 3);
         add_filter('elementor/element/is_dynamic_content', [$this, 'renderOnEveryRequest'], 10, 2);
         add_filter('elementor/widget/render_content', [$this, 'wireSubmitButton']);
         add_action('elementor/editor/after_enqueue_scripts', [$this, 'enqueueEditorPreview']);
@@ -72,7 +73,7 @@ final class ElementorPro implements Integration
     }
 
     /**
-     * The widget carries its own label, and "required" means nothing for it.
+     * The widget carries its own label.
      *
      * @param  mixed  $item
      * @return mixed
@@ -81,10 +82,21 @@ final class ElementorPro implements Integration
     {
         if (is_array($item) && ($item['field_type'] ?? '') === self::FIELD_TYPE) {
             $item['field_label'] = false;
-            $item['required'] = false;
         }
 
         return $item;
+    }
+
+    /**
+     * With `elementor_pro/forms/validation/skip_all` Elementor drops its own
+     * CAPTCHA fields from the record; this one belongs with them.
+     *
+     * @param  mixed  $types
+     * @return mixed
+     */
+    public function addStripType($types)
+    {
+        return is_array($types) ? [...$types, self::FIELD_TYPE] : $types;
     }
 
     /**
@@ -112,9 +124,17 @@ final class ElementorPro implements Integration
         return $dynamic;
     }
 
-    public function render(mixed $item = []): void
+    public function render(mixed $item = [], mixed $itemIndex = 0, mixed $widget = null): void
     {
         if (! $this->settings->isProtected($this->id())) {
+            return;
+        }
+
+        // Two widgets in one form post two token fields, and PHP keeps the empty one.
+        $fieldId = is_array($item) && is_scalar($item['custom_id'] ?? null) ? (string) $item['custom_id'] : '';
+        $settings = [$widget, 'get_settings'];
+        $all = is_callable($settings) ? self::captchaFieldIds($settings('form_fields')) : [];
+        if ($all !== [] && $all[0] !== $fieldId) {
             return;
         }
 
@@ -153,11 +173,10 @@ final class ElementorPro implements Integration
             $widget = $this->renderer->renderForMode($widgetId, $mode);
         }
 
-        // Elementor's script puts a refused field's message next to the element with this id.
-        $fieldId = is_array($item) && is_scalar($item['custom_id'] ?? null) ? (string) $item['custom_id'] : '';
+        // Elementor's script puts a refused field's message next to the element with the field's id.
         $error = esc_html__('CAPTCHA could not be started. Please try again.', 'privacy-captcha-for-cap');
         // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Renderer escapes the widget attributes and text.
-        echo '<div class="elementor-field cap-captcha--elementor" id="form-field-'.esc_attr($fieldId).'">'.$widget.'<div class="cap-captcha-elementor-error cap-captcha-error elementor-message elementor-message-danger" role="alert" hidden>'.$error.'</div></div>';
+        echo '<div class="elementor-field cap-captcha--elementor" id="form-field-'.esc_attr($fieldId).'">'.$widget.'<div class="cap-captcha-elementor-error cap-captcha-error" role="alert" hidden>'.$error.'</div></div>';
     }
 
     /**
@@ -222,32 +241,33 @@ final class ElementorPro implements Integration
     public function validate(mixed $record = null, mixed $ajaxHandler = null): void
     {
         $this->lastFailOpen = false;
-        if (! is_object($record) || ! is_object($ajaxHandler) || ! $this->settings->isProtected($this->id())) {
+        if (! is_object($record) || ! is_object($ajaxHandler)) {
             return;
         }
 
-        if ($this->addressesHiddenCopy($record)) {
+        $protected = $this->settings->isProtected($this->id());
+        if ($protected && $this->addressesHiddenCopy($record)) {
             $ajaxHandler->add_error(self::FIELD_TYPE, __('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'));
 
             return;
         }
 
-        $fieldId = $this->fieldId($record);
-        if ($fieldId === null) {
+        $fieldIds = $this->fieldIds($record);
+        if ($fieldIds === []) {
             return;
         }
 
         // Elementor's "required" check knows nothing about the token: the widget's verdict replaces it.
         $errors = is_array($ajaxHandler->errors ?? null) ? $ajaxHandler->errors : [];
-        $flaggedByElementor = array_key_exists($fieldId, $errors);
-        unset($errors[$fieldId]);
+        $flaggedByElementor = array_intersect_key($errors, array_flip($fieldIds)) !== [];
+        $errors = array_diff_key($errors, array_flip($fieldIds));
         $ajaxHandler->errors = $errors;
         if ($errors !== []) {
             return;
         }
 
-        if (! $this->verifier->verifyCurrentRequest($this->id())) {
-            $ajaxHandler->add_error($fieldId, __('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'));
+        if ($protected && ! $this->verifier->verifyCurrentRequest($this->id())) {
+            $ajaxHandler->add_error($fieldIds[0], __('CAPTCHA verification failed. Please try again.', 'privacy-captcha-for-cap'));
 
             return;
         }
@@ -258,9 +278,11 @@ final class ElementorPro implements Integration
             $ajaxHandler->set_success(true);
         }
 
-        $this->lastFailOpen = $this->verifier->wasLastFailOpen();
-        // Keeps the field out of notification mails and stored submissions.
-        $record->remove_field($fieldId);
+        $this->lastFailOpen = $protected && $this->verifier->wasLastFailOpen();
+        // Keeps the fields out of notification mails and stored submissions, also while protection is switched off.
+        foreach ($fieldIds as $fieldId) {
+            $record->remove_field($fieldId);
+        }
     }
 
     public function annotateFailOpen(mixed $record = null): void
@@ -297,17 +319,28 @@ final class ElementorPro implements Integration
         return $post->post_status !== 'publish' && ! current_user_can('read_post', $postId);
     }
 
-    /** The id of the CAPTCHA field in the stored form, or null when the form has none. */
-    private function fieldId(object $record): ?string
+    /**
+     * The ids of the CAPTCHA fields in the stored form. One is the rule; a
+     * second one must not leave the form unsendable.
+     *
+     * @return array<int, string>
+     */
+    private function fieldIds(object $record): array
     {
-        $fields = $record->get_form_settings('form_fields');
+        return self::captchaFieldIds($record->get_form_settings('form_fields'));
+    }
+
+    /** @return array<int, string> */
+    private static function captchaFieldIds(mixed $fields): array
+    {
+        $ids = [];
         foreach (is_array($fields) ? $fields : [] as $field) {
             if (is_array($field) && ($field['field_type'] ?? '') === self::FIELD_TYPE) {
-                return (string) ($field['custom_id'] ?? '');
+                $ids[] = (string) ($field['custom_id'] ?? '');
             }
         }
 
-        return null;
+        return $ids;
     }
 
     /**
