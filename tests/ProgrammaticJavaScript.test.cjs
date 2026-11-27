@@ -9,8 +9,9 @@ const source = fs.readFileSync(path.join(__dirname, '../assets/js/programmatic.j
 const ERROR_MESSAGE = 'solve failed';
 
 // The shared programmatic helper solves once and writes that token into every
-// cap-token field on the page. Fluent Forms fields are owned by
-// fluent-forms.js and wpdiscuz.js, which need one single-use token per form.
+// cap-token field on the page. Fluent Forms, wpDiscuz and WPForms fields are
+// owned by fluent-forms.js, wpdiscuz.js and wpforms.js, which need one
+// single-use token per form.
 //
 // `solves` lists what each successive Cap solve answers with: a token, or
 // null for a rejection. Once the list is used up, solves return 'shared-token'.
@@ -56,10 +57,11 @@ function fixture(solves = []) {
     const plain = new Form(null);
     const fluent = new Form('.cap-captcha--fluent');
     const wpdiscuz = new Form('.cap-captcha--wpdiscuz');
+    const wpforms = new Form('.cap-captcha--wpforms');
     const elementor = new Form('.cap-captcha--elementor');
     const document = {
         readyState: 'complete',
-        querySelectorAll: () => [plain.field, fluent.field, wpdiscuz.field, elementor.field],
+        querySelectorAll: () => [plain.field, fluent.field, wpdiscuz.field, wpforms.field, elementor.field],
         createElement: () => new Message(),
         addEventListener: (name, handler) => { handlers[name] = handler; },
     };
@@ -75,7 +77,7 @@ function fixture(solves = []) {
     };
     vm.runInNewContext(source, { window, document, HTMLFormElement: Form, setTimeout });
 
-    return { plain, fluent, wpdiscuz, elementor, handlers };
+    return { plain, fluent, wpdiscuz, wpforms, elementor, handlers };
 }
 
 function submitOf(form, submitter = null) {
@@ -86,27 +88,32 @@ async function settle() {
     await new Promise((resolve) => setImmediate(resolve));
 }
 
-test('the shared token is written to ordinary forms but not to Fluent Forms or wpDiscuz fields', async () => {
+test('the shared token is written to ordinary forms but not to Fluent Forms, wpDiscuz or WPForms fields', async () => {
     const context = fixture();
     await settle();
     assert.equal(context.plain.field.value, 'shared-token');
     assert.equal(context.fluent.field.value, '');
     assert.equal(context.wpdiscuz.field.value, '');
+    assert.equal(context.wpforms.field.value, '');
     assert.equal(context.elementor.field.value, '');
 });
 
-test('an early submit is held for ordinary forms and left alone for Fluent Forms', async () => {
+test('an early submit is held for ordinary forms and left alone for Fluent Forms and WPForms', async () => {
     const context = fixture();
     const held = submitOf(context.plain);
     const untouched = submitOf(context.fluent);
+    const wpforms = submitOf(context.wpforms);
     context.handlers.submit(held);
     context.handlers.submit(untouched);
+    context.handlers.submit(wpforms);
     await settle();
 
     assert.equal(held.prevented, true);
     assert.equal(context.plain.submissions, 1);
     assert.equal(untouched.prevented, undefined);
     assert.equal(context.fluent.submissions, 0);
+    assert.equal(wpforms.prevented, undefined);
+    assert.equal(context.wpforms.submissions, 0);
 });
 
 test('two clicks while one token is being solved send the form once', async () => {
@@ -135,6 +142,7 @@ test('a failed solve shows the message under ordinary fields only', async () => 
     assert.equal(context.plain.message.hidden, false);
     assert.equal(context.fluent.message, null);
     assert.equal(context.wpdiscuz.message, null);
+    assert.equal(context.wpforms.message, null);
 });
 
 test('a submit is held and not sent while the solve keeps failing', async () => {

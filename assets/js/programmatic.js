@@ -39,10 +39,10 @@
         // Forms whose submit is being held, so a second click sends nothing twice.
         var held = new WeakSet();
 
-        // Fluent Forms and wpDiscuz fields belong to their own scripts, which
-        // need one single-use token per form and show their own error.
+        // Fluent Forms, wpDiscuz and WPForms fields belong to their own scripts,
+        // which need one single-use token per form and show their own error.
         function isOwned(field) {
-            return !field.closest('.cap-captcha--fluent, .cap-captcha--wpdiscuz, .cap-captcha--elementor');
+            return !field.closest('.cap-captcha--fluent, .cap-captcha--wpdiscuz, .cap-captcha--wpforms, .cap-captcha--elementor');
         }
 
         function ownedFields() {

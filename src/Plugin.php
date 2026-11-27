@@ -19,6 +19,7 @@ use ZirkelDesign\CapCaptcha\Integration\Registration;
 use ZirkelDesign\CapCaptcha\Integration\UltimateMember;
 use ZirkelDesign\CapCaptcha\Integration\WooCommerce;
 use ZirkelDesign\CapCaptcha\Integration\WpDiscuz;
+use ZirkelDesign\CapCaptcha\Integration\WpForms;
 use ZirkelDesign\CapCaptcha\Status\StatsClient;
 use ZirkelDesign\CapCaptcha\Status\StoredKeyPolicy;
 use ZirkelDesign\CapCaptcha\Verification\TokenVerifier;
@@ -93,6 +94,7 @@ final class Plugin
         yield new FluentForms($settings, $renderer, $enqueuer, $verifier);
         yield new WpDiscuz($settings, $renderer, $enqueuer, $verifier);
         yield new UltimateMember($settings, $renderer, $enqueuer, $verifier);
+        yield new WpForms($settings, $renderer, $enqueuer, $verifier);
         yield new ElementorPro($settings, $renderer, $enqueuer, $verifier);
         yield new Comments($settings, $renderer, $enqueuer, $verifier);
         yield new Login($settings, $renderer, $enqueuer, $verifier);

@@ -43,6 +43,7 @@ class Settings
         'fluent_forms',
         'wpdiscuz',
         'ultimate_member',
+        'wpforms',
         'elementor_pro',
         'comments',
         'login',
@@ -268,6 +269,10 @@ class Settings
             'integrations' => $integrations,
             'cf7_mode' => $cf7Mode,
             'gf_protect_all' => ! empty($input['gf_protect_all']),
+            // Its options drawer is not rendered while WPForms is inactive, so nothing is posted then.
+            'wpforms_protect_all' => empty($descriptions['wpforms']['available'])
+                ? ! empty($stored['wpforms_protect_all'])
+                : ! empty($input['wpforms_protect_all']),
             'fail_open_overrides' => $failOpenOverrides,
         ];
     }
@@ -572,7 +577,7 @@ class Settings
             [
                 'label' => __('Form plugins', 'privacy-captcha-for-cap'),
                 'description' => __('Protect form-builder plugin submissions.', 'privacy-captcha-for-cap'),
-                'items' => array_intersect_key($all, array_flip(['gravity_forms', 'contact_form_7', 'fluent_forms', 'wpdiscuz', 'ultimate_member', 'elementor_pro'])),
+                'items' => array_intersect_key($all, array_flip(['gravity_forms', 'contact_form_7', 'fluent_forms', 'wpdiscuz', 'ultimate_member', 'wpforms', 'elementor_pro'])),
             ],
             [
                 'label' => __('WooCommerce', 'privacy-captcha-for-cap'),
@@ -614,6 +619,11 @@ class Settings
                 'label' => __('Ultimate Member', 'privacy-captcha-for-cap'),
                 'description' => __('Protects the Ultimate Member login, registration and password reset forms.', 'privacy-captcha-for-cap'),
                 'available' => defined('UM_VERSION'),
+            ],
+            'wpforms' => [
+                'label' => __('WPForms', 'privacy-captcha-for-cap'),
+                'description' => __('Protects every WPForms form, or only those set to “Always” in the form builder.', 'privacy-captcha-for-cap'),
+                'available' => defined('WPFORMS_VERSION'),
             ],
             'elementor_pro' => [
                 'label' => __('Elementor Pro', 'privacy-captcha-for-cap'),
@@ -788,7 +798,7 @@ class Settings
      */
     private function integrationHasOptions(string $id): bool
     {
-        return in_array($id, ['gravity_forms', 'contact_form_7', 'woocommerce'], true);
+        return in_array($id, ['gravity_forms', 'contact_form_7', 'wpforms', 'woocommerce'], true);
     }
 
     /**
@@ -823,6 +833,17 @@ class Settings
                 <?php echo esc_html__('Automatically protect every Gravity Form', 'privacy-captcha-for-cap'); ?>
             </label>
             <p class="description"><?php echo esc_html__('Otherwise add the “Privacy CAPTCHA for Cap” field to a form. Each form can override this under its own settings (Default / Always / Never).', 'privacy-captcha-for-cap'); ?></p>
+            <?php
+            return;
+        }
+
+        if ($id === 'wpforms') {
+            ?>
+            <label>
+                <input type="checkbox" name="<?php echo esc_attr(self::OPTION_KEY); ?>[wpforms_protect_all]" value="1" <?php checked(! empty($v['wpforms_protect_all'])); ?>>
+                <?php echo esc_html__('Automatically protect every WPForms form', 'privacy-captcha-for-cap'); ?>
+            </label>
+            <p class="description"><?php echo esc_html__('Each form can override this in the form builder under Settings → Spam Protection and Security (Default / Always / Never).', 'privacy-captcha-for-cap'); ?></p>
             <?php
             return;
         }
@@ -1092,6 +1113,17 @@ class Settings
         return ! empty($values['gf_protect_all']);
     }
 
+    /**
+     * Whether every WPForms form is protected by default (a form can still
+     * opt out, or opt in while this is off, in the form builder).
+     */
+    public function isWpFormsProtectAll(): bool
+    {
+        $values = $this->getAll();
+
+        return ! empty($values['wpforms_protect_all']);
+    }
+
     public function getWidgetEndpoint(): string
     {
         $base = $this->getEndpointBase();
@@ -1208,6 +1240,7 @@ class Settings
                 'fluent_forms' => false,
                 'wpdiscuz' => false,
                 'ultimate_member' => false,
+                'wpforms' => false,
                 'elementor_pro' => false,
                 'comments' => false,
                 'login' => false,
@@ -1221,6 +1254,7 @@ class Settings
             ],
             'cf7_mode' => self::CF7_AUTOMATIC,
             'gf_protect_all' => false,
+            'wpforms_protect_all' => false,
             'fail_open_overrides' => [],
         ];
     }

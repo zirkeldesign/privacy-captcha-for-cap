@@ -657,6 +657,79 @@ if (! function_exists('add_user_meta')) {
     }
 }
 
+if (! function_exists('get_current_user_id')) {
+    function get_current_user_id(): int
+    {
+        return 0;
+    }
+}
+
+if (! function_exists('wpforms')) {
+    /**
+     * WPForms' accessor. obj() hands out what a test put into
+     * $GLOBALS['__cap_wpforms_objects'], is_pro() reads $GLOBALS['__cap_wpforms_pro'].
+     */
+    function wpforms(): object
+    {
+        return new class
+        {
+            public function obj(string $name): mixed
+            {
+                return $GLOBALS['__cap_wpforms_objects'][$name] ?? null;
+            }
+
+            public function is_pro(): bool
+            {
+                return ! empty($GLOBALS['__cap_wpforms_pro']);
+            }
+        };
+    }
+}
+
+if (! function_exists('wpforms_is_amp')) {
+    function wpforms_is_amp(bool $check_theme_support = true): bool
+    {
+        return ! empty($GLOBALS['__cap_wpforms_amp']);
+    }
+}
+
+if (! function_exists('wpforms_panel_field')) {
+    /**
+     * Records the builder field and renders a bare select, enough to assert on.
+     *
+     * @param  array<string, mixed>  $form_data
+     * @param  array<string, mixed>  $args
+     */
+    function wpforms_panel_field(string $option, string $panel, string $field, array $form_data, string $label, array $args = [], bool $do_echo = true): ?string
+    {
+        $GLOBALS['__cap_wpforms_panel_fields'][] = compact('option', 'panel', 'field', 'label', 'args');
+        $value = $form_data[$panel][$field] ?? ($args['default'] ?? '');
+        $html = sprintf('<select name="%s[%s]" data-value="%s"></select>', $panel, $field, is_string($value) ? $value : '');
+        if (! $do_echo) {
+            return $html;
+        }
+
+        echo $html;
+
+        return null;
+    }
+}
+
+if (! function_exists('wpforms_panel_fields_group')) {
+    /** @param array<string, mixed> $args */
+    function wpforms_panel_fields_group(string $inner, array $args = [], bool $do_echo = true): ?string
+    {
+        $html = '<div class="wpforms-panel-fields-group" data-title="'.($args['title'] ?? '').'">'.$inner.'</div>';
+        if (! $do_echo) {
+            return $html;
+        }
+
+        echo $html;
+
+        return null;
+    }
+}
+
 if (! class_exists('WP_REST_Request')) {
     class WP_REST_Request
     {
