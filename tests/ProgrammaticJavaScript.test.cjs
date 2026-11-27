@@ -58,9 +58,10 @@ function fixture(solves = []) {
     const fluent = new Form('.cap-captcha--fluent');
     const wpdiscuz = new Form('.cap-captcha--wpdiscuz');
     const wpforms = new Form('.cap-captcha--wpforms');
+    const elementor = new Form('.cap-captcha--elementor');
     const document = {
         readyState: 'complete',
-        querySelectorAll: () => [plain.field, fluent.field, wpdiscuz.field, wpforms.field],
+        querySelectorAll: () => [plain.field, fluent.field, wpdiscuz.field, wpforms.field, elementor.field],
         createElement: () => new Message(),
         addEventListener: (name, handler) => { handlers[name] = handler; },
     };
@@ -76,7 +77,7 @@ function fixture(solves = []) {
     };
     vm.runInNewContext(source, { window, document, HTMLFormElement: Form, setTimeout });
 
-    return { plain, fluent, wpdiscuz, wpforms, handlers };
+    return { plain, fluent, wpdiscuz, wpforms, elementor, handlers };
 }
 
 function submitOf(form, submitter = null) {
@@ -94,6 +95,7 @@ test('the shared token is written to ordinary forms but not to Fluent Forms, wpD
     assert.equal(context.fluent.field.value, '');
     assert.equal(context.wpdiscuz.field.value, '');
     assert.equal(context.wpforms.field.value, '');
+    assert.equal(context.elementor.field.value, '');
 });
 
 test('an early submit is held for ordinary forms and left alone for Fluent Forms and WPForms', async () => {
