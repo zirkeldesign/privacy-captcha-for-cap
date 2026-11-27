@@ -238,10 +238,20 @@ it('renders the inline widget with its error box, and nothing when switched off'
     $html = capElementorRender(capElementor());
 
     expect($html)->toContain('cap-captcha--elementor')
+        ->and($html)->toContain('id="form-field-captcha"')
         ->and($html)->toContain('<cap-widget')
         ->and($html)->toContain('cap-captcha-elementor-error')
         ->and(capElementorRender(capElementor(false)))->toBe('');
 });
+
+it('draws a placeholder instead of the widget wherever the editor renders the form', function (string $hook): void {
+    $GLOBALS['__cap_did_actions'] = [$hook => 1];
+    $html = capElementorRender(capElementor());
+    $GLOBALS['__cap_did_actions'] = [];
+
+    expect($html)->toContain('Privacy CAPTCHA for Cap')
+        ->and($html)->not->toContain('<cap-widget');
+})->with(['elementor/editor/init', 'elementor/preview/enqueue_scripts', 'elementor/ajax/register_actions']);
 
 it('turns the form\'s own submit button into the floating trigger', function (): void {
     $integration = capElementor(true, Settings::MODE_FLOATING);

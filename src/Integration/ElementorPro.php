@@ -116,6 +116,13 @@ final class ElementorPro implements Integration
             return;
         }
 
+        if ($this->inEditor()) {
+            // The same box assets/js/elementor-editor.js draws once the editor re-renders the form.
+            echo '<div class="elementor-field" style="padding:12px 16px;border:1px dashed currentColor;border-radius:8px;opacity:.7">'.esc_html__('Privacy CAPTCHA for Cap', 'privacy-captcha-for-cap').'</div>';
+
+            return;
+        }
+
         if (! $this->settings->isConfigured()) {
             echo wp_kses($this->renderer->renderAdminNotice('Elementor Pro'), Renderer::ADMIN_NOTICE_KSES);
 
@@ -144,9 +151,11 @@ final class ElementorPro implements Integration
             $widget = $this->renderer->renderForMode($widgetId, $mode);
         }
 
+        // Elementor's script puts a refused field's message next to the element with this id.
+        $fieldId = is_array($item) && is_scalar($item['custom_id'] ?? null) ? (string) $item['custom_id'] : '';
         $error = esc_html__('CAPTCHA could not be started. Please try again.', 'privacy-captcha-for-cap');
         // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Renderer escapes the widget attributes and text.
-        echo '<div class="elementor-field cap-captcha--elementor">'.$widget.'<div class="cap-captcha-elementor-error cap-captcha-error elementor-message elementor-message-danger" role="alert" hidden>'.$error.'</div></div>';
+        echo '<div class="elementor-field cap-captcha--elementor" id="form-field-'.esc_attr($fieldId).'">'.$widget.'<div class="cap-captcha-elementor-error cap-captcha-error elementor-message elementor-message-danger" role="alert" hidden>'.$error.'</div></div>';
     }
 
     /**
@@ -266,6 +275,17 @@ final class ElementorPro implements Integration
         }
 
         return null;
+    }
+
+    /**
+     * The editor renders a widget on its own page load, in its preview frame
+     * and through its AJAX channel. The widget's scripts run in none of them.
+     */
+    private function inEditor(): bool
+    {
+        return did_action('elementor/editor/init') > 0
+            || did_action('elementor/preview/enqueue_scripts') > 0
+            || did_action('elementor/ajax/register_actions') > 0;
     }
 
     private static function placeholder(string $widgetId): string
