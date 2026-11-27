@@ -17,8 +17,9 @@ msgstr ""
 #. Plugin Name of the plugin
 #: privacy-captcha-for-cap.php
 #: src/Admin/DashboardWidget.php:36
-#: src/Integration/ElementorPro.php:65
-#: src/Integration/ElementorPro.php:176
+#: src/Integration/ElementorPro.php:69
+#: src/Integration/ElementorPro.php:144
+#: src/Integration/ElementorPro.php:233
 #: src/Integration/FluentForms.php:62
 #: src/Integration/FluentForms.php:66
 #: src/Integration/GravityForms.php:119
@@ -63,8 +64,8 @@ msgstr "Ouvrir les réglages"
 msgid "Settings & full status →"
 msgstr "Réglages et état complet →"
 
-#: src/Asset/Enqueuer.php:175
-#: src/Integration/ElementorPro.php:121
+#: src/Asset/Enqueuer.php:206
+#: src/Integration/ElementorPro.php:178
 #: src/Integration/FluentForms.php:124
 #: src/Integration/WpDiscuz.php:85
 msgid "CAPTCHA could not be started. Please try again."
@@ -137,7 +138,8 @@ msgstr "La vérification CAPTCHA a échoué. Revenez en arrière et résolvez le
 msgid "CAPTCHA verification failed"
 msgstr "Échec de la vérification CAPTCHA"
 
-#: src/Integration/ElementorPro.php:207
+#: src/Integration/ElementorPro.php:252
+#: src/Integration/ElementorPro.php:277
 #: src/Integration/FluentForms.php:211
 #: src/Integration/GravityForms/Validator.php:108
 #: src/Integration/Login.php:123
@@ -754,3 +756,7 @@ msgstr ""
 #: src/Settings.php:620
 msgid "Adds a \"Privacy CAPTCHA for Cap\" field to the Elementor Pro form widget."
 msgstr "Ajoute un champ « Privacy CAPTCHA for Cap » au widget Formulaire d’Elementor Pro."
+
+#: src/Integration/ElementorPro.php:256
+msgid "Privacy CAPTCHA for Cap refused this submission: the page or template the form belongs to is not published."
+msgstr "Privacy CAPTCHA for Cap a refusé cet envoi : la page ou le modèle auquel le formulaire appartient n’est pas publié."
